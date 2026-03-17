@@ -138,10 +138,14 @@ class Fluent_Abilities_License_Manager {
 			return new WP_Error( 'no_product_id', __( 'Product ID is required for license activation. Set it in the plugin settings.', 'fluent-abilities' ) );
 		}
 
+		// For network-activated plugins, always use network scope and main site URL.
+		$is_network = self::is_network_license();
+		$site_url   = $is_network ? network_site_url() : home_url();
+
 		$response = self::remote_request( 'activate_license', array(
 			'license_key' => $license_key,
 			'item_id'     => $product_id,
-			'site_url'    => home_url(),
+			'site_url'    => $site_url,
 		) );
 
 		if ( is_wp_error( $response ) ) {
@@ -157,13 +161,9 @@ class Fluent_Abilities_License_Manager {
 		$response_product = (int) ( $response['product_id'] ?? $product_id );
 		self::update_opt( self::OPT_PRODUCT_ID, $response_product );
 
-		// Detect license scope for multisite.
-		$is_network = is_multisite() && is_network_admin();
-
+		// Persist network scope flag.
 		if ( $is_network ) {
 			update_site_option( 'wkdevo_abilities_fluent_license_scope', 'network' );
-		} else {
-			delete_site_option( 'wkdevo_abilities_fluent_license_scope' );
 		}
 
 		self::update_opt( self::OPT_LICENSE_KEY, $license_key );
@@ -267,6 +267,10 @@ class Fluent_Abilities_License_Manager {
 		if ( ! is_multisite() ) {
 			return false;
 		}
+		// If the plugin is network-activated, always use network scope.
+		if ( is_plugin_active_for_network( 'abilities-for-fluent-plugins/abilities-for-fluent-plugins.php' ) ) {
+			return true;
+		}
 		return 'network' === get_site_option( 'wkdevo_abilities_fluent_license_scope', '' );
 	}
 
@@ -324,7 +328,7 @@ class Fluent_Abilities_License_Manager {
 
 		$payload = array(
 			'item_id'  => $product_id,
-			'site_url' => home_url(),
+			'site_url' => self::is_network_license() ? network_site_url() : home_url(),
 		);
 
 		if ( ! empty( $activ_hash ) ) {
