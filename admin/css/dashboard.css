@@ -1,0 +1,533 @@
+/**
+ * Abilities for Fluent Plugins — Dashboard Styles
+ * Accent: Fluent green (#2e7d32)
+ */
+
+/* ── Subtitle & Independence Notice ── */
+.fluent-abilities-subtitle {
+	font-size: 13px;
+	color: #646970;
+	margin: 0 0 16px;
+}
+
+.fluent-independence-notice {
+	background: #e8f5e9;
+	border: 1px solid #a5d6a7;
+	border-left: 4px solid #2e7d32;
+	border-radius: 4px;
+	padding: 10px 16px;
+	margin: 0 0 20px;
+	font-size: 13px;
+	color: #1b5e20;
+}
+
+/* ── Tabs ── */
+.fluent-abilities-tabs {
+	margin: 0 0 20px;
+}
+
+/* ── Stats ── */
+.fluent-stats-row {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+	gap: 12px;
+	margin: 0 0 20px;
+}
+
+.fluent-stat-card {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 14px 18px;
+	text-align: center;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+}
+
+.fluent-stat-card .val {
+	font-size: 26px;
+	font-weight: 600;
+	color: #2e7d32;
+	line-height: 1.2;
+}
+
+.fluent-stat-card .lbl {
+	font-size: 11px;
+	color: #646970;
+	text-transform: uppercase;
+	letter-spacing: .5px;
+	margin-top: 3px;
+}
+
+.fluent-stat-card.green .val { color: #00a32a; }
+.fluent-stat-card.blue .val { color: #2271b1; }
+
+/* ── Filter Bar ── */
+.fluent-filter-bar {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px 4px 0 0;
+	padding: 12px 16px;
+	border-bottom: none;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+}
+
+.fluent-filter-bar form {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px 12px;
+}
+
+.fluent-filter-bar label {
+	font-weight: 600;
+	font-size: 13px;
+	color: #1d2327;
+}
+
+.fluent-filter-bar select,
+.fluent-filter-bar input[type="text"] {
+	min-width: 150px;
+	padding: 4px 8px;
+	font-size: 13px;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	background: #fff;
+}
+
+.fluent-filter-bar input[type="text"] {
+	min-width: 200px;
+}
+
+/* ── Abilities Count ── */
+.fluent-abilities-count {
+	margin: 0 0 12px;
+	padding: 16px 16px 0;
+	font-size: 13px;
+	color: #646970;
+}
+
+/* ── Abilities List Container ── */
+.fluent-abilities-list {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 0 0 4px 4px;
+	margin: 0 0 20px;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+}
+
+.fluent-abilities-list .wp-list-table {
+	margin: 0;
+	border: none;
+	border-top: 1px solid #c3c4c7;
+}
+
+.fluent-abilities-list .wp-list-table td {
+	vertical-align: middle;
+	padding: 8px 10px;
+}
+
+.fluent-abilities-list .wp-list-table th {
+	padding: 8px 10px;
+}
+
+.fluent-abilities-list .wp-list-table tbody tr:hover {
+	background: #f6f7f7;
+}
+
+.fluent-desc-cell {
+	color: #50575e;
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+/* ── Badges ── */
+.badge {
+	display: inline-block;
+	padding: 1px 6px;
+	border-radius: 3px;
+	font-size: 10px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: .3px;
+	margin-right: 2px;
+	white-space: nowrap;
+}
+
+.badge-read { background: #e8f5e9; color: #2e7d32; }
+.badge-write { background: #fff8e1; color: #f57f17; }
+.badge-destruct { background: #ffebee; color: #c62828; }
+.badge-idem { background: #e3f2fd; color: #1565c0; }
+.badge-pro { background: #f3e5f5; color: #7b1fa2; }
+
+/* ── Inline Permission Columns ── */
+.fluent-perm-col {
+	text-align: center !important;
+	width: 28px;
+}
+
+.fluent-perm-col input[type="checkbox"] {
+	width: 15px;
+	height: 15px;
+	margin: 0;
+	cursor: default;
+	accent-color: #2e7d32;
+}
+
+.fluent-perm-col input[type="checkbox"].fluent-destructive-check {
+	accent-color: #d63638;
+}
+
+/* ── Toggle Switch ── */
+.fluent-toggle {
+	position: relative;
+	width: 36px;
+	height: 20px;
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.fluent-toggle input {
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+.fluent-slider {
+	position: absolute;
+	cursor: pointer;
+	inset: 0;
+	background: #c3c4c7;
+	border-radius: 20px;
+	transition: background .2s;
+}
+
+.fluent-slider::before {
+	content: "";
+	position: absolute;
+	width: 16px;
+	height: 16px;
+	left: 2px;
+	bottom: 2px;
+	background: #fff;
+	border-radius: 50%;
+	transition: transform .2s;
+}
+
+.fluent-toggle input:checked + .fluent-slider {
+	background: #2e7d32;
+}
+
+.fluent-toggle input:checked + .fluent-slider::before {
+	transform: translateX(16px);
+}
+
+.fluent-toggle input:disabled + .fluent-slider {
+	background: #dcdcde;
+	cursor: not-allowed;
+}
+
+/* ── Module Header (Level 1) ── */
+.fluent-module-header td {
+	background: #e8eaed !important;
+	border-bottom: 2px solid #c3c4c7 !important;
+	border-top: 2px solid #c3c4c7 !important;
+	padding: 10px 10px 8px !important;
+}
+
+.fluent-module-toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin-right: 10px;
+}
+
+.fluent-module-name {
+	font-weight: 700;
+	font-size: 14px;
+}
+
+.fluent-module-status {
+	display: inline-block;
+	font-size: 11px;
+	font-weight: 600;
+	margin-left: 8px;
+}
+
+.fluent-module-status.loaded { color: #00a32a; }
+.fluent-module-status.not-installed { color: #d63638; }
+.fluent-module-status.disabled { color: #dba617; }
+
+.fluent-module-meta {
+	float: right;
+	font-weight: 400;
+	font-size: 12px;
+	color: #646970;
+}
+
+.fluent-module-disabled td {
+	opacity: 0.5;
+}
+
+/* ── Subcategory Header (Level 2) ── */
+.fluent-subcat-header td {
+	background: #f3f4f5 !important;
+	border-bottom: 1px solid #dcdcde !important;
+	padding: 6px 10px 5px 28px !important;
+	font-size: 12px;
+	font-weight: 600;
+	color: #50575e;
+}
+
+.fluent-subcat-count {
+	font-weight: 400;
+	color: #8c8f94;
+	margin-left: 4px;
+}
+
+/* ── Row Actions ── */
+.fluent-row-actions {
+	visibility: hidden;
+	font-size: 12px;
+	margin-top: 1px;
+}
+
+.fluent-abilities-list tr:hover .fluent-row-actions {
+	visibility: visible;
+}
+
+.fluent-row-actions a {
+	color: #2e7d32;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+.fluent-row-actions a:hover {
+	text-decoration: underline;
+}
+
+/* ── Detail Panel ── */
+.fluent-detail-row td {
+	padding: 0 !important;
+	background: #f6f7f7 !important;
+}
+
+.fluent-detail-panel {
+	padding: 16px 20px;
+	border-top: 2px solid #2e7d32;
+}
+
+.fluent-detail-panel h3 {
+	margin: 0 0 6px;
+	color: #2e7d32;
+	font-size: 14px;
+}
+
+.fluent-detail-panel h4 {
+	font-size: 12px;
+	font-weight: 600;
+	margin: 0 0 4px;
+}
+
+.fluent-detail-panel p {
+	margin: 0 0 10px;
+	font-size: 13px;
+}
+
+.fluent-schema-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 14px;
+	margin: 10px 0;
+}
+
+.fluent-schema-grid pre {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	padding: 10px;
+	font-size: 11px;
+	line-height: 1.5;
+	overflow: auto;
+	max-height: 260px;
+	margin: 0;
+}
+
+.fluent-mcp-hint {
+	margin-top: 10px;
+	padding-top: 8px;
+	border-top: 1px solid #dcdcde;
+	font-size: 12px;
+	color: #646970;
+}
+
+.fluent-mcp-hint code {
+	background: #f0f0f1;
+	padding: 2px 5px;
+	border-radius: 3px;
+	font-size: 11px;
+}
+
+/* ── Save Bar ── */
+.fluent-save-bar {
+	position: sticky;
+	bottom: 0;
+	background: #fff;
+	border-top: 1px solid #c3c4c7;
+	padding: 12px 20px;
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	box-shadow: 0 -2px 4px rgba(0, 0, 0, .06);
+	z-index: 10;
+}
+
+.fluent-save-summary {
+	font-size: 13px;
+	color: #646970;
+}
+
+.fluent-save-summary strong {
+	color: #1d2327;
+}
+
+/* ── License Card ── */
+.fluent-license-card {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 24px;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+	max-width: 560px;
+	margin: 0 0 20px;
+}
+
+.fluent-license-card h3 {
+	font-size: 15px;
+	font-weight: 600;
+	margin: 0 0 14px;
+}
+
+.fluent-license-status {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0 0 14px;
+	font-size: 13px;
+}
+
+.fluent-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	display: inline-block;
+}
+
+.fluent-dot-active { background: #00a32a; }
+.fluent-dot-inactive { background: #d63638; }
+.fluent-dot-unlicensed { background: #dba617; }
+
+.fluent-key-field {
+	display: flex;
+	gap: 8px;
+	margin: 0 0 10px;
+}
+
+.fluent-key-field input[type="text"] {
+	flex: 1;
+	padding: 6px 10px;
+	font-size: 13px;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	font-family: monospace;
+}
+
+.fluent-key-field input[type="text"]:disabled {
+	background: #f0f0f1;
+	color: #50575e;
+}
+
+.fluent-license-meta {
+	font-size: 12px;
+	color: #646970;
+	margin: 0;
+}
+
+.fluent-license-meta span {
+	margin-right: 14px;
+}
+
+/* ── Button Variants ── */
+.fluent-btn-danger {
+	border-color: #d63638 !important;
+	color: #d63638 !important;
+}
+
+.fluent-btn-danger:hover {
+	background: #fcecec !important;
+}
+
+.fluent-btn-sm {
+	padding: 2px 8px !important;
+	font-size: 12px !important;
+}
+
+/* ── Cards ── */
+.fluent-card {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 20px;
+	margin: 0 0 20px;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+}
+
+.fluent-card h2 {
+	font-size: 14px;
+	font-weight: 600;
+	margin: 0 0 8px;
+}
+
+.fluent-card-desc {
+	font-size: 13px;
+	color: #646970;
+	margin: 0 0 16px;
+}
+
+/* ── Debug ── */
+.fluent-debug-area {
+	width: 100%;
+	height: 140px;
+	font-family: monospace;
+	font-size: 11px;
+	padding: 10px;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	background: #f9f9f9;
+	resize: vertical;
+	color: #2c3338;
+}
+
+/* ── Responsive ── */
+@media (max-width: 782px) {
+	.fluent-stats-row {
+		grid-template-columns: repeat(2, 1fr);
+	}
+
+	.fluent-filter-bar form {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.fluent-filter-bar select,
+	.fluent-filter-bar input[type="text"] {
+		min-width: 100%;
+	}
+
+	.fluent-schema-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.fluent-license-card {
+		max-width: 100%;
+	}
+}

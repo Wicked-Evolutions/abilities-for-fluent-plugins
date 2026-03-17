@@ -1,0 +1,21 @@
+{
+  "name": "wicked-evolutions/abilities-for-fluent-plugins",
+  "description": "WordPress Abilities API integration for the Fluent plugin ecosystem",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0-or-later",
+  "require": {
+    "php": ">=7.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "WickedEvolutions\\AbilitiesForFluent\\": "src/"
+    }
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "sort-packages": true
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^10.5"
+  }
+}
