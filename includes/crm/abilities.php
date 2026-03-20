@@ -3095,12 +3095,24 @@ add_action( 'wp_abilities_api_init', function() {
 		) ),
 		'annotations'   => array( 'idempotent' => false ),
 		'callback'      => function( $input ) {
-			$tag = \FluentCrm\App\Models\Tag::find( intval( $input['id'] ) );
+			$id  = intval( $input['id'] );
+			$tag = \FluentCrm\App\Models\Tag::find( $id );
 			if ( ! $tag ) {
 				return fluent_abilities_error( 'not_found', 'Tag not found.' );
 			}
-			$id = $tag->id;
+
+			// Detach all contacts from this tag (clean up pivot table).
+			fluentCrmDb()->table( 'fc_subscriber_pivot' )
+				->where( 'object_type', 'FluentCrm\\App\\Models\\Tag' )
+				->where( 'object_id', $id )
+				->delete();
+
 			$tag->delete();
+
+			// Fire FluentCRM's own cleanup hooks (matches TagsController behavior).
+			do_action( 'fluentcrm_tag_deleted', $id );
+			do_action( 'fluent_crm/tag_deleted', $id );
+
 			return array( 'success' => true, 'id' => $id );
 		},
 	) );

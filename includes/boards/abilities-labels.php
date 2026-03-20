@@ -130,10 +130,10 @@ $reg->write( 'fluent-boards/update-label', array(
 	'category'    => 'fluent-boards',
 	'input_schema' => array(
 		'type'       => 'object',
-		'required'   => array( 'board_id', 'label_id' ),
+		'required'   => array( 'board_id', 'id' ),
 		'properties' => array(
 			'board_id' => array( 'type' => 'integer', 'description' => 'Board ID (required)' ),
-			'label_id' => array( 'type' => 'integer', 'description' => 'Label ID (required)' ),
+			'id'       => array( 'type' => 'integer', 'description' => 'Label ID (required)' ),
 			'title'    => array( 'type' => 'string',  'description' => 'New label title' ),
 			'color'    => array( 'type' => 'string',  'description' => 'New text color hex code' ),
 			'bg_color' => array( 'type' => 'string',  'description' => 'New background color hex code' ),
@@ -145,7 +145,7 @@ $reg->write( 'fluent-boards/update-label', array(
 	) ),
 	'callback' => function( $input ) {
 		$board_id = (int) $input['board_id'];
-		$label_id = (int) $input['label_id'];
+		$label_id = (int) $input['id'];
 
 		$label = wpFluent()->table( 'fbs_board_terms' )
 			->where( 'id', $label_id )
@@ -197,10 +197,10 @@ $reg->delete( 'fluent-boards/delete-label', array(
 	'category'    => 'fluent-boards',
 	'input_schema' => array(
 		'type'       => 'object',
-		'required'   => array( 'board_id', 'label_id' ),
+		'required'   => array( 'board_id', 'id' ),
 		'properties' => array(
 			'board_id' => array( 'type' => 'integer', 'description' => 'Board ID (required)' ),
-			'label_id' => array( 'type' => 'integer', 'description' => 'Label ID (required)' ),
+			'id'       => array( 'type' => 'integer', 'description' => 'Label ID (required)' ),
 		),
 	),
 	'output_schema' => fluent_abilities_schema_success_output( array(
@@ -209,7 +209,7 @@ $reg->delete( 'fluent-boards/delete-label', array(
 	'annotations' => array( 'idempotent' => false ),
 	'callback' => function( $input ) {
 		$board_id = (int) $input['board_id'];
-		$label_id = (int) $input['label_id'];
+		$label_id = (int) $input['id'];
 
 		$label = wpFluent()->table( 'fbs_board_terms' )
 			->where( 'id', $label_id )

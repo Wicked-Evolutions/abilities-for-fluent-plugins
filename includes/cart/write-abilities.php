@@ -695,7 +695,7 @@ add_action( 'wp_abilities_api_init', function() {
 			$pagination = fluent_abilities_pagination( $input );
 
 			global $wpdb;
-			$table = $wpdb->prefix . 'fc_carts';
+			$table = $wpdb->prefix . 'fct_carts';
 			if ( $wpdb->get_var( "SHOW TABLES LIKE '{$table}'" ) !== $table ) {
 				return array( 'carts' => array(), 'total' => 0, 'page' => 1, 'per_page' => $pagination['per_page'] );
 			}
@@ -837,7 +837,7 @@ add_action( 'wp_abilities_api_init', function() {
 		) ),
 		'callback' => function( $input ) {
 			global $wpdb;
-			$table = $wpdb->prefix . 'fc_tax_rates';
+			$table = $wpdb->prefix . 'fct_tax_rates';
 			if ( $wpdb->get_var( "SHOW TABLES LIKE '{$table}'" ) !== $table ) {
 				return array( 'tax_rates' => array(), 'total' => 0 );
 			}
@@ -868,7 +868,7 @@ add_action( 'wp_abilities_api_init', function() {
 		) ),
 		'callback' => function( $input ) {
 			global $wpdb;
-			$table = $wpdb->prefix . 'fc_shipping_methods';
+			$table = $wpdb->prefix . 'fct_shipping_methods';
 			if ( $wpdb->get_var( "SHOW TABLES LIKE '{$table}'" ) !== $table ) {
 				return array( 'shipping_methods' => array(), 'total' => 0 );
 			}

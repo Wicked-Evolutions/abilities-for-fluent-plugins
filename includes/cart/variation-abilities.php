@@ -240,7 +240,34 @@ add_action( 'wp_abilities_api_init', function() {
 		},
 	) );
 
-	$count = 3;
+	$reg->delete( 'fluent-cart/delete-product-variation', array(
+		'label'       => 'Delete Product Variation',
+		'description' => 'Delete a product variation (pricing plan) by ID.',
+		'input_schema' => array(
+			'type'       => 'object',
+			'required'   => array( 'id' ),
+			'properties' => array(
+				'id' => array( 'type' => 'integer', 'description' => 'Variation ID' ),
+			),
+		),
+		'output_schema' => fluent_abilities_schema_success_output( array(
+			'id' => array( 'type' => 'integer' ),
+		) ),
+		'annotations' => array( 'idempotent' => false ),
+		'callback'    => function( $input ) {
+			$variation = \FluentCart\App\Models\ProductVariation::find( (int) $input['id'] );
+			if ( ! $variation ) {
+				return fluent_abilities_error( 'not_found', 'Variation not found.' );
+			}
+
+			$id = (int) $variation->id;
+			$variation->delete();
+
+			return array( 'success' => true, 'id' => $id );
+		},
+	) );
+
+	$count = 4;
 	error_log( "Abilities for Fluent: Registered {$count} Cart Variation abilities" );
 
 }, 100 );

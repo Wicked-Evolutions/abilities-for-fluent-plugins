@@ -58,7 +58,7 @@ add_action( 'wp_abilities_api_init', function() {
 				$items[] = array(
 					'id'                   => (int) $dl->id,
 					'post_id'              => (int) $dl->post_id,
-					'product_variation_id' => (string) ( $dl->product_variation_id ?? '' ),
+					'product_variation_id' => is_array( $dl->product_variation_id ) ? implode( ',', array_map( 'intval', $dl->product_variation_id ) ) : (string) ( $dl->product_variation_id ?? '' ),
 					'download_identifier'  => (string) ( $dl->download_identifier ?? '' ),
 					'title'                => $dl->title ?? null,
 					'type'                 => $dl->type ?? null,
@@ -139,7 +139,34 @@ add_action( 'wp_abilities_api_init', function() {
 		},
 	) );
 
-	$count = 2;
+	$reg->delete( 'fluent-cart/delete-product-download', array(
+		'label'       => 'Delete Product Download',
+		'description' => 'Delete a downloadable file from a FluentCart product by ID.',
+		'input_schema' => array(
+			'type'       => 'object',
+			'required'   => array( 'id' ),
+			'properties' => array(
+				'id' => array( 'type' => 'integer', 'description' => 'Download ID' ),
+			),
+		),
+		'output_schema' => fluent_abilities_schema_success_output( array(
+			'id' => array( 'type' => 'integer' ),
+		) ),
+		'annotations' => array( 'idempotent' => false ),
+		'callback'    => function( $input ) {
+			$download = \FluentCart\App\Models\ProductDownload::find( (int) $input['id'] );
+			if ( ! $download ) {
+				return fluent_abilities_error( 'not_found', 'Download not found.' );
+			}
+
+			$id = (int) $download->id;
+			$download->delete();
+
+			return array( 'success' => true, 'id' => $id );
+		},
+	) );
+
+	$count = 3;
 	error_log( "Abilities for Fluent: Registered {$count} Cart Download abilities" );
 
 }, 100 );

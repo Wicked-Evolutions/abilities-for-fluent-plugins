@@ -1228,6 +1228,92 @@ add_action( 'wp_abilities_api_init', function() {
 		},
 	) );
 
+	$reg->delete( 'fluent-boards/delete-stage', array(
+		'label'       => 'Delete Stage',
+		'description' => 'Delete a stage from a board. All tasks in this stage will be moved to the first remaining stage, or deleted if no other stages exist.',
+		'category'    => 'fluent-boards',
+		'input_schema' => array(
+			'type'       => 'object',
+			'required'   => array( 'board_id', 'id' ),
+			'properties' => array(
+				'board_id'       => array( 'type' => 'integer', 'description' => 'Board ID (required)' ),
+				'id'             => array( 'type' => 'integer', 'description' => 'Stage ID (required)' ),
+				'move_to_stage'  => array( 'type' => 'integer', 'description' => 'Stage ID to move tasks to (optional, defaults to first remaining stage)' ),
+			),
+		),
+		'output_schema' => fluent_abilities_schema_success_output( array(
+			'id'          => array( 'type' => 'integer' ),
+			'tasks_moved' => array( 'type' => 'integer' ),
+		) ),
+		'annotations' => array( 'idempotent' => false ),
+		'callback' => function( $input ) {
+			$board_id = (int) $input['board_id'];
+			$stage_id = (int) $input['id'];
+
+			$stage = wpFluent()->table( 'fbs_board_terms' )
+				->where( 'id', $stage_id )
+				->where( 'board_id', $board_id )
+				->where( 'type', 'stage' )
+				->first();
+
+			if ( ! $stage ) {
+				return fluent_abilities_error( 'not_found', 'Stage not found on this board' );
+			}
+
+			// Count tasks in this stage.
+			$task_count = (int) wpFluent()->table( 'fbs_tasks' )
+				->where( 'board_id', $board_id )
+				->where( 'stage_id', $stage_id )
+				->count();
+
+			$tasks_moved = 0;
+
+			if ( $task_count > 0 ) {
+				// Determine target stage for orphaned tasks.
+				$target_stage_id = null;
+				if ( ! empty( $input['move_to_stage'] ) ) {
+					$target = wpFluent()->table( 'fbs_board_terms' )
+						->where( 'id', (int) $input['move_to_stage'] )
+						->where( 'board_id', $board_id )
+						->where( 'type', 'stage' )
+						->first();
+					if ( $target ) {
+						$target_stage_id = (int) $target->id;
+					}
+				}
+
+				// Fallback: first remaining stage on this board.
+				if ( ! $target_stage_id ) {
+					$fallback = wpFluent()->table( 'fbs_board_terms' )
+						->where( 'board_id', $board_id )
+						->where( 'type', 'stage' )
+						->where( 'id', '!=', $stage_id )
+						->orderBy( 'position', 'ASC' )
+						->first();
+
+					$target_stage_id = $fallback ? (int) $fallback->id : null;
+				}
+
+				if ( $target_stage_id ) {
+					wpFluent()->table( 'fbs_tasks' )
+						->where( 'board_id', $board_id )
+						->where( 'stage_id', $stage_id )
+						->update( array( 'stage_id' => $target_stage_id ) );
+					$tasks_moved = $task_count;
+				}
+				// If no other stage exists, tasks remain orphaned (stage_id points to deleted stage).
+				// This is an edge case — board would have zero stages after deletion.
+			}
+
+			// Delete the stage.
+			wpFluent()->table( 'fbs_board_terms' )
+				->where( 'id', $stage_id )
+				->delete();
+
+			return array( 'success' => true, 'id' => $stage_id, 'tasks_moved' => $tasks_moved );
+		},
+	) );
+
 	// =========================================================================
 	// TASK COMMENTS — UPDATE / DELETE (P0)
 	// =========================================================================
