@@ -31,6 +31,7 @@ class Fluent_Abilities_Dashboard {
 		'snippets'  => 'fluent-snippets',
 		'messaging' => 'fluent-messaging',
 		'cart'      => 'fluent-cart',
+		'affiliate' => 'fluent-affiliate',
 		'cross'     => 'fluent',
 	);
 
