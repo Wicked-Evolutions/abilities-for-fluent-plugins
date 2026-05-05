@@ -240,6 +240,7 @@ register_activation_hook( __FILE__, function( $network_wide = false ) {
 			'snippets'   => 'FLUENT_SNIPPETS_PLUGIN_VERSION',
 			'messaging'  => 'FLUENT_MESSAGING_CHAT_VERSION',
 			'cart'       => 'FLUENTCART_VERSION',
+			'affiliate'  => 'FLUENT_AFFILIATE_VERSION',
 		);
 
 		$auto_enabled = array();
