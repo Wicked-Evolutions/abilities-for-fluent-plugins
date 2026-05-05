@@ -140,6 +140,15 @@ if ( ! function_exists( 'fluent_abilities_get_enabled_modules' ) ) {
 		return array( 'crm', 'community', 'forms', 'cart', 'snippets', 'booking', 'smtp', 'auth', 'messaging', 'boards', 'support' );
 	}
 }
+// Tier gate stub — passthrough. Unit tests do not load includes/tier-gate.php
+// or its license-manager dependency; the real gate returns a wrapped callable
+// that calls the license check. Stubbing as identity returns the original
+// callback unchanged, equivalent to "license active, gate passed".
+if ( ! function_exists( 'fluent_abilities_pro_gate' ) ) {
+	function fluent_abilities_pro_gate( $ability_name, $callback ) {
+		return $callback;
+	}
+}
 if ( ! function_exists( 'current_user_can' ) ) {
 	function current_user_can( $capability, ...$args ) {
 		return true;
