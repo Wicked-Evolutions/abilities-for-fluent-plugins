@@ -77,8 +77,10 @@ class FluentRegistrarTest extends TestCase {
 		) );
 
 		$abilities = wp_get_abilities();
-		// No category override — defaults to module slug 'crm'.
-		$this->assertSame( 'crm', $abilities['fluent-crm/list-contacts']['category'] );
+		// No category override — Registrar auto-derives 'fluent-{module}' to
+		// match the canonical category slugs registered in
+		// includes/ability-categories.php.
+		$this->assertSame( 'fluent-crm', $abilities['fluent-crm/list-contacts']['category'] );
 	}
 
 	public function test_read_explicit_category_override() {
