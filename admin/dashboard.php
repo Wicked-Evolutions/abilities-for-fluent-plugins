@@ -504,8 +504,11 @@ class Fluent_Abilities_Dashboard {
 						</thead>
 						<tbody>
 							<?php
-							$current_module = '';
-							$current_subcat = '';
+							$current_module   = '';
+							$current_subcat   = '';
+							$all_seen_modules = array(); // Tracks modules rendered in the loop below so the
+							                             // fallback can skip duplicates and catch installed-but-disabled
+							                             // and not-installed modules that have no abilities to iterate.
 
 							foreach ( $abilities as $name => $ability ) :
 								$module = $ability['module'];
@@ -513,8 +516,9 @@ class Fluent_Abilities_Dashboard {
 
 								// ── Module header (Level 1) ──
 								if ( $module !== $current_module ) :
-									$current_module = $module;
-									$current_subcat = ''; // Reset subcategory.
+									$current_module              = $module;
+									$current_subcat              = ''; // Reset subcategory.
+									$all_seen_modules[ $module ] = true;
 									$info      = $module_status[ $module ] ?? array( 'label' => ucfirst( $module ), 'detected' => false, 'enabled' => false );
 									$is_loaded = in_array( $module, $loaded, true );
 									$mod_count = 0;
@@ -643,38 +647,43 @@ class Fluent_Abilities_Dashboard {
 							<?php endforeach; ?>
 
 							<?php
-							// Show not-installed modules that have zero abilities.
+							// Render module headers for modules the main loop didn't reach: either
+							// not installed, or installed-but-disabled (registers no abilities so the
+							// main loop never iterates a first ability for them). Without this, a
+							// disabled module vanishes from the UI and can't be re-enabled without
+							// editing the wp_options fluent_abilities_enabled_modules entry by hand.
 							foreach ( $module_status as $mod_key => $mod_info ) :
-								if ( ! $mod_info['detected'] && ! isset( $all_seen_modules[ $mod_key ] ) ) :
-									// Check if this module had any abilities (it won't if not installed).
-									$has_abilities = false;
-									foreach ( $abilities as $a ) {
-										if ( $a['module'] === $mod_key ) {
-											$has_abilities = true;
-											break;
-										}
-									}
-									if ( ! $has_abilities ) :
+								if ( isset( $all_seen_modules[ $mod_key ] ) ) {
+									continue;
+								}
+								$is_installed_disabled = $mod_info['detected'] && ! $mod_info['enabled'];
 							?>
-								<tr class="fluent-module-header fluent-module-disabled">
+								<tr class="fluent-module-header<?php echo $is_installed_disabled ? '' : ' fluent-module-disabled'; ?>">
 									<td colspan="4">
 										<span class="fluent-module-toggle">
 											<label class="fluent-toggle">
-												<input type="checkbox" disabled>
+												<?php if ( $is_installed_disabled ) : ?>
+													<input type="checkbox" name="fluent_modules[]" value="<?php echo esc_attr( $mod_key ); ?>">
+												<?php else : ?>
+													<input type="checkbox" disabled>
+												<?php endif; ?>
 												<span class="fluent-slider"></span>
 											</label>
 										</span>
-										<span class="fluent-module-name" style="color:#646970;"><?php echo esc_html( $mod_info['label'] ); ?></span>
-										<span class="fluent-module-status not-installed">Not installed</span>
-										<span class="fluent-module-meta"><em>Install <?php echo esc_html( $mod_info['label'] ); ?> to enable abilities</em></span>
+										<span class="fluent-module-name"<?php echo $is_installed_disabled ? '' : ' style="color:#646970;"'; ?>><?php echo esc_html( $mod_info['label'] ); ?></span>
+										<?php if ( $is_installed_disabled ) : ?>
+											<span class="fluent-module-status disabled">Disabled</span>
+											<span class="fluent-module-meta"><em>Enable to register abilities</em></span>
+										<?php else : ?>
+											<span class="fluent-module-status not-installed">Not installed</span>
+											<span class="fluent-module-meta"><em>Install <?php echo esc_html( $mod_info['label'] ); ?> to enable abilities</em></span>
+										<?php endif; ?>
 									</td>
 									<td class="fluent-perm-col"></td>
 									<td class="fluent-perm-col"></td>
 									<td class="fluent-perm-col"></td>
 								</tr>
 							<?php
-									endif;
-								endif;
 							endforeach;
 							?>
 						</tbody>
