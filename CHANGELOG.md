@@ -5,6 +5,7 @@ All notable changes to Abilities for Fluent Plugins will be documented in this f
 ## [Unreleased]
 
 ### Fixed
+- **#19 (P1, alpha blocker):** WP-CLI / stdio bridge invocations without a resolved WordPress user no longer authorize destructive abilities by module-toggle alone. Anonymous CLI requests now deny every level by default and return a typed `WP_Error( 'fluent_abilities_no_cli_user_context', ..., array( 'status' => 401 ) )` at the ability boundary. A one-release backwards-compatibility shim, `FLUENT_ABILITIES_CLI_ALLOW_ANONYMOUS_READ=1`, allows anonymous read-level access for enabled modules during operator migration. Removal target: v1.2.0. Operators relying on anonymous write/delete/admin must wire OAuth user resolution (or set the env-var explicitly per invocation) — read-only.
 - **#23:** PHPUnit unit-test suite no longer fatals on `Call to undefined function fluent_abilities_pro_gate()`. Bootstrap loads a passthrough stub in unit mode (decoupled from the real `tier-gate.php` / license-manager). Previously-fataling Registrar tests now run and pass.
 
 ### Changed

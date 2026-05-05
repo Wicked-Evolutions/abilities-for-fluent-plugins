@@ -53,10 +53,12 @@ if ( $wp_tests_dir ) {
 	// ── Unit mode ─────────────────────────────────────────────────────────────
 	require_once __DIR__ . '/stubs/wordpress-stubs.php';
 
-	// Load plugin infrastructure safe without full WP.
-	// security.php is excluded — its functions are stubbed above and it uses
-	// add_action() hooks not needed in unit tests.
+	// Load plugin infrastructure safe without full WP. security.php is loaded
+	// here (rather than stubbed) so unit tests exercise the real authorization
+	// helpers — required for SecurityCliFallbackTest. add_action() is stubbed
+	// as a no-op so the file loads without WordPress.
 	require_once dirname( __DIR__ ) . '/includes/helpers.php';
 	require_once dirname( __DIR__ ) . '/includes/schemas.php';
 	require_once dirname( __DIR__ ) . '/includes/compat.php';
+	require_once dirname( __DIR__ ) . '/includes/security.php';
 }
