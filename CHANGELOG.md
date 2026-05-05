@@ -2,6 +2,14 @@
 
 All notable changes to Abilities for Fluent Plugins will be documented in this file.
 
+## [Unreleased]
+
+### Fixed
+- **#23:** PHPUnit unit-test suite no longer fatals on `Call to undefined function fluent_abilities_pro_gate()`. Bootstrap loads a passthrough stub in unit mode (decoupled from the real `tier-gate.php` / license-manager). Previously-fataling Registrar tests now run and pass.
+
+### Changed
+- **CI hygiene:** unit-tests matrix now runs PHP 8.1, 8.2, 8.3, 8.4, 8.5 (composer.lock requires PHP 8.1+ — production minimum unchanged at PHP 7.4 per `composer.json`). Vestigial integration-tests matrix removed: it ran against `tests/Integration/` which has never existed in the repo, so the matrix was testing test-suite setup, not any production code. `fail-fast: false` on unit-tests so a single matrix entry's failure no longer cancels its siblings.
+
 ## [1.1.0] - 2026-03-20
 
 ### Fixed
