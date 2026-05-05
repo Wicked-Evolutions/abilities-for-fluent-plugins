@@ -121,10 +121,17 @@ function fluent_abilities_maybe_register_caps() {
 /**
  * Check if the current user has the required capability for a module action.
  *
- * When running in WP-CLI context without a user (user ID 0), falls back to
- * checking whether the module is enabled via admin toggles. This prevents
- * silent permission failures when the MCP bridge or CLI invokes abilities
- * without setting a WordPress user context.
+ * Authenticated request → standard `current_user_can( "fluent_{$module}_{$level}" )`.
+ *
+ * Anonymous WP-CLI / stdio bridge invocation (user ID 0) → strict deny by default
+ * for every level. The previous behavior (module-toggle-only authorization) let
+ * destructive abilities run as soon as the module toggle was on, regardless of
+ * level — see issue #19.
+ *
+ * One-release backwards-compatibility shim: setting environment variable
+ * `FLUENT_ABILITIES_CLI_ALLOW_ANONYMOUS_READ=1` re-enables anonymous read-only
+ * access (`level === 'read'`) for enabled modules. Write/delete/send/admin still
+ * deny. This shim is a migration aid and will be removed in v1.2.0.
  *
  * @param string $module Module name (e.g., 'crm', 'community').
  * @param string $level  Permission level: 'read', 'write', 'delete', 'send', 'admin'.
@@ -138,15 +145,26 @@ function fluent_abilities_user_can( $module, $level = 'read' ) {
 		return current_user_can( $cap );
 	}
 
-	// CLI/bridge fallback: no user context.
-	// Allow if running in WP-CLI AND the module is enabled via admin toggles.
-	// This is safe because: WP-CLI requires server-level access (SSH), and
-	// module toggles are the admin's explicit opt-in for which modules are exposed.
-	if ( defined( 'WP_CLI' ) && WP_CLI ) {
-		return fluent_abilities_module_enabled( $module );
+	// Anonymous CLI / stdio bridge: deny by default. The one-release env-var shim
+	// allows read-only fallback for enabled modules; everything else denies.
+	if ( fluent_abilities_is_anonymous_cli() ) {
+		if ( 'read' === $level && '1' === getenv( 'FLUENT_ABILITIES_CLI_ALLOW_ANONYMOUS_READ' ) ) {
+			return fluent_abilities_module_enabled( $module );
+		}
+		return false;
 	}
 
 	return false;
+}
+
+/**
+ * True when the current request is an anonymous WP-CLI / stdio bridge invocation
+ * — i.e. running under WP-CLI with no resolved WordPress user.
+ *
+ * @return bool
+ */
+function fluent_abilities_is_anonymous_cli() {
+	return 0 === get_current_user_id() && defined( 'WP_CLI' ) && WP_CLI;
 }
 
 /**

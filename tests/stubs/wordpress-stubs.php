@@ -124,22 +124,10 @@ if ( ! function_exists( 'wp_get_abilities' ) ) {
 	}
 }
 
-// Fluent permission stubs — all allowed by default in unit tests.
-if ( ! function_exists( 'fluent_abilities_user_can' ) ) {
-	function fluent_abilities_user_can( $module, $level = 'read' ) {
-		return true;
-	}
-}
-if ( ! function_exists( 'fluent_abilities_module_enabled' ) ) {
-	function fluent_abilities_module_enabled( $module ) {
-		return true;
-	}
-}
-if ( ! function_exists( 'fluent_abilities_get_enabled_modules' ) ) {
-	function fluent_abilities_get_enabled_modules() {
-		return array( 'crm', 'community', 'forms', 'cart', 'snippets', 'booking', 'smtp', 'auth', 'messaging', 'boards', 'support' );
-	}
-}
+// Fluent permission helpers (fluent_abilities_user_can, fluent_abilities_module_enabled,
+// fluent_abilities_get_enabled_modules) are loaded from the real includes/security.php
+// in tests/bootstrap.php so unit tests exercise actual authorization logic.
+
 // Tier gate stub — passthrough. Unit tests do not load includes/tier-gate.php
 // or its license-manager dependency; the real gate returns a wrapped callable
 // that calls the license check. Stubbing as identity returns the original
@@ -149,14 +137,19 @@ if ( ! function_exists( 'fluent_abilities_pro_gate' ) ) {
 		return $callback;
 	}
 }
+
+// Tests can override these via $GLOBALS['_test_current_user_id'] / _test_user_caps.
 if ( ! function_exists( 'current_user_can' ) ) {
 	function current_user_can( $capability, ...$args ) {
+		if ( isset( $GLOBALS['_test_user_caps'] ) && is_array( $GLOBALS['_test_user_caps'] ) ) {
+			return in_array( $capability, $GLOBALS['_test_user_caps'], true );
+		}
 		return true;
 	}
 }
 if ( ! function_exists( 'get_current_user_id' ) ) {
 	function get_current_user_id() {
-		return 1;
+		return $GLOBALS['_test_current_user_id'] ?? 1;
 	}
 }
 if ( ! function_exists( 'defined' ) ) {

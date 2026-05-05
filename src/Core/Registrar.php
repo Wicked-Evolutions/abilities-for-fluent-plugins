@@ -99,14 +99,22 @@ class Registrar {
 		// Build permission_callback.
 		// Use 'capability' for raw WP caps (e.g., 'manage_options').
 		// Use 'level' for module-level fluent_abilities_user_can() checks (default).
+		// Anonymous CLI/stdio bridge denials surface a typed WP_Error so operators
+		// can distinguish "needs user context" from generic capability failures.
 		if ( isset( $config['capability'] ) ) {
 			$capability = $config['capability'];
 			$permission_callback = function() use ( $capability ) {
-				return current_user_can( $capability );
+				if ( current_user_can( $capability ) ) {
+					return true;
+				}
+				return self::denial_for_anonymous_cli();
 			};
 		} else {
 			$permission_callback = function() use ( $module, $level ) {
-				return fluent_abilities_user_can( $module, $level );
+				if ( fluent_abilities_user_can( $module, $level ) ) {
+					return true;
+				}
+				return self::denial_for_anonymous_cli();
 			};
 		}
 
@@ -143,5 +151,32 @@ class Registrar {
 		}
 
 		wp_register_ability( $name, $args );
+	}
+
+	/**
+	 * Build the denial response for an anonymous CLI/stdio bridge invocation.
+	 *
+	 * Returns a typed `WP_Error` when the request is anonymous WP-CLI (no resolved
+	 * WordPress user) so the Abilities API / REST layer can surface migration
+	 * guidance to operators. For all other denials, returns plain `false` to
+	 * preserve the historical bool contract of `permission_callback`.
+	 *
+	 * @return bool|\WP_Error
+	 */
+	private static function denial_for_anonymous_cli() {
+		if ( ! \fluent_abilities_is_anonymous_cli() ) {
+			return false;
+		}
+
+		return new \WP_Error(
+			'fluent_abilities_no_cli_user_context',
+			__(
+				"Fluent abilities require an authenticated user.\n"
+				. "CLI invocations must run with `--user=<id>` (or equivalent) for write/delete/admin operations.\n"
+				. "Set FLUENT_ABILITIES_CLI_ALLOW_ANONYMOUS_READ=1 for anonymous read-only access (one-release backwards-compatibility shim, removal target v1.2.0).",
+				'fluent-abilities'
+			),
+			array( 'status' => 401 )
+		);
 	}
 }
