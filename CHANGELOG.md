@@ -2,7 +2,7 @@
 
 All notable changes to Abilities for Fluent Plugins will be documented in this file.
 
-## [Unreleased]
+## [1.1.1] - 2026-05-05
 
 ### Fixed
 - **#22:** Fresh activations with FluentAffiliate active now auto-enable the `affiliate` module. The activation hook's auto-detect map at `abilities-for-fluent-plugins.php:231-243` listed 11 modules through `cart` and omitted `FLUENT_AFFILIATE_VERSION`, while the runtime loader at lines 109-121 already included it. CLI-first installs that activated FluentAffiliate alongside this plugin saw zero affiliate abilities register on first activation despite the plugin advertising Affiliate support.
