@@ -2,6 +2,25 @@
 
 All notable changes to Abilities for Fluent Plugins will be documented in this file.
 
+## [1.1.2] - 2026-05-08
+
+Documentation update — README rewrite for first-party positioning + Wordpressnaut welcome + four-layer permissions framing + version-history catch-up. Code unchanged from v1.1.1.
+
+### Documentation
+
+- README rewritten end-to-end:
+  - **Removed leading ability-count framing** (no 450-ability table at the top, no `(N abilities)` in module section headings). The product is the open registry, not the count — operators get live counts via `suite/get-status` for their specific install.
+  - **First-party deliberate-investment positioning** surfaced in the opening paragraph — *"Wicked Evolutions' first-party translator for the Fluent suite. We build and maintain this because we use Fluent's plugins ourselves and wanted them AI-native — a deliberate ongoing investment, not a one-off example."*
+  - **Supported Fluent Products table** now describes what each module enables operators to do (e.g., for CRM: *"Contacts CRUD bulk tags lists companies, email campaigns, sequences, ..."*) — no count framing
+  - **Bridge / adapter setup orientation** added — operators get pointed at the recommended bridge install paths (`.mcpb` for Claude Desktop / `npm install -g @wickedevolutions/abilities-mcp` for terminal MCP clients), with a link to the bridge README for full setup
+  - **Four-layer permissions model section** added — names the four layers (Abilities for AI module · WordPress capability · OAuth scope · unclear), points operators at the runtime `[ability_disabled]` error as the layer indicator, and shows operators how to expand Fluent-specific OAuth scopes (`abilities-mcp reauth <site> --add-scope="abilities:crm:write"`)
+  - **Version History catch-up** — README now reflects 1.0.0 → 1.0.1 → 1.1.0 → 1.1.1 (was stuck on 1.0.0 only)
+  - Welcome block at top with verbatim *"Welcome, Wordpressnaut"* spaceship paragraph + 3 URL pointers
+  - Disclaimer block from J at the very top
+  - Pointer to [PRINCIPLES.md](PRINCIPLES.md) as the *Official WordPress Compatibility Contract* binding all four suite repos
+
+Closes [#38](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/38).
+
 ## [1.1.1] - 2026-05-05
 
 ### Fixed
