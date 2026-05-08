@@ -59,7 +59,6 @@ jobs:
           rsync -a --exclude='.git' --exclude='.github' --exclude='tests' \
             --exclude='bin' --exclude='*.xml.dist' --exclude='.gitignore' \
             --exclude='composer.json' --exclude='composer.lock' \
-            --exclude='REFACTOR-PLANS.md' --exclude='audit-schema.php' \
             --exclude='.DS_Store' \
             . "/tmp/${SLUG}/"
           cd /tmp
