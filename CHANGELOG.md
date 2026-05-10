@@ -2,6 +2,17 @@
 
 All notable changes to Abilities for Fluent Plugins will be documented in this file.
 
+## [1.1.3] - 2026-05-10
+
+Bug fix — Registrar `input_schema` default restored to JSON Schema draft 2020-12 conformance.
+
+### Fixed
+
+- `src/Core/Registrar.php:137` — `input_schema` default value changed from PHP `array()` (which JSON-encodes as `[]`) to `array( 'type' => 'object' )` (JSON `{"type":"object"}`). The previous default caused MCP clients to hit `400 tools.N.custom.input_schema: JSON schema is invalid. It must match JSON Schema draft 2020-12` on `tools/list` for any zero-arg ability registered without an explicit `input_schema` — affecting 8 zero-arg abilities surfaced when Fluent OAuth scopes were granted (rising to 17 with Fluent Affiliate active). Mirrors the equivalent fix that shipped in `abilities-for-ai` v1.9.1.
+- Unit test added at `tests/Unit/RegistrarTest.php` asserting `json_encode($args['input_schema'])` returns `'{"type":"object"}'` (not `'[]'`) when no `input_schema` is provided in `$config`.
+
+Closes [#41](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/41).
+
 ## [1.1.2] - 2026-05-08
 
 Documentation update — README rewrite for first-party positioning + Wordpressnaut welcome + four-layer permissions framing + version-history catch-up. Code unchanged from v1.1.1.
