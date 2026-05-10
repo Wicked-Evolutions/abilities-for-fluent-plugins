@@ -133,6 +133,22 @@ class FluentRegistrarTest extends TestCase {
 		$this->assertFalse( $annotations['idempotent'] );
 	}
 
+	// ── input_schema ──────────────────────────────────────────────────────────
+
+	public function test_input_schema_default_serializes_as_json_object() {
+		$reg = new Registrar( 'crm' );
+		$reg->read( 'fluent-crm/list-contacts', array(
+			'label' => 'T', 'description' => 'T', 'category' => 'fluent-crm',
+			'callback' => function() {},
+		) );
+
+		$abilities = wp_get_abilities();
+		$this->assertSame(
+			'{"type":"object"}',
+			json_encode( $abilities['fluent-crm/list-contacts']['input_schema'] )
+		);
+	}
+
 	// ── output_schema ─────────────────────────────────────────────────────────
 
 	public function test_output_schema_included_when_provided() {
