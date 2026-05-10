@@ -134,7 +134,7 @@ class Registrar {
 			'label'               => $config['label'],
 			'description'         => $config['description'],
 			'category'            => $config['category'] ?? ( strpos( $module, 'fluent' ) === 0 ? $module : 'fluent-' . $module ),
-			'input_schema'        => $config['input_schema'] ?? array(),
+			'input_schema'        => $config['input_schema'] ?? array( 'type' => 'object' ),
 			'execute_callback'    => $callback,
 			'permission_callback' => $permission_callback,
 			'meta' => array(
