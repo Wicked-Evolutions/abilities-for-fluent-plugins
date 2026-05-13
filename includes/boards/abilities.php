@@ -1840,4 +1840,26 @@ add_action( 'wp_abilities_api_init', function() {
 	require_once $boards_dir . 'abilities-members.php';
 	require_once $boards_dir . 'abilities-activities.php';
 
+	// v2.0.0 expansion — 22 clusters / +160 abilities per
+	// ABILITY REGISTRAR RESEARCH — Fluent Boards 2026-05-13 v1.0 §4.
+	require_once $boards_dir . 'abilities-discovery.php';
+	require_once $boards_dir . 'abilities-tasks-extended.php';
+	require_once $boards_dir . 'abilities-subtasks.php';
+	require_once $boards_dir . 'abilities-comments-replies.php';
+	require_once $boards_dir . 'abilities-members-extended.php';
+	require_once $boards_dir . 'abilities-notifications.php';
+	require_once $boards_dir . 'abilities-custom-fields.php';
+	require_once $boards_dir . 'abilities-time-tracking.php';
+	require_once $boards_dir . 'abilities-attachments.php';
+	require_once $boards_dir . 'abilities-repeat-tasks.php';
+	require_once $boards_dir . 'abilities-folders.php';
+	require_once $boards_dir . 'abilities-stages-extended.php';
+	require_once $boards_dir . 'abilities-templates.php';
+	require_once $boards_dir . 'abilities-reports.php';
+	require_once $boards_dir . 'abilities-search.php';
+	require_once $boards_dir . 'abilities-crm.php';
+	require_once $boards_dir . 'abilities-webhooks.php';
+	require_once $boards_dir . 'abilities-admin.php';
+	require_once $boards_dir . 'abilities-import.php';
+
 }, 100 );
