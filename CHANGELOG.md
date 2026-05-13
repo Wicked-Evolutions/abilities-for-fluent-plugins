@@ -2,6 +2,44 @@
 
 All notable changes to Abilities for Fluent Plugins will be documented in this file.
 
+## [2.0.0] - UNRELEASED
+
+> **Sprint:** [Fluent Suite Registrar Bundle Sprint 2026-05-13](../../00%20Influencentricity%20OS/Plans/Alpha%20Release%20Gate/Fluent%20Suite%20Registrar%20Bundle%20Sprint%202026-05-13.md) (vault path).
+>
+> **Surface delta:** 272 existing abilities → +728 proposed = projected ~1000 total abilities for the seven sprint-covered plugins. Existing abilities for `support`, `smtp`, `auth`, `snippets`, `affiliate`, `cross-module` ship unchanged from v1.1.3.
+>
+> **Stable Ability Contracts:** every ability shipping in v1.1.3 is contract-identical in v2.0.0 (slug + input_schema + output_schema + permission_callback). Known v1.1.3 defects are explicitly preserved per [`docs/V1.1.3-KNOWN-DEFECTS.md`](docs/V1.1.3-KNOWN-DEFECTS.md); fixes ship in v1.1.x hotfixes, not in v2.0.0.
+>
+> **Per-plugin sub-sections below are populated by orchestrator at each Phase B feature-PR merge.**
+
+### FluentCRM
+
+_To be populated by orchestrator on FluentCRM PR merge._
+
+### FluentCart
+
+_To be populated by orchestrator on FluentCart PR merge._
+
+### Fluent Forms
+
+_To be populated by orchestrator on Fluent Forms PR merge._
+
+### Fluent Bookings
+
+_To be populated by orchestrator on Fluent Bookings PR merge._
+
+### Fluent Boards
+
+_To be populated by orchestrator on Fluent Boards PR merge._
+
+### FluentCommunity (+ Messaging)
+
+_To be populated by orchestrator on FluentCommunity PR merge._
+
+### FluentPlayer (+ FluentPlayer Pro) — new module
+
+_To be populated by orchestrator on FluentPlayer PR merge. Greenfield module; new `fluent-player` category._
+
 ## [1.1.3] - 2026-05-10
 
 Bug fix — Registrar `input_schema` default restored to JSON Schema draft 2020-12 conformance.

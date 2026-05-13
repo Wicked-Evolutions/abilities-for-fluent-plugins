@@ -4,7 +4,12 @@ on:
   push:
     branches: [main, develop]
   pull_request:
-    branches: [main]
+    # `integration/**` covers long-lived integration branches used for bundled
+    # multi-PR releases (e.g. integration/fluent-suite-registrar-v2 for the
+    # Fluent Suite Registrar Bundle Sprint). Phase B per-plugin feature PRs
+    # target their integration branch, so without this glob those PRs would
+    # have no CI runs.
+    branches: [main, "integration/**"]
 
 jobs:
   unit-tests:
