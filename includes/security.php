@@ -51,6 +51,7 @@ function fluent_abilities_get_caps() {
 			'fluent_booking_read',
 			'fluent_booking_write',
 			'fluent_booking_delete',
+			'fluent_booking_admin', // License/global settings/integration credentials.
 		),
 		'smtp' => array(
 			'fluent_smtp_read',
