@@ -205,6 +205,22 @@ add_action( 'plugins_loaded', function() {
 					}
 				}
 			}
+
+			// Load v2 ability sub-file when Community module is active (Phase B Community Registrar — v2.0.0).
+			if ( 'community' === $module ) {
+				$community_v2_file = FLUENT_ABILITIES_PATH . 'includes/community/abilities-v2.php';
+				if ( file_exists( $community_v2_file ) ) {
+					require_once $community_v2_file;
+				}
+			}
+
+			// Load v2 ability sub-file when Messaging module is active (Phase B Community Registrar — v2.0.0).
+			if ( 'messaging' === $module ) {
+				$messaging_v2_file = FLUENT_ABILITIES_PATH . 'includes/messaging/abilities-v2.php';
+				if ( file_exists( $messaging_v2_file ) ) {
+					require_once $messaging_v2_file;
+				}
+			}
 		}
 	}
 
