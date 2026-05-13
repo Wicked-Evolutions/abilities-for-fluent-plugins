@@ -66,6 +66,10 @@ function fluent_abilities_register_categories() {
 			'label'       => 'FluentAffiliate',
 			'description' => 'Affiliate management, referrals, commissions, payouts, visits, customers, and affiliate portal.',
 		),
+		'fluent-player' => array(
+			'label'       => 'FluentPlayer',
+			'description' => 'Media items, playlists, presets, settings, analytics, subtitles, email captures, and Bunny CDN / Mux integration for FluentPlayer + FluentPlayer Pro.',
+		),
 		'fluent' => array(
 			'label'       => 'Fluent (Cross-Module)',
 			'description' => 'Cross-product abilities: unified user view, dashboard, engagement scoring, and multi-product operations.',

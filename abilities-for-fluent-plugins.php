@@ -118,6 +118,7 @@ add_action( 'plugins_loaded', function() {
 		'messaging'  => 'FLUENT_MESSAGING_CHAT_VERSION',
 		'cart'       => 'FLUENTCART_VERSION',
 		'affiliate'  => 'FLUENT_AFFILIATE_VERSION',
+		'player'     => 'FLUENT_PLAYER_VERSION',
 	);
 
 	// Get user-configured module toggles (Security Layer 1).
