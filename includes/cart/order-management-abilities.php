@@ -590,7 +590,7 @@ add_action( 'wp_abilities_api_init', function() {
 		'capability' => 'manage_options',
 		'callback'   => function( $input ) {
 			$order   = \FluentCart\App\Models\Order::find( (int) $input['order_id'] );
-			$address = \FluentCart\App\Models\CustomerAddress::find( (int) $input['address_id'] );
+			$address = \FluentCart\App\Models\CustomerAddresses::find( (int) $input['address_id'] );
 			if ( ! $order ) {
 				return fluent_abilities_error( 'not_found', 'Order not found.' );
 			}

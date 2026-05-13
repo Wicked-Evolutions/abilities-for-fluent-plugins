@@ -92,7 +92,7 @@ add_action( 'wp_abilities_api_init', function() {
 				return fluent_abilities_error( 'not_found', 'Customer not found.' );
 			}
 			$id = (int) $customer->id;
-			\FluentCart\App\Models\CustomerAddress::where( 'customer_id', $id )->delete();
+			\FluentCart\App\Models\CustomerAddresses::where( 'customer_id', $id )->delete();
 			$customer->delete();
 			return array( 'success' => true, 'id' => $id );
 		},
@@ -385,7 +385,7 @@ add_action( 'wp_abilities_api_init', function() {
 			if ( isset( $input['email'] ) ) {
 				$data['email'] = sanitize_email( $input['email'] );
 			}
-			$address = \FluentCart\App\Models\CustomerAddress::create( $data );
+			$address = \FluentCart\App\Models\CustomerAddresses::create( $data );
 			return array( 'success' => true, 'id' => (int) $address->id );
 		},
 	) );
@@ -416,7 +416,7 @@ add_action( 'wp_abilities_api_init', function() {
 			'id' => array( 'type' => 'integer' ),
 		) ),
 		'callback' => function( $input ) {
-			$address = \FluentCart\App\Models\CustomerAddress::find( (int) $input['id'] );
+			$address = \FluentCart\App\Models\CustomerAddresses::find( (int) $input['id'] );
 			if ( ! $address ) {
 				return fluent_abilities_error( 'not_found', 'Address not found.' );
 			}
@@ -451,7 +451,7 @@ add_action( 'wp_abilities_api_init', function() {
 		) ),
 		'annotations' => array( 'idempotent' => false ),
 		'callback'    => function( $input ) {
-			$address = \FluentCart\App\Models\CustomerAddress::find( (int) $input['id'] );
+			$address = \FluentCart\App\Models\CustomerAddresses::find( (int) $input['id'] );
 			if ( ! $address ) {
 				return fluent_abilities_error( 'not_found', 'Address not found.' );
 			}
@@ -476,11 +476,11 @@ add_action( 'wp_abilities_api_init', function() {
 			'customer_id' => array( 'type' => 'integer' ),
 		) ),
 		'callback' => function( $input ) {
-			$address = \FluentCart\App\Models\CustomerAddress::find( (int) $input['id'] );
+			$address = \FluentCart\App\Models\CustomerAddresses::find( (int) $input['id'] );
 			if ( ! $address ) {
 				return fluent_abilities_error( 'not_found', 'Address not found.' );
 			}
-			\FluentCart\App\Models\CustomerAddress::where( 'customer_id', $address->customer_id )
+			\FluentCart\App\Models\CustomerAddresses::where( 'customer_id', $address->customer_id )
 				->where( 'id', '!=', $address->id )
 				->update( array( 'is_primary' => 0 ) );
 			$address->is_primary = 1;
@@ -521,7 +521,7 @@ add_action( 'wp_abilities_api_init', function() {
 			'created_at'  => array( 'type' => array( 'string', 'null' ) ),
 		) ),
 		'callback' => function( $input ) {
-			$a = \FluentCart\App\Models\CustomerAddress::find( (int) $input['id'] );
+			$a = \FluentCart\App\Models\CustomerAddresses::find( (int) $input['id'] );
 			if ( ! $a ) {
 				return fluent_abilities_error( 'not_found', 'Address not found.' );
 			}
