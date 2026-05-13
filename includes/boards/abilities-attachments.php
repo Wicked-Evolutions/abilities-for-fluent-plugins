@@ -115,7 +115,7 @@ $reg->write( 'fluent-boards/add-task-attachment', array(
 		}
 		$visibility = sanitize_key( $input['visibility'] ?? 'public' );
 		$now        = current_time( 'mysql' );
-		$new_id     = wpFluent()->table( 'fbs_metas' )->insert( array(
+		$new_id     = wpFluent()->table( 'fbs_metas' )->insertGetId( array(
 			'object_id'   => $task_id,
 			'object_type' => 'task_attachment',
 			'key'         => 'task_attachment',

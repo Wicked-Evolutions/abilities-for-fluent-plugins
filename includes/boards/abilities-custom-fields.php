@@ -91,7 +91,7 @@ $reg->write( 'fluent-boards/create-custom-field', array(
 		$settings['type']      = $type;
 		$now                   = current_time( 'mysql' );
 		$max_pos               = (int) ( wpFluent()->table( 'fbs_board_terms' )->where( 'board_id', $board_id )->where( 'type', 'custom-field' )->max( 'position' ) ?? 0 );
-		$new_id = wpFluent()->table( 'fbs_board_terms' )->insert( array(
+		$new_id = wpFluent()->table( 'fbs_board_terms' )->insertGetId( array(
 			'board_id'   => $board_id,
 			'type'       => 'custom-field',
 			'title'      => $title,

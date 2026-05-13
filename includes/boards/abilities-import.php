@@ -79,7 +79,7 @@ $reg->write( 'fluent-boards/upload-csv', array(
 		}
 		fclose( $handle );
 		$now    = current_time( 'mysql' );
-		$csv_id = wpFluent()->table( 'fbs_metas' )->insert( array(
+		$csv_id = wpFluent()->table( 'fbs_metas' )->insertGetId( array(
 			'object_id'   => $attachment_id,
 			'object_type' => 'csv_upload',
 			'key'         => 'staged_csv',
@@ -198,11 +198,10 @@ $reg->write( 'fluent-boards/import-fluent-boards-export', array(
 		$board_id_map    = array();
 		$stage_id_map    = array();
 		foreach ( (array) ( $payload['boards'] ?? array() ) as $b ) {
-			$new_bid = wpFluent()->table( 'fbs_boards' )->insert( array(
+			$new_bid = wpFluent()->table( 'fbs_boards' )->insertGetId( array(
 				'title'      => sanitize_text_field( $b['title'] ?? 'Imported Board' ),
 				'description'=> sanitize_textarea_field( $b['description'] ?? '' ),
 				'type'       => sanitize_key( $b['type'] ?? 'to-do' ),
-				'status'     => 'active',
 				'created_by' => (int) get_current_user_id(),
 				'created_at' => $now,
 				'updated_at' => $now,
@@ -214,7 +213,7 @@ $reg->write( 'fluent-boards/import-fluent-boards-export', array(
 			$src_bid  = (int) ( $s['board_id'] ?? 0 );
 			$dst_bid  = $board_id_map[ $src_bid ] ?? 0;
 			if ( ! $dst_bid ) { continue; }
-			$new_sid  = wpFluent()->table( 'fbs_board_terms' )->insert( array(
+			$new_sid  = wpFluent()->table( 'fbs_board_terms' )->insertGetId( array(
 				'board_id'   => $dst_bid,
 				'type'       => 'stage',
 				'title'      => sanitize_text_field( $s['title'] ?? '' ),

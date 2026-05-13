@@ -387,7 +387,7 @@ $reg->write( 'fluent-boards/clone-task', array(
 			return fluent_abilities_error( 'not_found', 'Task not found on this board.' );
 		}
 		$now    = current_time( 'mysql' );
-		$new_id = wpFluent()->table( 'fbs_tasks' )->insert( array(
+		$new_id = wpFluent()->table( 'fbs_tasks' )->insertGetId( array(
 			'board_id'   => $board_id,
 			'stage_id'   => (int) ( $input['target_stage_id'] ?? ( $task->stage_id ?? 0 ) ),
 			'type'       => $task->type ?? 'task',

@@ -66,11 +66,10 @@ $reg->write( 'fluent-boards/create-folder', array(
 			return fluent_abilities_error( 'ability_invalid_input', 'title is required.' );
 		}
 		$now    = current_time( 'mysql' );
-		$new_id = wpFluent()->table( 'fbs_boards' )->insert( array(
+		$new_id = wpFluent()->table( 'fbs_boards' )->insertGetId( array(
 			'title'       => $title,
 			'description' => sanitize_textarea_field( $input['description'] ?? '' ),
 			'type'        => 'folder',
-			'status'      => 'active',
 			'created_by'  => (int) get_current_user_id(),
 			'created_at'  => $now,
 			'updated_at'  => $now,
@@ -245,7 +244,7 @@ $reg->write( 'fluent-boards/create-board-invitation', array(
 			return fluent_abilities_error( 'not_found', 'Board not found.' );
 		}
 		$now    = current_time( 'mysql' );
-		$new_id = wpFluent()->table( 'fbs_metas' )->insert( array(
+		$new_id = wpFluent()->table( 'fbs_metas' )->insertGetId( array(
 			'object_id'   => $board_id,
 			'object_type' => 'board_invitation',
 			'key'         => 'invitation',

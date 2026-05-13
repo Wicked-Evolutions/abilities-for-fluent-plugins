@@ -619,11 +619,10 @@ $reg->write( 'fluent-boards/duplicate-board', array(
 			return fluent_abilities_error( 'not_found', 'Source board not found.' );
 		}
 		$now      = current_time( 'mysql' );
-		$new_id   = wpFluent()->table( 'fbs_boards' )->insert( array(
+		$new_id   = wpFluent()->table( 'fbs_boards' )->insertGetId( array(
 			'title'       => $new_title,
 			'description' => $src->description ?? '',
 			'type'        => $src->type ?? 'to-do',
-			'status'      => 'active',
 			'settings'    => $src->settings ?? '',
 			'currency'    => $src->currency ?? null,
 			'created_by'  => (int) get_current_user_id(),
@@ -635,7 +634,7 @@ $reg->write( 'fluent-boards/duplicate-board', array(
 		$stage_map = array();
 		$stages    = wpFluent()->table( 'fbs_board_terms' )->where( 'board_id', $src_id )->where( 'type', 'stage' )->orderBy( 'position', 'ASC' )->get();
 		foreach ( $stages as $st ) {
-			$new_sid = wpFluent()->table( 'fbs_board_terms' )->insert( array(
+			$new_sid = wpFluent()->table( 'fbs_board_terms' )->insertGetId( array(
 				'board_id'   => $new_id,
 				'type'       => 'stage',
 				'title'      => $st->title ?? '',
@@ -726,7 +725,7 @@ $reg->write( 'fluent-boards/import-from-board', array(
 		if ( ! isset( $input['import_stages'] ) || ! empty( $input['import_stages'] ) ) {
 			$stages = wpFluent()->table( 'fbs_board_terms' )->where( 'board_id', $src )->where( 'type', 'stage' )->orderBy( 'position', 'ASC' )->get();
 			foreach ( $stages as $st ) {
-				$new_sid = wpFluent()->table( 'fbs_board_terms' )->insert( array(
+				$new_sid = wpFluent()->table( 'fbs_board_terms' )->insertGetId( array(
 					'board_id'   => $tgt,
 					'type'       => 'stage',
 					'title'      => $st->title ?? '',

@@ -89,7 +89,7 @@ $reg->write( 'fluent-boards/start-time-track', array(
 			return fluent_abilities_error( 'conflict', 'An active time-track session already exists for this user/task. Pause or commit it first.' );
 		}
 		$now    = current_time( 'mysql' );
-		$new_id = wpFluent()->table( 'fbs_time_tracks' )->insert( array(
+		$new_id = wpFluent()->table( 'fbs_time_tracks' )->insertGetId( array(
 			'task_id'    => $task_id,
 			'user_id'    => $user_id,
 			'status'     => 'active',

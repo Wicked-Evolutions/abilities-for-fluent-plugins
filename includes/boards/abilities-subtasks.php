@@ -137,7 +137,7 @@ $reg->write( 'fluent-boards/create-subtask', array(
 			return fluent_abilities_error( 'not_found', 'Parent task not found on this board.' );
 		}
 		$now    = current_time( 'mysql' );
-		$new_id = wpFluent()->table( 'fbs_tasks' )->insert( array(
+		$new_id = wpFluent()->table( 'fbs_tasks' )->insertGetId( array(
 			'board_id'   => $board_id,
 			'stage_id'   => $parent->stage_id ?? 0,
 			'parent_id'  => $task_id,
@@ -224,7 +224,7 @@ $reg->write( 'fluent-boards/clone-subtask', array(
 			return fluent_abilities_error( 'not_found', 'Subtask not found.' );
 		}
 		$now    = current_time( 'mysql' );
-		$new_id = wpFluent()->table( 'fbs_tasks' )->insert( array(
+		$new_id = wpFluent()->table( 'fbs_tasks' )->insertGetId( array(
 			'board_id'   => $src->board_id ?? 0,
 			'stage_id'   => $src->stage_id ?? 0,
 			'parent_id'  => $src->parent_id,
@@ -498,7 +498,7 @@ $reg->write( 'fluent-boards/create-subtask-group', array(
 			return fluent_abilities_error( 'ability_invalid_input', 'title is required.' );
 		}
 		$now    = current_time( 'mysql' );
-		$new_id = wpFluent()->table( 'fbs_task_metas' )->insert( array(
+		$new_id = wpFluent()->table( 'fbs_task_metas' )->insertGetId( array(
 			'task_id'    => $task_id,
 			'key'        => 'subtask_group_name',
 			'value'      => $title,

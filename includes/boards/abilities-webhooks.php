@@ -88,7 +88,7 @@ $reg->write( 'fluent-boards/create-incoming-webhook', array(
 		}
 		$hash   = wp_generate_uuid4();
 		$now    = current_time( 'mysql' );
-		$new_id = wpFluent()->table( 'fbs_metas' )->insert( array(
+		$new_id = wpFluent()->table( 'fbs_metas' )->insertGetId( array(
 			'object_id'   => 0,
 			'object_type' => 'webhook',
 			'key'         => $hash,
@@ -235,7 +235,7 @@ $reg->write( 'fluent-boards/create-outgoing-webhook', array(
 			return fluent_abilities_error( 'ability_invalid_input', 'events must be a non-empty array.' );
 		}
 		$now    = current_time( 'mysql' );
-		$new_id = wpFluent()->table( 'fbs_metas' )->insert( array(
+		$new_id = wpFluent()->table( 'fbs_metas' )->insertGetId( array(
 			'object_id'   => 0,
 			'object_type' => 'outgoing_webhook',
 			'key'         => 'config',

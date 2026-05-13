@@ -193,10 +193,9 @@ $reg->write( 'fluent-boards/onboard-first-board', array(
 			return fluent_abilities_error( 'ability_invalid_input', 'title is required.' );
 		}
 		$now    = current_time( 'mysql' );
-		$new_id = wpFluent()->table( 'fbs_boards' )->insert( array(
+		$new_id = wpFluent()->table( 'fbs_boards' )->insertGetId( array(
 			'title'      => $title,
 			'type'       => 'to-do',
-			'status'     => 'active',
 			'created_by' => (int) get_current_user_id(),
 			'created_at' => $now,
 			'updated_at' => $now,

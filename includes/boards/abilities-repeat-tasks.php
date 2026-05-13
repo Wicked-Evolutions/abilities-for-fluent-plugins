@@ -46,7 +46,7 @@ $reg->write( 'fluent-boards/create-repeat-task-rule', array(
 			return fluent_abilities_error( 'not_found', 'Task not found on this board.' );
 		}
 		$now    = current_time( 'mysql' );
-		$new_id = wpFluent()->table( 'fbs_metas' )->insert( array(
+		$new_id = wpFluent()->table( 'fbs_metas' )->insertGetId( array(
 			'object_id'   => $task_id,
 			'object_type' => 'repeat_task_rule',
 			'key'         => 'rule',

@@ -120,11 +120,10 @@ $reg->write( 'fluent-boards/create-board-from-template', array(
 			return fluent_abilities_error( 'ability_invalid_input', 'template_id and board_title are required.' );
 		}
 		$now    = current_time( 'mysql' );
-		$new_id = wpFluent()->table( 'fbs_boards' )->insert( array(
+		$new_id = wpFluent()->table( 'fbs_boards' )->insertGetId( array(
 			'title'      => $title,
 			'description'=> $template->description ?? '',
 			'type'       => 'to-do',
-			'status'     => 'active',
 			'created_by' => (int) get_current_user_id(),
 			'created_at' => $now,
 			'updated_at' => $now,
@@ -132,7 +131,7 @@ $reg->write( 'fluent-boards/create-board-from-template', array(
 		// Clone stages.
 		$stage_map = array();
 		foreach ( wpFluent()->table( 'fbs_board_terms' )->where( 'board_id', $template_id )->where( 'type', 'stage' )->orderBy( 'position', 'ASC' )->get() as $s ) {
-			$nsid = wpFluent()->table( 'fbs_board_terms' )->insert( array(
+			$nsid = wpFluent()->table( 'fbs_board_terms' )->insertGetId( array(
 				'board_id' => $new_id, 'type' => 'stage',
 				'title' => $s->title ?? '', 'position' => $s->position ?? 0,
 				'settings' => $s->settings ?? '',
@@ -204,11 +203,10 @@ $reg->write( 'fluent-boards/duplicate-board-as-template', array(
 			return fluent_abilities_error( 'ability_invalid_input', 'board_id and template_title are required.' );
 		}
 		$now    = current_time( 'mysql' );
-		$new_id = wpFluent()->table( 'fbs_boards' )->insert( array(
+		$new_id = wpFluent()->table( 'fbs_boards' )->insertGetId( array(
 			'title'       => $title,
 			'description' => $board->description ?? '',
 			'type'        => 'template',
-			'status'      => 'active',
 			'settings'    => $board->settings ?? '',
 			'created_by'  => (int) get_current_user_id(),
 			'created_at'  => $now,
@@ -216,7 +214,7 @@ $reg->write( 'fluent-boards/duplicate-board-as-template', array(
 		) );
 		$stage_map = array();
 		foreach ( wpFluent()->table( 'fbs_board_terms' )->where( 'board_id', $board_id )->where( 'type', 'stage' )->orderBy( 'position', 'ASC' )->get() as $s ) {
-			$nsid = wpFluent()->table( 'fbs_board_terms' )->insert( array(
+			$nsid = wpFluent()->table( 'fbs_board_terms' )->insertGetId( array(
 				'board_id' => $new_id, 'type' => 'stage',
 				'title' => $s->title ?? '', 'position' => $s->position ?? 0,
 				'settings' => $s->settings ?? '',

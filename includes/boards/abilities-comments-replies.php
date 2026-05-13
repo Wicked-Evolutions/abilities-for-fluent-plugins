@@ -45,7 +45,7 @@ $reg->write( 'fluent-boards/create-task-comment-reply', array(
 			return fluent_abilities_error( 'not_found', 'Parent comment not found on this task.' );
 		}
 		$now    = current_time( 'mysql' );
-		$new_id = wpFluent()->table( 'fbs_comments' )->insert( array(
+		$new_id = wpFluent()->table( 'fbs_comments' )->insertGetId( array(
 			'task_id'     => $task_id,
 			'parent_id'   => $parent_id,
 			'description' => $desc,
