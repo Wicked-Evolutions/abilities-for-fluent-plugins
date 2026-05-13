@@ -79,6 +79,11 @@ function fluent_abilities_get_caps() {
 			'fluent_affiliate_write',
 			'fluent_affiliate_delete',
 		),
+		'player' => array(
+			'fluent_player_read',
+			'fluent_player_write',
+			'fluent_player_delete',
+		),
 	);
 }
 
@@ -279,6 +284,7 @@ function fluent_abilities_get_module_status() {
 		'messaging'  => array( 'label' => 'Fluent Messaging',  'constant' => 'FLUENT_MESSAGING_CHAT_VERSION' ),
 		'cart'       => array( 'label' => 'FluentCart',        'constant' => 'FLUENTCART_VERSION' ),
 		'affiliate'  => array( 'label' => 'FluentAffiliate',  'constant' => 'FLUENT_AFFILIATE_VERSION' ),
+		'player'     => array( 'label' => 'FluentPlayer',     'constant' => 'FLUENT_PLAYER_VERSION' ),
 		'fluent'     => array( 'label' => 'Fluent (Cross-Module)', 'constant' => 'FLUENT_ABILITIES_VERSION' ),
 	);
 
