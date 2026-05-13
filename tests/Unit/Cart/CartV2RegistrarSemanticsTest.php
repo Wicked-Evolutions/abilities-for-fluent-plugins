@@ -173,6 +173,35 @@ class CartV2RegistrarSemanticsTest extends TestCase {
 		$this->assertSame( 'array', $schema['properties']['transactions']['type'] );
 	}
 
+	public function test_v2_delete_tax_rate_registers_with_destructive_annotation_and_manage_options(): void {
+		// Round-4-redux addition: cluster 4.17 gained delete-tax-rate to close the
+		// vendor-surface gap (TaxRateController::delete($id)). Verify it ships as a
+		// destructive write protected by manage_options.
+		$reg = new Registrar( 'cart' );
+		$reg->delete( 'fluent-cart/delete-tax-rate', array(
+			'label'       => 'Delete Tax Rate',
+			'description' => 'Delete by id.',
+			'callback'    => function ( $input ) {
+				return array( 'success' => true, 'id' => (int) ( $input['id'] ?? 0 ) );
+			},
+			'capability'  => 'manage_options',
+			'annotations' => array( 'idempotent' => false ),
+		) );
+
+		$abilities = wp_get_abilities();
+		$this->assertArrayHasKey( 'fluent-cart/delete-tax-rate', $abilities );
+		$annotations = $abilities['fluent-cart/delete-tax-rate']['meta']['annotations'];
+		$this->assertTrue( $annotations['destructive'] );
+		$this->assertSame( 'delete', $annotations['permission'] );
+		$this->assertFalse( $annotations['idempotent'] );
+
+		$pcb = $abilities['fluent-cart/delete-tax-rate']['permission_callback'];
+		$GLOBALS['_test_user_caps'] = array( 'manage_options' );
+		$this->assertTrue( $pcb() );
+		$GLOBALS['_test_user_caps'] = array( 'edit_posts' );
+		$this->assertFalse( $pcb() );
+	}
+
 	public function test_v2_success_output_schema_includes_success_bool(): void {
 		$schema = fluent_abilities_schema_success_output( array(
 			'id' => array( 'type' => 'integer' ),

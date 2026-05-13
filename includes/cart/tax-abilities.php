@@ -3,7 +3,12 @@
  * FluentCart Abilities — Tax Rates, Classes & EU VAT (v2.0.0)
  *
  * Adds cluster 4.17 from FluentCart Ability Registrar Research v1.0
- * (2026-05-13) — 7 abilities. Existing v1.1.3 list-tax-rates is preserved.
+ * (2026-05-13) — 8 abilities. Existing v1.1.3 list-tax-rates is preserved.
+ *
+ * delete-tax-rate added at Reviewer round-4-redux: research §4.17 enumerated
+ * 7 abilities with no per-id delete path; vendor exposes
+ * TaxRateController::delete($id) (TaxRate::findOrFail->delete()), so adding
+ * the corresponding ability closes a product-surface gap (Path 1).
  *
  * @package Fluent_Abilities
  * @since 2.0.0
@@ -151,20 +156,23 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-cart/create-tax-rate', array(
 		'label'       => 'Create Tax Rate',
-		'description' => 'Create a tax rate, optionally scoped to country / state / postcode and a tax class. Mirrors POST /tax/country/rate.',
+		'description' => 'Create a tax rate scoped to a tax class (class_id) and optionally country / state / postcode / city. Mirrors TaxRateController::store. Input field names match the canonical fct_tax_rates $fillable list (class_id, is_compound, for_shipping, for_order).',
 		'input_schema' => array(
 			'type'     => 'object',
-			'required' => array( 'rate' ),
+			'required' => array( 'class_id', 'rate' ),
 			'properties' => array(
-				'rate'          => array( 'type' => 'number', 'description' => 'Tax rate (percentage)' ),
-				'tax_class_id'  => array( 'type' => 'integer' ),
-				'country'       => array( 'type' => 'string', 'description' => 'ISO 3166-1 alpha-2' ),
-				'state'         => array( 'type' => 'string' ),
-				'postcode'      => array( 'type' => 'string' ),
-				'name'          => array( 'type' => 'string' ),
-				'compound'      => array( 'type' => 'boolean' ),
-				'shipping'      => array( 'type' => 'boolean' ),
-				'priority'      => array( 'type' => 'integer' ),
+				'class_id'     => array( 'type' => 'integer', 'description' => 'Tax class FK (fct_tax_classes.id) — REQUIRED per TaxRateController::store' ),
+				'rate'         => array( 'type' => 'number', 'description' => 'Tax rate (percentage)' ),
+				'country'      => array( 'type' => 'string', 'description' => 'ISO 3166-1 alpha-2' ),
+				'state'        => array( 'type' => 'string' ),
+				'postcode'     => array( 'type' => 'string' ),
+				'city'         => array( 'type' => 'string' ),
+				'name'         => array( 'type' => 'string' ),
+				'group'        => array( 'type' => 'string', 'description' => 'Continent group (e.g. EU); vendor populates via Localization' ),
+				'priority'     => array( 'type' => 'integer', 'description' => 'Default 1' ),
+				'is_compound'  => array( 'type' => 'boolean' ),
+				'for_shipping' => array( 'type' => 'boolean' ),
+				'for_order'    => array( 'type' => 'boolean' ),
 			),
 		),
 		'output_schema' => fluent_abilities_schema_success_output( array(
@@ -177,24 +185,59 @@ add_action( 'wp_abilities_api_init', function() {
 			if ( ! class_exists( $model ) ) {
 				return fluent_abilities_error( 'not_found', 'TaxRate model not available.' );
 			}
-			$data = array( 'rate' => (float) $input['rate'] );
-			foreach ( array( 'country', 'state', 'postcode', 'name' ) as $f ) {
+			$class_id = (int) $input['class_id'];
+			if ( ! $class_id ) {
+				return fluent_abilities_error( 'ability_invalid_input', 'Tax class is required.' );
+			}
+			$data = array(
+				'class_id' => $class_id,
+				'rate'     => (string) $input['rate'], // schema stores rate as VARCHAR(45).
+			);
+			foreach ( array( 'country', 'state', 'postcode', 'city', 'name', 'group' ) as $f ) {
 				if ( isset( $input[ $f ] ) ) {
 					$data[ $f ] = sanitize_text_field( $input[ $f ] );
 				}
 			}
-			foreach ( array( 'tax_class_id', 'priority' ) as $f ) {
-				if ( isset( $input[ $f ] ) ) {
-					$data[ $f ] = (int) $input[ $f ];
-				}
+			if ( isset( $input['priority'] ) ) {
+				$data['priority'] = (int) $input['priority'];
 			}
-			foreach ( array( 'compound', 'shipping' ) as $f ) {
+			foreach ( array( 'is_compound', 'for_shipping', 'for_order' ) as $f ) {
 				if ( isset( $input[ $f ] ) ) {
 					$data[ $f ] = ! empty( $input[ $f ] ) ? 1 : 0;
 				}
 			}
 			$row = $model::create( $data );
 			return array( 'success' => true, 'id' => (int) $row->id );
+		},
+	) );
+
+	$reg->delete( 'fluent-cart/delete-tax-rate', array(
+		'label'       => 'Delete Tax Rate',
+		'description' => 'Delete a single tax rate by id. Mirrors TaxRateController::delete (TaxRate::query()->findOrFail($id)->delete()).',
+		'input_schema' => array(
+			'type'     => 'object',
+			'required' => array( 'id' ),
+			'properties' => array(
+				'id' => array( 'type' => 'integer' ),
+			),
+		),
+		'output_schema' => fluent_abilities_schema_success_output( array(
+			'id' => array( 'type' => 'integer' ),
+		) ),
+		'annotations' => array( 'idempotent' => false ),
+		'capability'  => 'manage_options',
+		'callback'    => function( $input ) {
+			$model = '\\FluentCart\\App\\Models\\TaxRate';
+			if ( ! class_exists( $model ) ) {
+				return fluent_abilities_error( 'not_found', 'TaxRate model not available.' );
+			}
+			$row = $model::find( (int) $input['id'] );
+			if ( ! $row ) {
+				return fluent_abilities_error( 'not_found', 'Tax rate not found.' );
+			}
+			$id = (int) $row->id;
+			$row->delete();
+			return array( 'success' => true, 'id' => $id );
 		},
 	) );
 
@@ -242,7 +285,7 @@ add_action( 'wp_abilities_api_init', function() {
 		},
 	) );
 
-	$count = 7;
+	$count = 8;
 	error_log( "Abilities for Fluent: Registered {$count} Cart Tax abilities" );
 
 }, 100 );

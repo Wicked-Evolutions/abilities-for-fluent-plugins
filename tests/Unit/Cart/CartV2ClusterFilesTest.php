@@ -32,7 +32,7 @@ class CartV2ClusterFilesTest extends TestCase {
 			'coupon-extended-abilities.php'         => 5,  // 4.13
 			'license-extended-abilities.php'        => 11, // 4.14 (7) + 4.15 (4) (Pro)
 			'settings-abilities.php'                => 12, // 4.16
-			'tax-abilities.php'                     => 7,  // 4.17
+			'tax-abilities.php'                     => 8,  // 4.17 (7 in research §4 + delete-tax-rate added round-4-redux)
 			'shipping-abilities.php'                => 8,  // 4.18
 			'activity-abilities.php'                => 3,  // 4.19
 			'reports-abilities.php'                 => 7,  // 4.20
