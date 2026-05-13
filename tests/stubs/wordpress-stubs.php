@@ -73,6 +73,32 @@ if ( ! function_exists( 'absint' ) ) {
 		return abs( (int) $maybeint );
 	}
 }
+if ( ! function_exists( 'sanitize_key' ) ) {
+	function sanitize_key( $key ) {
+		$key = strtolower( (string) $key );
+		return preg_replace( '/[^a-z0-9_\-]/', '', $key );
+	}
+}
+if ( ! function_exists( 'sanitize_file_name' ) ) {
+	function sanitize_file_name( $filename ) {
+		return preg_replace( '/[^A-Za-z0-9._\-]/', '', (string) $filename );
+	}
+}
+if ( ! function_exists( 'esc_url_raw' ) ) {
+	function esc_url_raw( $url ) {
+		return filter_var( $url, FILTER_SANITIZE_URL );
+	}
+}
+if ( ! function_exists( 'current_time' ) ) {
+	function current_time( $type = 'mysql' ) {
+		return 'mysql' === $type ? gmdate( 'Y-m-d H:i:s' ) : time();
+	}
+}
+if ( ! function_exists( 'size_format' ) ) {
+	function size_format( $bytes, $decimals = 0 ) {
+		return number_format( (float) $bytes, $decimals ) . ' B';
+	}
+}
 
 // In-memory option store.
 $_wp_options_store = array();
