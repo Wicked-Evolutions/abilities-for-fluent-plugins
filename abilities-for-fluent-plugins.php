@@ -168,6 +168,33 @@ add_action( 'plugins_loaded', function() {
 						require_once $sub_file;
 					}
 				}
+
+				// Load extended Bookings ability sub-files (Phase B Bookings Registrar — v2.0.0).
+				foreach ( array(
+					'abilities-booking-meta',
+					'abilities-calendar-integrations',
+					'abilities-calendar-meta',
+					'abilities-coupons',
+					'abilities-event-config',
+					'abilities-event-location',
+					'abilities-global-settings',
+					'abilities-import',
+					'abilities-license',
+					'abilities-multi-host',
+					'abilities-orders',
+					'abilities-permissions',
+					'abilities-reports',
+					'abilities-reschedule',
+					'abilities-slots',
+					'abilities-team',
+					'abilities-webhooks',
+					'abilities-zoom-twilio',
+				) as $sub ) {
+					$sub_file = FLUENT_ABILITIES_PATH . "includes/booking/{$sub}.php";
+					if ( file_exists( $sub_file ) ) {
+						require_once $sub_file;
+					}
+				}
 			}
 
 			// Load cohort analysis abilities when CRM module is active.
