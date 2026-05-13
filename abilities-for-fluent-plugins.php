@@ -184,6 +184,26 @@ add_action( 'plugins_loaded', function() {
 				if ( file_exists( $advanced_query_file ) ) {
 					require_once $advanced_query_file;
 				}
+
+				// Load extended CRM ability sub-files (Phase B CRM Registrar — v2.0.0).
+				foreach ( array(
+					'extended-campaigns',
+					'extended-funnels',
+					'extended-misc-medium',
+					'extended-misc-small',
+					'extended-pro-companies',
+					'extended-pro-marketing',
+					'extended-pro-settings-and-commerce',
+					'extended-reports',
+					'extended-settings',
+					'extended-subscribers',
+					'extended-templates-and-patterns',
+				) as $sub ) {
+					$sub_file = FLUENT_ABILITIES_PATH . "includes/crm/{$sub}.php";
+					if ( file_exists( $sub_file ) ) {
+						require_once $sub_file;
+					}
+				}
 			}
 		}
 	}
