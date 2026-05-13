@@ -42,10 +42,16 @@ function fluent_abilities_crm_register_extended_misc_small() {
 
 	$reg->read( 'fluent-crm/list-labels', array(
 		'label'         => 'List CRM Labels',
-		'description'   => 'List funnel/campaign labels. Source: LabelController::index (GET /labels).',
+		'description'   => 'List funnel/campaign labels. Source: LabelController::index (GET /labels). Response shape: labels may serialize as array (sequential) or object (name-keyed) depending on FCRM internal storage at query time.',
 		'category'      => 'fluent-crm',
 		'input_schema'  => array( 'type' => 'object', 'properties' => array() ),
-		'output_schema' => fluent_abilities_schema_collection_output( 'labels', $label_item ),
+		'output_schema' => array(
+			'type'                 => 'object',
+			'additionalProperties' => true,
+			'properties'           => array(
+				'labels' => array( 'type' => array( 'array', 'object' ) ),
+			),
+		),
 		'callback'      => function ( $input ) use ( $proxy ) {
 			return $proxy( 'GET', '/fluent-crm/v2/labels' );
 		},
@@ -121,10 +127,16 @@ function fluent_abilities_crm_register_extended_misc_small() {
 
 	$reg->read( 'fluent-crm/list-webhooks', array(
 		'label'         => 'List CRM Webhooks',
-		'description'   => 'List FluentCRM webhook endpoints. Source: WebhookController::index (GET /webhooks). Capability: fcrm_manage_settings.',
+		'description'   => 'List FluentCRM webhook endpoints. Source: WebhookController::index (GET /webhooks). Capability: fcrm_manage_settings. Webhook entries carry provider-specific `extra` payload that may serialize as nested object.',
 		'category'      => 'fluent-crm',
 		'input_schema'  => array( 'type' => 'object', 'properties' => array() ),
-		'output_schema' => fluent_abilities_schema_collection_output( 'webhooks', $webhook_item ),
+		'output_schema' => array(
+			'type'                 => 'object',
+			'additionalProperties' => true,
+			'properties'           => array(
+				'webhooks' => array( 'type' => array( 'array', 'object' ) ),
+			),
+		),
 		'callback'      => function ( $input ) use ( $proxy ) {
 			return $proxy( 'GET', '/fluent-crm/v2/webhooks' );
 		},
@@ -218,13 +230,19 @@ function fluent_abilities_crm_register_extended_misc_small() {
 
 	$reg->read( 'fluent-crm/list-user-roles', array(
 		'label'         => 'List WP User Roles (CRM Picker UI)',
-		'description'   => 'List WP user roles for picker UIs. Source: UsersController::roles (GET /users/roles).',
+		'description'   => 'List WP user roles for picker UIs. Source: UsersController::roles (GET /users/roles). Response shape: roles is a slug-keyed map matching WordPress\'s native get_editable_roles() shape.',
 		'category'      => 'fluent-crm',
 		'input_schema'  => array( 'type' => 'object', 'properties' => array() ),
-		'output_schema' => fluent_abilities_schema_collection_output( 'roles', array(
-			'name'  => array( 'type' => 'string' ),
-			'label' => array( 'type' => 'string' ),
-		) ),
+		'output_schema' => array(
+			'type'                 => 'object',
+			'additionalProperties' => true,
+			'properties'           => array(
+				'roles' => array(
+					'type'                 => array( 'array', 'object' ),
+					'description'          => 'Role map keyed by role slug.',
+				),
+			),
+		),
 		'callback'      => function ( $input ) use ( $proxy ) {
 			return $proxy( 'GET', '/fluent-crm/v2/users/roles' );
 		},
@@ -354,7 +372,7 @@ function fluent_abilities_crm_register_extended_misc_small() {
 
 	$reg->read( 'fluent-crm/global-search', array(
 		'label'         => 'Global CRM Search',
-		'description'   => 'Cross-entity search (contacts + campaigns + tags + funnels). Source: GlobalSearchController::index (GET /global-search).',
+		'description'   => 'Cross-entity search across subscribers, campaigns, and funnels. Source: GlobalSearchController::index (GET /global-search). Response keys: `subscribers`, `campaigns`, `funnels` (WordPress-native vendor terminology — subscribers is FCRM\'s contact-store table name).',
 		'category'      => 'fluent-crm',
 		'input_schema'  => array(
 			'type'       => 'object',
@@ -364,10 +382,9 @@ function fluent_abilities_crm_register_extended_misc_small() {
 			),
 		),
 		'output_schema' => fluent_abilities_schema_item_output( array(
-			'contacts'  => array( 'type' => 'array', 'items' => array( 'type' => 'object', 'additionalProperties' => true ) ),
-			'campaigns' => array( 'type' => 'array', 'items' => array( 'type' => 'object', 'additionalProperties' => true ) ),
-			'tags'      => array( 'type' => 'array', 'items' => array( 'type' => 'object', 'additionalProperties' => true ) ),
-			'funnels'   => array( 'type' => 'array', 'items' => array( 'type' => 'object', 'additionalProperties' => true ) ),
+			'subscribers' => array( 'type' => 'array', 'items' => array( 'type' => 'object', 'additionalProperties' => true ) ),
+			'campaigns'   => array( 'type' => 'array', 'items' => array( 'type' => 'object', 'additionalProperties' => true ) ),
+			'funnels'     => array( 'type' => 'array', 'items' => array( 'type' => 'object', 'additionalProperties' => true ) ),
 		) ),
 		'callback'      => function ( $input ) use ( $proxy ) {
 			return $proxy( 'GET', '/fluent-crm/v2/global-search', $input );

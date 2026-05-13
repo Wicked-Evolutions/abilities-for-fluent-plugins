@@ -49,10 +49,20 @@ function fluent_abilities_crm_register_extended_funnels() {
 
 	$reg->read( 'fluent-crm/list-funnel-triggers', array(
 		'label'         => 'List CRM Funnel Triggers Dictionary',
-		'description'   => 'Registered funnel-trigger dictionary (load-bearing — no prior wrapper). Source: FunnelController::getTriggers (GET /funnels/triggers). Capability: fcrm_read_funnels.',
+		'description'   => 'Registered funnel-trigger dictionary, keyed by trigger name (e.g. `user_register`, `fluent_crm/contact_created`, `fluent_cart/order_paid_done`). Load-bearing — no prior wrapper. Source: FunnelController::getTriggers (GET /funnels/triggers). Capability: fcrm_read_funnels. Response shape: triggers is a name-keyed object (WordPress-native assoc-array serialization), each entry has `category`, `label`, `description`, and rendering hints (icon/svg).',
 		'category'      => 'fluent-crm',
 		'input_schema'  => array( 'type' => 'object', 'properties' => array() ),
-		'output_schema' => fluent_abilities_schema_collection_output( 'triggers', $obj ),
+		'output_schema' => array(
+			'type'                 => 'object',
+			'additionalProperties' => true,
+			'properties'           => array(
+				'triggers' => array(
+					'type'                 => 'object',
+					'additionalProperties' => true,
+					'description'          => 'Trigger map keyed by trigger name.',
+				),
+			),
+		),
 		'callback'      => function ( $input ) use ( $proxy ) {
 			return $proxy( 'GET', '/fluent-crm/v2/funnels/triggers' );
 		},

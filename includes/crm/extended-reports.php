@@ -182,18 +182,21 @@ function fluent_abilities_crm_register_extended_reports() {
 	// =========================================================================
 	$reg->read( 'fluent-crm/get-report-email-performance', array(
 		'label'        => 'Get CRM Email Performance Rates',
-		'description'  => 'Aggregate engagement rates: open, click, CTOR, unsub, bounce. Source: ReportController::emailPerformance (GET /reports/email-performance). Capability: fcrm_view_dashboard.',
+		'description'  => 'Aggregate engagement rates over a date range. Source: ReportController::emailPerformance (GET /reports/email-performance). Capability: fcrm_view_dashboard. Response shape: `stats.totals` (counts: sent/delivered/opened/clicked/bounced) + `stats.percentages` (open/click/bounce as %).',
 		'category'     => 'fluent-crm',
 		'input_schema' => array(
 			'type'       => 'object',
 			'properties' => $date_range_props,
 		),
 		'output_schema' => fluent_abilities_schema_item_output( array(
-			'open_rate'   => array( 'type' => array( 'number', 'string' ) ),
-			'click_rate'  => array( 'type' => array( 'number', 'string' ) ),
-			'ctor'        => array( 'type' => array( 'number', 'string' ) ),
-			'unsub_rate'  => array( 'type' => array( 'number', 'string' ) ),
-			'bounce_rate' => array( 'type' => array( 'number', 'string' ) ),
+			'stats' => array(
+				'type'                 => 'object',
+				'additionalProperties' => true,
+				'properties'           => array(
+					'totals'      => array( 'type' => 'object', 'additionalProperties' => true ),
+					'percentages' => array( 'type' => 'object', 'additionalProperties' => true ),
+				),
+			),
 		) ),
 		'callback'      => function ( $input ) use ( $proxy_get ) {
 			return $proxy_get( '/fluent-crm/v2/reports/email-performance', $input );
@@ -314,15 +317,24 @@ function fluent_abilities_crm_register_extended_reports() {
 	// =========================================================================
 	$reg->read( 'fluent-crm/get-report-contacts-by-status', array(
 		'label'        => 'Get CRM Contact Distribution by Status',
-		'description'  => 'Counts of subscribers grouped by lifecycle status (subscribed, pending, unsubscribed, bounced, complained). Source: ReportController::contactsByStatus (GET /reports/contacts-by-status). Capability: fcrm_view_dashboard.',
+		'description'  => 'Counts of subscribers grouped by lifecycle status (subscribed, pending, unsubscribed, bounced, complained). Source: ReportController::contactsByStatus (GET /reports/contacts-by-status). Capability: fcrm_view_dashboard. Response key: `stats` (array of {status, count} entries) + `total`.',
 		'category'     => 'fluent-crm',
 		'input_schema' => array(
 			'type'       => 'object',
 			'properties' => array(),
 		),
-		'output_schema' => fluent_abilities_schema_collection_output( 'statuses', array(
-			'status' => array( 'type' => 'string' ),
-			'count'  => array( 'type' => 'integer' ),
+		'output_schema' => fluent_abilities_schema_item_output( array(
+			'stats' => array(
+				'type'  => 'array',
+				'items' => array(
+					'type'       => 'object',
+					'properties' => array(
+						'status' => array( 'type' => 'string' ),
+						'count'  => array( 'type' => array( 'integer', 'string' ) ),
+					),
+				),
+			),
+			'total' => array( 'type' => array( 'integer', 'string' ) ),
 		) ),
 		'callback'      => function ( $input ) use ( $proxy_get ) {
 			return $proxy_get( '/fluent-crm/v2/reports/contacts-by-status', $input );

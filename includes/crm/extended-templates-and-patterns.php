@@ -143,10 +143,17 @@ function fluent_abilities_crm_register_extended_templates_and_patterns() {
 
 	$reg->read( 'fluent-crm/list-templates-all', array(
 		'label'         => 'List All CRM Email Templates (Flat)',
-		'description'   => 'Flat list of all email templates (distinct from paginated list-templates). Source: TemplateController::getAllTemplates (GET /templates/all). Capability: fcrm_read_emails.',
+		'description'   => 'Flat list of all email templates plus the registered smart-code dictionary (paired response). Distinct from paginated list-templates. Source: TemplateController::getAllTemplates (GET /templates/all). Capability: fcrm_read_emails. Response carries both `templates` (array) and `smartcodes` (array of category groups) — operator-side editor uses both.',
 		'category'      => 'fluent-crm',
 		'input_schema'  => array( 'type' => 'object', 'properties' => array() ),
-		'output_schema' => fluent_abilities_schema_collection_output( 'templates', $template_item ),
+		'output_schema' => array(
+			'type'                 => 'object',
+			'additionalProperties' => true,
+			'properties'           => array(
+				'templates'  => array( 'type' => array( 'array', 'object' ) ),
+				'smartcodes' => array( 'type' => array( 'array', 'object' ) ),
+			),
+		),
 		'callback'      => function ( $input ) use ( $proxy ) {
 			return $proxy( 'GET', '/fluent-crm/v2/templates/all' );
 		},
