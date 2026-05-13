@@ -120,6 +120,38 @@ if ( ! function_exists( 'esc_url_raw' ) ) {
 		return $url;
 	}
 }
+if ( ! function_exists( 'get_user_by' ) ) {
+	function get_user_by( $field, $value ) {
+		return new class( (int) $value ) {
+			public $ID;
+			public $display_name = 'Test User';
+			public $user_email   = 'test@example.com';
+			public function __construct( $id ) {
+				$this->ID = $id;
+			}
+			public function add_cap( $cap ) {}
+			public function remove_cap( $cap ) {}
+		};
+	}
+}
+if ( ! function_exists( 'update_user_meta' ) ) {
+	function update_user_meta( $user_id, $key, $value ) {
+		$GLOBALS['_test_user_meta'][ $user_id ][ $key ] = $value;
+		return true;
+	}
+}
+if ( ! function_exists( 'get_user_meta' ) ) {
+	function get_user_meta( $user_id, $key = '', $single = false ) {
+		$value = $GLOBALS['_test_user_meta'][ $user_id ][ $key ] ?? '';
+		return $single ? $value : ( '' === $value ? array() : array( $value ) );
+	}
+}
+if ( ! function_exists( 'delete_user_meta' ) ) {
+	function delete_user_meta( $user_id, $key ) {
+		unset( $GLOBALS['_test_user_meta'][ $user_id ][ $key ] );
+		return true;
+	}
+}
 if ( ! function_exists( 'absint' ) ) {
 	function absint( $maybeint ) {
 		return abs( (int) $maybeint );

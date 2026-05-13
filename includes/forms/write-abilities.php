@@ -585,7 +585,8 @@ add_action( 'wp_abilities_api_init', function() {
 				if ( isset( $data['meta'] ) && is_array( $data['meta'] ) ) {
 					foreach ( $data['meta'] as $meta_key => $value ) {
 						$encoded = is_array( $value ) ? wp_json_encode( $value ) : (string) $value;
-						\FluentForm\App\Models\FormMeta::persist( $meta_key, $encoded, $form->id );
+						// Vendor signature: FormMeta::persist($formId, $metaKey, $metaValue).
+						\FluentForm\App\Models\FormMeta::persist( $form->id, $meta_key, $encoded );
 					}
 				}
 			} catch ( \Throwable $e ) {
@@ -1514,7 +1515,8 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$persist_form_meta_array = function( $form_id, $meta_key, $array ) {
 		if ( class_exists( '\\FluentForm\\App\\Models\\FormMeta' ) ) {
-			\FluentForm\App\Models\FormMeta::persist( $meta_key, wp_json_encode( $array ), $form_id );
+			// Vendor signature: FormMeta::persist($formId, $metaKey, $metaValue) — see vendor app/Models/FormMeta.php.
+			\FluentForm\App\Models\FormMeta::persist( $form_id, $meta_key, wp_json_encode( $array ) );
 			return true;
 		}
 		global $wpdb;

@@ -133,14 +133,7 @@ class FluentFormsInputValidationTest extends FormsAbilitiesTestCase {
 		$GLOBALS['_test_current_user_id'] = 1;
 		$GLOBALS['_test_user_caps']       = array( 'fluent_forms_read', 'fluent_forms_write', 'fluent_forms_delete' );
 
-		// Stub the WP user functions required by add-manager.
-		if ( ! function_exists( 'get_user_by' ) ) {
-			eval( 'function get_user_by( $field, $value ) { $u = new stdClass(); $u->ID = (int) $value; $u->add_cap = function() {}; return new class { public $ID = 1; public function add_cap( $cap ) {} }; }' );
-		}
-		if ( ! function_exists( 'update_user_meta' ) ) {
-			eval( 'function update_user_meta( $user_id, $key, $value ) { $GLOBALS["_test_user_meta"][ $user_id ][ $key ] = $value; return true; }' );
-		}
-
+		// get_user_by / update_user_meta / delete_user_meta stubbed in tests/stubs/wordpress-stubs.php.
 		$result = $this->invoke_execute_callback( 'fluent-forms/add-manager', array(
 			'user_id'            => 1,
 			'permissions'        => array( 'fluentform_dashboard_access' ),

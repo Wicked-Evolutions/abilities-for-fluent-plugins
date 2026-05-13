@@ -99,7 +99,8 @@ add_action( 'wp_abilities_api_init', function() {
 			$merged = array_replace_recursive( $current, $design );
 
 			if ( class_exists( '\\FluentForm\\App\\Models\\FormMeta' ) ) {
-				\FluentForm\App\Models\FormMeta::persist( 'ffc_form_design_settings', wp_json_encode( $merged ), $form_id );
+				// Vendor signature: FormMeta::persist($formId, $metaKey, $metaValue) — see vendor app/Models/FormMeta.php.
+				\FluentForm\App\Models\FormMeta::persist( $form_id, 'ffc_form_design_settings', wp_json_encode( $merged ) );
 			} elseif ( $existing ) {
 				$wpdb->update(
 					$wpdb->prefix . 'fluentform_form_meta',
@@ -182,7 +183,8 @@ add_action( 'wp_abilities_api_init', function() {
 				return fluent_abilities_error( 'ability_invalid_input', 'form_id and preset are required' );
 			}
 			if ( class_exists( '\\FluentForm\\App\\Models\\FormMeta' ) ) {
-				\FluentForm\App\Models\FormMeta::persist( '_ff_selected_style', wp_json_encode( $preset ), $form_id );
+				// Vendor signature: FormMeta::persist($formId, $metaKey, $metaValue).
+				\FluentForm\App\Models\FormMeta::persist( $form_id, '_ff_selected_style', wp_json_encode( $preset ) );
 			} else {
 				global $wpdb;
 				$existing = $wpdb->get_var( $wpdb->prepare(
