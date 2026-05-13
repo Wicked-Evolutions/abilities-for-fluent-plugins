@@ -184,10 +184,17 @@ function fluent_abilities_crm_register_extended_pro_marketing() {
 
 	$reg->read( 'fluent-crm/list-recurring-campaigns', array(
 		'label'         => 'List CRM Recurring Campaigns (Pro)',
-		'description'   => 'Paginated recurring campaigns. Source: RecurringCampaignController::index (GET /recurring-campaigns).',
+		'description'   => 'Paginated recurring campaigns. Source: RecurringCampaignController::getCampaigns (GET /recurring-campaigns). Response shape: vendor may return campaigns as a sequential array OR a campaign_id-keyed object depending on FCRM internal storage at query time.',
 		'category'      => 'fluent-crm',
 		'input_schema'  => array( 'type' => 'object', 'properties' => array_merge( array( 'status' => array( 'type' => 'string' ) ), fluent_abilities_pagination_schema() ) ),
-		'output_schema' => fluent_abilities_schema_list_output( 'campaigns', $obj ),
+		'output_schema' => array(
+			'type'                 => 'object',
+			'additionalProperties' => true,
+			'properties'           => array(
+				'campaigns' => array( 'type' => array( 'array', 'object' ) ),
+				'total'     => array( 'type' => array( 'integer', 'string' ) ),
+			),
+		),
 		'callback'      => function ( $input ) use ( $proxy ) {
 			return $proxy( 'GET', '/fluent-crm/v2/recurring-campaigns', $input );
 		},

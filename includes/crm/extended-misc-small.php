@@ -155,13 +155,14 @@ function fluent_abilities_crm_register_extended_misc_small() {
 
 	$reg->write( 'fluent-crm/create-webhook', array(
 		'label'         => 'Create CRM Webhook',
-		'description'   => 'Create a new FluentCRM webhook endpoint. Returns the generated receiver URL. Source: WebhookController::store (POST /webhooks).',
+		'description'   => 'Create a new FluentCRM webhook endpoint. Returns the generated receiver URL. Source: WebhookController::create (POST /webhooks). Pattern-A flat: vendor reads $request->all() per source app/Http/Controllers/WebhookController.php:67 and validates {name, status} both required. Default contact status when omitted: subscribed.',
 		'category'      => 'fluent-crm',
 		'input_schema'  => array(
 			'type'       => 'object',
-			'required'   => array( 'name' ),
+			'required'   => array( 'name', 'status' ),
 			'properties' => array(
 				'name'      => array( 'type' => 'string' ),
+				'status'    => array( 'type' => 'string', 'description' => 'Subscriber status to apply to incoming contacts (subscribed, pending, unsubscribed).' ),
 				'lists'     => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
 				'tags'      => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
 				'companies' => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
@@ -169,7 +170,15 @@ function fluent_abilities_crm_register_extended_misc_small() {
 				'extra'     => array( 'type' => 'object', 'additionalProperties' => true ),
 			),
 		),
-		'output_schema' => fluent_abilities_schema_item_output( $webhook_item ),
+		'output_schema' => array(
+			'type'                 => 'object',
+			'additionalProperties' => true,
+			'properties'           => array(
+				'id'      => array( 'type' => 'integer' ),
+				'webhook' => array( 'type' => array( 'object', 'null' ), 'additionalProperties' => true ),
+				'message' => array( 'type' => 'string' ),
+			),
+		),
 		'callback'      => function ( $input ) use ( $proxy ) {
 			return $proxy( 'POST', '/fluent-crm/v2/webhooks', $input );
 		},
