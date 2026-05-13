@@ -252,11 +252,11 @@ add_action( 'wp_abilities_api_init', function() {
 			}
 
 			try {
-				if ( method_exists( $form, 'remove' ) ) {
-					$form->remove();
-				} else {
-					$form->delete();
-				}
+				// Form::remove() is a STATIC vendor method that takes the form id; it
+				// cascade-deletes submissions, meta, entry details, analytics, logs,
+				// and (when payment helper is enabled) transactions/subscriptions/order
+				// items. See FluentForm\App\Models\Form::remove() vendor source.
+				\FluentForm\App\Models\Form::remove( $form_id );
 			} catch ( \Throwable $e ) {
 				return fluent_abilities_error( 'ability_execution_failed', $e->getMessage() );
 			}
@@ -737,11 +737,11 @@ add_action( 'wp_abilities_api_init', function() {
 			}
 
 			try {
-				if ( method_exists( $submission, 'remove' ) ) {
-					$submission->remove();
-				} else {
-					$submission->delete();
-				}
+				// Submission::remove() is a STATIC vendor method that takes an array of
+				// submission ids; it cascade-deletes submission meta, entry details,
+				// submission-scoped logs, plus payment domain rows + scheduled actions.
+				// See FluentForm\App\Models\Submission::remove() vendor source.
+				\FluentForm\App\Models\Submission::remove( array( $submission_id ) );
 				do_action( 'fluentform/submission_deleted', $submission_id );
 			} catch ( \Throwable $e ) {
 				return fluent_abilities_error( 'ability_execution_failed', $e->getMessage() );
@@ -793,40 +793,40 @@ add_action( 'wp_abilities_api_init', function() {
 
 			$affected = 0;
 			try {
-				$submissions = \FluentForm\App\Models\Submission::whereIn( 'id', $ids )->get();
-				foreach ( $submissions as $submission ) {
-					switch ( $action ) {
-						case 'status:read':
-						case 'status:unread':
-						case 'status:trashed':
-							$submission->status = explode( ':', $action )[1];
-							$submission->save();
-							$affected++;
-							break;
-						case 'restore':
-							$submission->status = 'unread';
-							$submission->save();
-							$affected++;
-							break;
-						case 'delete-permanently':
-							if ( method_exists( $submission, 'remove' ) ) {
-								$submission->remove();
-							} else {
-								$submission->delete();
-							}
-							do_action( 'fluentform/submission_deleted', $submission->id );
-							$affected++;
-							break;
-						case 'favorite':
-							$submission->is_favourite = 1;
-							$submission->save();
-							$affected++;
-							break;
-						case 'unfavorite':
-							$submission->is_favourite = 0;
-							$submission->save();
-							$affected++;
-							break;
+				if ( 'delete-permanently' === $action ) {
+					// Batch the static cascade-delete call once for the whole set.
+					\FluentForm\App\Models\Submission::remove( array_values( $ids ) );
+					foreach ( $ids as $id ) {
+						do_action( 'fluentform/submission_deleted', $id );
+					}
+					$affected = count( $ids );
+				} else {
+					$submissions = \FluentForm\App\Models\Submission::whereIn( 'id', $ids )->get();
+					foreach ( $submissions as $submission ) {
+						switch ( $action ) {
+							case 'status:read':
+							case 'status:unread':
+							case 'status:trashed':
+								$submission->status = explode( ':', $action )[1];
+								$submission->save();
+								$affected++;
+								break;
+							case 'restore':
+								$submission->status = 'unread';
+								$submission->save();
+								$affected++;
+								break;
+							case 'favorite':
+								$submission->is_favourite = 1;
+								$submission->save();
+								$affected++;
+								break;
+							case 'unfavorite':
+								$submission->is_favourite = 0;
+								$submission->save();
+								$affected++;
+								break;
+						}
 					}
 				}
 			} catch ( \Throwable $e ) {
