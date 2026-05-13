@@ -25,7 +25,9 @@ class CartV2ClusterFilesTest extends TestCase {
 			'customer-extended-abilities.php'       => 13, // 4.4 (5) + 4.5 (3) + 4.6 (5)
 			'subscription-extended-abilities.php'   => 4,  // 4.7
 			'product-extended-abilities.php'        => 15, // 4.8 (5) + 4.9 (5) + 4.10 (5)
-			'product-upgrade-paths-abilities.php'   => 4,  // 4.11 (Pro)
+			// 4.11 (Pro product-upgrade-paths) deferred per #65 — vendor surface
+			// (\FluentCartPro\App\Modules\Promotional\Models\UpgradePath) not present
+			// in FluentCart Pro 1.3.26. Will land after research/vendor reconciliation.
 			'attribute-abilities.php'               => 8,  // 4.12
 			'coupon-extended-abilities.php'         => 5,  // 4.13
 			'license-extended-abilities.php'        => 11, // 4.14 (7) + 4.15 (4) (Pro)
@@ -181,8 +183,7 @@ class CartV2ClusterFilesTest extends TestCase {
 		// Per existing v1.1.3 license-abilities.php pattern: Pro-only files must early-return
 		// when the Pro class isn't available.
 		$pro_files = array(
-			'license-extended-abilities.php'      => 'FluentCartPro\\\\App\\\\Modules\\\\Licensing\\\\Models\\\\License',
-			'product-upgrade-paths-abilities.php' => 'FluentCartPro',
+			'license-extended-abilities.php' => 'FluentCartPro\\\\App\\\\Modules\\\\Licensing\\\\Models\\\\License',
 		);
 		foreach ( $pro_files as $file => $needle ) {
 			$source = file_get_contents( $this->cartDir() . '/' . $file );

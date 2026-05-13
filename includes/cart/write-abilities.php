@@ -25,7 +25,6 @@ $cart_ability_files = array(
 	'customer-extended-abilities',
 	'subscription-extended-abilities',
 	'product-extended-abilities',
-	'product-upgrade-paths-abilities',
 	'attribute-abilities',
 	'coupon-extended-abilities',
 	'license-extended-abilities',
