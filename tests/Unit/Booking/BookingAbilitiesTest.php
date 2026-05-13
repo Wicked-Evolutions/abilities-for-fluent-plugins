@@ -389,7 +389,14 @@ class FluentBookingAbilitiesTest extends TestCase {
 				continue;
 			}
 			$cb = $abilities[ $slug ]['permission_callback'];
-			$this->assertFalse( $cb(), "Module-level ability {$slug} must reject anonymous callers" );
+			$result = $cb();
+			// Registrar may return bool false (legacy contract) OR
+			// WP_Error( 'fluent_abilities_no_cli_user_context' ) (current contract,
+			// WordPress Abilities API spec-compliant bool|WP_Error return shape).
+			$this->assertTrue(
+				$result === false || ( is_wp_error( $result ) && $result->get_error_code() === 'fluent_abilities_no_cli_user_context' ),
+				"Module-level ability {$slug} must reject anonymous callers (got: " . ( is_wp_error( $result ) ? $result->get_error_code() : var_export( $result, true ) ) . ')'
+			);
 			$module_level_count++;
 		}
 		$this->assertGreaterThan( 0, $module_level_count );
