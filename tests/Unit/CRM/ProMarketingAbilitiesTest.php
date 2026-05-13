@@ -99,11 +99,18 @@ class FluentCRMProMarketingAbilitiesTest extends TestCase {
 		$this->assertFalse( $cb() );
 	}
 
-	public function test_create_recurring_requires_title_and_frequency() {
+	public function test_create_recurring_requires_title_and_settings() {
+		// Post-Pattern-B audit (commit landing with this test update): vendor's
+		// RecurringCampaignController::createCampaign requires {campaign:{title,
+		// settings:{scheduling_settings:{time,type}}}} — frequency is replaced
+		// by settings.scheduling_settings.type per vendor source.
 		$abilities = wp_get_abilities();
 		$req       = $abilities['fluent-crm/create-recurring-campaign']['input_schema']['required'];
 		$this->assertContains( 'title', $req );
-		$this->assertContains( 'frequency', $req );
+		$this->assertContains( 'settings', $req );
+		$nested_req = $abilities['fluent-crm/create-recurring-campaign']['input_schema']['properties']['settings']['properties']['scheduling_settings']['required'];
+		$this->assertContains( 'time', $nested_req );
+		$this->assertContains( 'type', $nested_req );
 	}
 
 	public function test_create_dynamic_segment_requires_conditions() {

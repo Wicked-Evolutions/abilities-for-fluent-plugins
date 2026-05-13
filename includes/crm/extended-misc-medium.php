@@ -233,7 +233,7 @@ function fluent_abilities_crm_register_extended_misc_medium() {
 
 	$reg->write( 'fluent-crm/update-contact-custom-fields-group-name', array(
 		'label'         => 'Rename CRM Contact Custom Field Group',
-		'description'   => 'Rename a custom-field group. Source: CustomFieldsController::updateGroupName (PUT /custom-fields/contacts/update_group_name).',
+		'description'   => 'Rename a custom-field group. Source: CustomContactFieldsController::updateGroupName (PUT /custom-fields/contacts/update_group_name). Vendor reads `old_name` + `new_name` flat (NOT `old_group_name`/`new_group_name`) per source app/Http/Controllers/CustomContactFieldsController.php:40-50. Ability input keeps the operator-friendly `old_group_name`/`new_group_name` names + re-maps in callback.',
 		'category'      => 'fluent-crm',
 		'input_schema'  => array(
 			'type'       => 'object',
@@ -243,9 +243,15 @@ function fluent_abilities_crm_register_extended_misc_medium() {
 				'new_group_name' => array( 'type' => 'string' ),
 			),
 		),
-		'output_schema' => fluent_abilities_schema_success_output(),
+		'output_schema' => fluent_abilities_schema_success_output( array(
+			'fields'  => array( 'type' => array( 'array', 'object' ) ),
+			'message' => array( 'type' => array( 'string', 'null' ) ),
+		) ),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'PUT', '/fluent-crm/v2/custom-fields/contacts/update_group_name', $input );
+			return $proxy( 'PUT', '/fluent-crm/v2/custom-fields/contacts/update_group_name', array(
+				'old_name' => isset( $input['old_group_name'] ) ? (string) $input['old_group_name'] : '',
+				'new_name' => isset( $input['new_group_name'] ) ? (string) $input['new_group_name'] : '',
+			) );
 		},
 	) );
 

@@ -195,24 +195,35 @@ function fluent_abilities_crm_register_extended_pro_marketing() {
 
 	$reg->write( 'fluent-crm/create-recurring-campaign', array(
 		'label'         => 'Create CRM Recurring Campaign (Pro)',
-		'description'   => 'Create a recurring campaign with frequency + schedule. Source: RecurringCampaignController::store (POST /recurring-campaigns).',
+		'description'   => 'Create a recurring campaign as draft (state machine starts at draft; explicit change-recurring-campaign-status call required to activate). Source: RecurringCampaignController::createCampaign (POST /recurring-campaigns). Pattern-B: vendor reads `Helper::parseArrayOrJson($request->get(\'campaign\'))` per source app/Http/Controllers/RecurringCampaignController.php:134; nests under `campaign` key + requires `settings.scheduling_settings.time` + `settings.scheduling_settings.type`.',
 		'category'      => 'fluent-crm',
 		'input_schema'  => array(
 			'type'       => 'object',
-			'required'   => array( 'title', 'frequency' ),
+			'required'   => array( 'title', 'settings' ),
 			'properties' => array(
-				'title'        => array( 'type' => 'string' ),
-				'frequency'    => array( 'type' => 'string', 'description' => 'daily, weekly, monthly' ),
-				'start_at'     => array( 'type' => 'string' ),
-				'time_of_day'  => array( 'type' => 'string' ),
-				'lists'        => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
-				'tags'         => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
-				'settings'     => $obj,
+				'title'    => array( 'type' => 'string' ),
+				'settings' => array(
+					'type'                 => 'object',
+					'additionalProperties' => true,
+					'properties'           => array(
+						'scheduling_settings'  => array(
+							'type'                 => 'object',
+							'additionalProperties' => true,
+							'required'             => array( 'time', 'type' ),
+							'properties'           => array(
+								'time' => array( 'type' => 'string', 'description' => 'Time-of-day, e.g. 09:00.' ),
+								'type' => array( 'type' => 'string', 'description' => 'daily, weekly, monthly, etc.' ),
+							),
+						),
+						'sending_conditions'   => $obj,
+						'subscribers_settings' => $obj,
+					),
+				),
 			),
 		),
 		'output_schema' => fluent_abilities_schema_item_output(),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/recurring-campaigns', $input );
+			return $proxy( 'POST', '/fluent-crm/v2/recurring-campaigns', array( 'campaign' => $input ) );
 		},
 	) );
 
@@ -229,19 +240,37 @@ function fluent_abilities_crm_register_extended_pro_marketing() {
 
 	$reg->write( 'fluent-crm/update-recurring-campaign-data', array(
 		'label'         => 'Update CRM Recurring Campaign Data (Pro)',
-		'description'   => 'Update recurring-campaign data. Source: RecurringCampaignController::updateData (POST /recurring-campaigns/update-campaign-data).',
+		'description'   => 'Update recurring-campaign data (email subject/body/UTM/template). Source: RecurringCampaignController::updateCampaignData (POST /recurring-campaigns/update-campaign-data). Pattern-B: vendor reads `Helper::parseArrayOrJson($request->get(\'campaign\'))` + flat `campaign_id` per source app/Http/Controllers/RecurringCampaignController.php:177-202; requires `email_body` + `email_subject` in payload.',
 		'category'      => 'fluent-crm',
 		'input_schema'  => array(
 			'type'       => 'object',
-			'required'   => array( 'campaign_id' ),
+			'required'   => array( 'campaign_id', 'email_subject', 'email_body' ),
 			'properties' => array(
-				'campaign_id' => array( 'type' => 'integer' ),
-				'data'        => $obj,
+				'campaign_id'      => array( 'type' => 'integer' ),
+				'title'            => array( 'type' => 'string' ),
+				'email_subject'    => array( 'type' => 'string' ),
+				'email_body'       => array( 'type' => 'string' ),
+				'email_pre_header' => array( 'type' => 'string' ),
+				'template_id'      => array( 'type' => array( 'integer', 'string' ) ),
+				'utm_status'       => array( 'type' => array( 'string', 'integer' ) ),
+				'utm_source'       => array( 'type' => 'string' ),
+				'utm_medium'       => array( 'type' => 'string' ),
+				'utm_campaign'     => array( 'type' => 'string' ),
+				'utm_term'         => array( 'type' => 'string' ),
+				'utm_content'      => array( 'type' => 'string' ),
+				'design_template'  => array( 'type' => 'string' ),
+				'settings'         => $obj,
 			),
 		),
 		'output_schema' => fluent_abilities_schema_success_output(),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/recurring-campaigns/update-campaign-data', $input );
+			$campaign_id = (int) ( $input['campaign_id'] ?? 0 );
+			$campaign    = $input;
+			unset( $campaign['campaign_id'] );
+			return $proxy( 'POST', '/fluent-crm/v2/recurring-campaigns/update-campaign-data', array(
+				'campaign_id' => $campaign_id,
+				'campaign'    => $campaign,
+			) );
 		},
 	) );
 

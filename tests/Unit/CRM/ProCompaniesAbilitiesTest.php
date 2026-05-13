@@ -75,10 +75,13 @@ class FluentCRMProCompaniesAbilitiesTest extends TestCase {
 		$this->assertContains( 'name', $abilities['fluent-crm/create-company']['input_schema']['required'] );
 	}
 
-	public function test_attach_subscribers_requires_company_id_and_subscriber_ids() {
+	public function test_attach_subscribers_requires_company_ids_and_subscriber_ids() {
+		// Post-Pattern-A param-name audit: vendor reads `company_ids[]` (plural)
+		// per source app/Http/Controllers/CompanyController.php:135-138, NOT
+		// `company_id` (singular). Ability schema updated to match.
 		$abilities = wp_get_abilities();
 		$req       = $abilities['fluent-crm/attach-subscribers-to-company']['input_schema']['required'];
-		$this->assertContains( 'company_id', $req );
+		$this->assertContains( 'company_ids', $req );
 		$this->assertContains( 'subscriber_ids', $req );
 	}
 

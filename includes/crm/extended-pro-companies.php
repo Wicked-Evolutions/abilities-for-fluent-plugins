@@ -158,58 +158,71 @@ function fluent_abilities_crm_register_extended_pro_companies() {
 	// 5.23.7 — update-companies-property
 	$reg->write( 'fluent-crm/update-companies-property', array(
 		'label'         => 'Update CRM Companies Single Property (Pro)',
-		'description'   => 'Set one property across many Pro companies. Source: CompanyController::updateProperty (PUT /companies/companies-property).',
+		'description'   => 'Set one property across many Pro companies. Source: CompanyController::updateProperty (PUT /companies/companies-property). Vendor reads `companies` (NOT `company_ids`) per source app/Http/Controllers/CompanyController.php:269. valid columns: type, logo, owner_id, refetch_logo.',
 		'category'      => 'fluent-crm',
 		'input_schema'  => array(
 			'type'       => 'object',
 			'required'   => array( 'company_ids', 'property', 'value' ),
 			'properties' => array(
-				'company_ids' => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
+				'company_ids' => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ), 'description' => 'Operator-facing input — re-mapped to vendor-expected `companies` key in callback.' ),
 				'property'    => array( 'type' => 'string' ),
 				'value'       => array( 'type' => array( 'string', 'integer', 'boolean', 'null' ) ),
 			),
 		),
 		'output_schema' => fluent_abilities_schema_success_output(),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'PUT', '/fluent-crm/v2/companies/companies-property', $input );
+			$payload = array(
+				'companies' => isset( $input['company_ids'] ) ? array_map( 'intval', (array) $input['company_ids'] ) : array(),
+				'property'  => isset( $input['property'] ) ? (string) $input['property'] : '',
+				'value'     => $input['value'] ?? '',
+			);
+			return $proxy( 'PUT', '/fluent-crm/v2/companies/companies-property', $payload );
 		},
 	) );
 
 	// 5.23.8 — attach-subscribers-to-company
 	$reg->write( 'fluent-crm/attach-subscribers-to-company', array(
 		'label'         => 'Attach Subscribers To CRM Company (Pro)',
-		'description'   => 'Attach subscribers to a Pro company. Source: CompanyController::attachSubscribers (POST /companies/attach-subscribers).',
+		'description'   => 'Attach subscribers to one or more Pro companies. Source: CompanyController::attachSubscribers (POST /companies/attach-subscribers). Vendor reads `subscriber_ids[]` + `company_ids[]` (both plural) per source app/Http/Controllers/CompanyController.php:135-138.',
 		'category'      => 'fluent-crm',
 		'input_schema'  => array(
 			'type'       => 'object',
-			'required'   => array( 'company_id', 'subscriber_ids' ),
+			'required'   => array( 'company_ids', 'subscriber_ids' ),
 			'properties' => array(
-				'company_id'     => array( 'type' => 'integer' ),
+				'company_ids'    => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
 				'subscriber_ids' => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
 			),
 		),
-		'output_schema' => fluent_abilities_schema_success_output(),
+		'output_schema' => fluent_abilities_schema_success_output( array(
+			'companies' => array( 'type' => array( 'array', 'object' ) ),
+		) ),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/companies/attach-subscribers', $input );
+			return $proxy( 'POST', '/fluent-crm/v2/companies/attach-subscribers', array(
+				'subscriber_ids' => array_map( 'intval', (array) ( $input['subscriber_ids'] ?? array() ) ),
+				'company_ids'    => array_map( 'intval', (array) ( $input['company_ids'] ?? array() ) ),
+			) );
 		},
 	) );
 
 	// 5.23.9 — detach-subscribers-from-company
 	$reg->write( 'fluent-crm/detach-subscribers-from-company', array(
 		'label'         => 'Detach Subscribers From CRM Company (Pro)',
-		'description'   => 'Detach subscribers from a Pro company. Source: CompanyController::detachSubscribers (POST /companies/detach-subscribers).',
+		'description'   => 'Detach subscribers from one or more Pro companies. Source: CompanyController::detachSubscribers (POST /companies/detach-subscribers). Vendor reads `subscriber_ids[]` + `company_ids[]` (both plural) per source app/Http/Controllers/CompanyController.php:154-155.',
 		'category'      => 'fluent-crm',
 		'input_schema'  => array(
 			'type'       => 'object',
-			'required'   => array( 'company_id', 'subscriber_ids' ),
+			'required'   => array( 'company_ids', 'subscriber_ids' ),
 			'properties' => array(
-				'company_id'     => array( 'type' => 'integer' ),
+				'company_ids'    => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
 				'subscriber_ids' => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
 			),
 		),
 		'output_schema' => fluent_abilities_schema_success_output(),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/companies/detach-subscribers', $input );
+			return $proxy( 'POST', '/fluent-crm/v2/companies/detach-subscribers', array(
+				'subscriber_ids' => array_map( 'intval', (array) ( $input['subscriber_ids'] ?? array() ) ),
+				'company_ids'    => array_map( 'intval', (array) ( $input['company_ids'] ?? array() ) ),
+			) );
 		},
 	) );
 
