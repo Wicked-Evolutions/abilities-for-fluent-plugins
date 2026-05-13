@@ -20,6 +20,20 @@ $cart_ability_files = array(
 	'variation-abilities',
 	'license-abilities',
 	'download-abilities',
+	// v2.0.0 — Fluent Suite Registrar Bundle Sprint additions (Phase B feat/fluentcart-registrar).
+	'order-management-abilities',
+	'customer-extended-abilities',
+	'subscription-extended-abilities',
+	'product-extended-abilities',
+	'product-upgrade-paths-abilities',
+	'attribute-abilities',
+	'coupon-extended-abilities',
+	'license-extended-abilities',
+	'settings-abilities',
+	'tax-abilities',
+	'shipping-abilities',
+	'activity-abilities',
+	'reports-abilities',
 );
 foreach ( $cart_ability_files as $cart_sub ) {
 	$cart_sub_file = __DIR__ . "/{$cart_sub}.php";
