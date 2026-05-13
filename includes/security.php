@@ -35,6 +35,7 @@ function fluent_abilities_get_caps() {
 		'forms' => array(
 			'fluent_forms_read',
 			'fluent_forms_write',
+			'fluent_forms_delete',
 		),
 		'support' => array(
 			'fluent_support_read',
