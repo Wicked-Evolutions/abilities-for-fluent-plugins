@@ -162,10 +162,10 @@ add_action( 'wp_abilities_api_init', function() {
 			),
 		),
 		'output_schema' => fluent_abilities_schema_collection_output( 'products', array(
-			'object_id'     => array( 'type' => 'integer' ),
-			'object_type'   => array( 'type' => 'string' ),
-			'total_quantity'=> array( 'type' => 'integer' ),
-			'total_revenue' => array( 'type' => 'number' ),
+			'post_id'          => array( 'type' => 'integer', 'description' => 'Product post ID (canonical fct_order_items.post_id; CPT fluent-products)' ),
+			'fulfillment_type' => array( 'type' => 'string' ),
+			'total_quantity'   => array( 'type' => 'integer' ),
+			'total_revenue'    => array( 'type' => 'number' ),
 		) ),
 		'capability' => 'manage_options',
 		'callback'   => function( $input ) {
@@ -177,17 +177,19 @@ add_action( 'wp_abilities_api_init', function() {
 			if ( ! empty( $input['to'] ) ) {
 				$q->where( 'created_at', '<=', sanitize_text_field( $input['to'] ) . ' 23:59:59' );
 			}
-			$rows = $q->selectRaw( 'object_id, object_type, SUM(quantity) as total_quantity, SUM(line_total) as total_revenue' )
-				->groupBy( 'object_id', 'object_type' )
+			// fct_order_items has post_id (CPT post id) + fulfillment_type — no object_type
+			// column. Polymorphism is via post_id + optional object_id (variation).
+			$rows = $q->selectRaw( 'post_id, fulfillment_type, SUM(quantity) as total_quantity, SUM(line_total) as total_revenue' )
+				->groupBy( 'post_id', 'fulfillment_type' )
 				->orderBy( 'total_quantity', 'DESC' )
 				->limit( $limit )->get();
 			$items = array();
 			foreach ( $rows as $r ) {
 				$items[] = array(
-					'object_id'      => (int) $r->object_id,
-					'object_type'    => (string) ( $r->object_type ?? '' ),
-					'total_quantity' => (int) ( $r->total_quantity ?? 0 ),
-					'total_revenue'  => fluent_cart_format_money( $r->total_revenue ),
+					'post_id'          => (int) $r->post_id,
+					'fulfillment_type' => (string) ( $r->fulfillment_type ?? '' ),
+					'total_quantity'   => (int) ( $r->total_quantity ?? 0 ),
+					'total_revenue'    => fluent_cart_format_money( $r->total_revenue ),
 				);
 			}
 			return array( 'products' => $items, 'total' => count( $items ) );

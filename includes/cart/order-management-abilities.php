@@ -42,11 +42,14 @@ add_action( 'wp_abilities_api_init', function() {
 					'items'       => array(
 						'type'       => 'object',
 						'properties' => array(
-							'object_id'   => array( 'type' => 'integer' ),
-							'object_type' => array( 'type' => 'string' ),
-							'quantity'    => array( 'type' => 'integer' ),
-							'unit_price'  => array( 'type' => 'integer' ),
-							'line_total'  => array( 'type' => 'integer' ),
+							'post_id'          => array( 'type' => 'integer', 'description' => 'Product post ID (canonical fct_order_items.post_id; CPT fluent-products)' ),
+							'object_id'        => array( 'type' => 'integer', 'description' => 'Variation ID (optional)' ),
+							'fulfillment_type' => array( 'type' => 'string', 'description' => 'digital | physical (default: digital)' ),
+							'payment_type'     => array( 'type' => 'string', 'description' => 'one_time | subscription (default: one_time)' ),
+							'title'            => array( 'type' => 'string' ),
+							'quantity'         => array( 'type' => 'integer' ),
+							'unit_price'       => array( 'type' => 'integer' ),
+							'line_total'       => array( 'type' => 'integer' ),
 						),
 					),
 				),
@@ -70,13 +73,20 @@ add_action( 'wp_abilities_api_init', function() {
 
 			if ( ! empty( $input['items'] ) && is_array( $input['items'] ) ) {
 				foreach ( $input['items'] as $item ) {
+					$unit_price = (int) ( $item['unit_price'] ?? 0 );
+					$quantity   = (int) ( $item['quantity'] ?? 1 );
+					$title      = sanitize_text_field( $item['title'] ?? '' );
 					\FluentCart\App\Models\OrderItem::create( array(
-						'order_id'    => $order->id,
-						'object_id'   => (int) ( $item['object_id'] ?? 0 ),
-						'object_type' => sanitize_text_field( $item['object_type'] ?? 'variation' ),
-						'quantity'    => (int) ( $item['quantity'] ?? 1 ),
-						'unit_price'  => (int) ( $item['unit_price'] ?? 0 ),
-						'line_total'  => (int) ( $item['line_total'] ?? 0 ),
+						'order_id'         => $order->id,
+						'post_id'          => (int) ( $item['post_id'] ?? 0 ),
+						'object_id'        => isset( $item['object_id'] ) ? (int) $item['object_id'] : null,
+						'fulfillment_type' => sanitize_text_field( $item['fulfillment_type'] ?? 'digital' ),
+						'payment_type'     => sanitize_text_field( $item['payment_type'] ?? 'one_time' ),
+						'post_title'       => $title,
+						'title'            => $title,
+						'quantity'         => $quantity,
+						'unit_price'       => $unit_price,
+						'line_total'       => isset( $item['line_total'] ) ? (int) $item['line_total'] : $unit_price * $quantity,
 					) );
 				}
 			}
@@ -100,10 +110,13 @@ add_action( 'wp_abilities_api_init', function() {
 					'items' => array(
 						'type'       => 'object',
 						'properties' => array(
-							'object_id'   => array( 'type' => 'integer' ),
-							'object_type' => array( 'type' => 'string' ),
-							'quantity'    => array( 'type' => 'integer' ),
-							'unit_price'  => array( 'type' => 'integer' ),
+							'post_id'          => array( 'type' => 'integer', 'description' => 'Product post ID (canonical fct_order_items.post_id; CPT fluent-products)' ),
+							'object_id'        => array( 'type' => 'integer', 'description' => 'Variation ID (optional)' ),
+							'fulfillment_type' => array( 'type' => 'string' ),
+							'payment_type'     => array( 'type' => 'string' ),
+							'title'            => array( 'type' => 'string' ),
+							'quantity'         => array( 'type' => 'integer' ),
+							'unit_price'       => array( 'type' => 'integer' ),
 						),
 					),
 				),
@@ -130,13 +143,20 @@ add_action( 'wp_abilities_api_init', function() {
 				'total_amount'   => $total,
 			) );
 			foreach ( $items as $item ) {
+				$unit_price = (int) ( $item['unit_price'] ?? 0 );
+				$quantity   = (int) ( $item['quantity'] ?? 1 );
+				$title      = sanitize_text_field( $item['title'] ?? '' );
 				\FluentCart\App\Models\OrderItem::create( array(
-					'order_id'    => $order->id,
-					'object_id'   => (int) ( $item['object_id'] ?? 0 ),
-					'object_type' => sanitize_text_field( $item['object_type'] ?? 'variation' ),
-					'quantity'    => (int) ( $item['quantity'] ?? 1 ),
-					'unit_price'  => (int) ( $item['unit_price'] ?? 0 ),
-					'line_total'  => ( (int) ( $item['unit_price'] ?? 0 ) ) * ( (int) ( $item['quantity'] ?? 1 ) ),
+					'order_id'         => $order->id,
+					'post_id'          => (int) ( $item['post_id'] ?? 0 ),
+					'object_id'        => isset( $item['object_id'] ) ? (int) $item['object_id'] : null,
+					'fulfillment_type' => sanitize_text_field( $item['fulfillment_type'] ?? 'digital' ),
+					'payment_type'     => sanitize_text_field( $item['payment_type'] ?? 'one_time' ),
+					'post_title'       => $title,
+					'title'            => $title,
+					'quantity'         => $quantity,
+					'unit_price'       => $unit_price,
+					'line_total'       => $unit_price * $quantity,
 				) );
 			}
 			return array( 'success' => true, 'id' => (int) $order->id, 'total_amount' => (int) $total );
@@ -201,10 +221,16 @@ add_action( 'wp_abilities_api_init', function() {
 				return fluent_abilities_error( 'not_found', 'Order not found.' );
 			}
 			// Recompute payment_status from transactions.
-			$paid = \FluentCart\App\Models\OrderTransaction::where( 'order_id', $order->id )
-				->where( 'status', 'paid' )->sum( 'total' );
+			// FluentCart marks settled transactions with status='succeeded' (verified
+			// against fct_order_transactions on FluentCart 1.3.26); accept 'paid' too
+			// for gateway variants that use that literal.
+			$paid  = \FluentCart\App\Models\OrderTransaction::where( 'order_id', $order->id )
+				->whereIn( 'status', array( 'succeeded', 'paid' ) )->sum( 'total' );
 			$total = (int) ( $order->total_amount ?? 0 );
-			if ( $paid >= $total && $total > 0 ) {
+			if ( 0 === $total ) {
+				// Free / zero-total order — payment is complete by definition.
+				$order->payment_status = 'paid';
+			} elseif ( $paid >= $total ) {
 				$order->payment_status = 'paid';
 			} elseif ( $paid > 0 ) {
 				$order->payment_status = 'partial';
