@@ -184,7 +184,7 @@ function fluent_abilities_crm_register_extended_templates_and_patterns() {
 
 	$reg->read( 'fluent-crm/list-built-in-templates', array(
 		'label'         => 'List CRM Built-In Email Templates',
-		'description'   => 'Bundled built-in email templates. Source: TemplateController::getBuiltInTemplates (GET /templates/built-in-templates).',
+		'description'   => 'Bundled built-in email templates. Source: TemplateController::getBuiltInTemplates (GET /templates/built-in-templates) — a distinct REST route from list-templates-all (GET /templates/all). Registered as a separate ability per Reviewer Track-2 Q1 ratification 2026-05-13 for explicit route coverage + operator discoverability. Cites research §5.6 prose: "Also covered (within this cluster): templates/built-in-templates GET ... surface as nested in list-templates-all". Wrapper-level cap: fcrm_read_emails (composes via FCRM TemplatePolicy GET).',
 		'category'      => 'fluent-crm',
 		'input_schema'  => array( 'type' => 'object', 'properties' => array() ),
 		'output_schema' => fluent_abilities_schema_collection_output( 'templates', $template_item ),
