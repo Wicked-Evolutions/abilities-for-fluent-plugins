@@ -59,26 +59,31 @@ function fluent_abilities_crm_register_extended_misc_small() {
 
 	$reg->write( 'fluent-crm/create-label', array(
 		'label'         => 'Create CRM Label',
-		'description'   => 'Create a new label. Source: LabelController::store (POST /labels). Capability: fcrm_manage_contact_cats.',
+		'description'   => 'Create a new label. Source: GlobalLabelController::create (POST /labels). Capability: fcrm_manage_contact_cats. Vendor controller reads inputs via Arr::get($request->all(), \'label\') — payload nests under a `label` key (see source at vendor app/Http/Controllers/GlobalLabelController.php:32-50).',
 		'category'      => 'fluent-crm',
 		'input_schema'  => array(
 			'type'       => 'object',
 			'required'   => array( 'title' ),
 			'properties' => array(
 				'title' => array( 'type' => 'string' ),
+				'slug'  => array( 'type' => 'string', 'description' => 'Optional slug (vendor will auto-derive if omitted).' ),
 				'color' => array( 'type' => 'string' ),
-				'meta'  => array( 'type' => 'object', 'additionalProperties' => true ),
 			),
 		),
 		'output_schema' => fluent_abilities_schema_item_output( $label_item ),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/labels', $input );
+			$label = array(
+				'title' => isset( $input['title'] ) ? (string) $input['title'] : '',
+				'slug'  => isset( $input['slug'] ) ? (string) $input['slug'] : ( isset( $input['title'] ) ? sanitize_title( (string) $input['title'] ) : '' ),
+				'color' => isset( $input['color'] ) ? (string) $input['color'] : '',
+			);
+			return $proxy( 'POST', '/fluent-crm/v2/labels', array( 'label' => $label ) );
 		},
 	) );
 
 	$reg->write( 'fluent-crm/update-label', array(
 		'label'         => 'Update CRM Label',
-		'description'   => 'Update an existing label. Source: LabelController::update (PUT /labels/{id}).',
+		'description'   => 'Update an existing label. Source: GlobalLabelController::update (PUT /labels/{id}). Vendor controller reads inputs via Arr::get($request->all(), \'label\') — payload nests under a `label` key.',
 		'category'      => 'fluent-crm',
 		'input_schema'  => array(
 			'type'       => 'object',
@@ -86,14 +91,20 @@ function fluent_abilities_crm_register_extended_misc_small() {
 			'properties' => array(
 				'id'    => array( 'type' => 'integer' ),
 				'title' => array( 'type' => 'string' ),
+				'slug'  => array( 'type' => 'string' ),
 				'color' => array( 'type' => 'string' ),
 			),
 		),
 		'output_schema' => fluent_abilities_schema_success_output(),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			$id = (int) ( $input['id'] ?? 0 );
-			unset( $input['id'] );
-			return $proxy( 'PUT', '/fluent-crm/v2/labels/' . $id, $input );
+			$id    = (int) ( $input['id'] ?? 0 );
+			$label = array();
+			foreach ( array( 'title', 'slug', 'color' ) as $k ) {
+				if ( isset( $input[ $k ] ) ) {
+					$label[ $k ] = (string) $input[ $k ];
+				}
+			}
+			return $proxy( 'PUT', '/fluent-crm/v2/labels/' . $id, array( 'label' => $label ) );
 		},
 	) );
 
