@@ -27,11 +27,9 @@ class FluentFormsPermissionCallbackTest extends FormsAbilitiesTestCase {
 	}
 
 	private function expected_abilities_with_levels() {
-		// All read abilities require fluent_forms_read.
-		// All write abilities require fluent_forms_write.
-		// Delete abilities use the 'write' level override (Forms security model
-		// doesn't ship fluent_forms_delete in v1.1.3; the cap addition is
-		// requested as a scaffold-owned edit in the PR body).
+		// Read   → fluent_forms_read
+		// Write  → fluent_forms_write
+		// Delete → fluent_forms_delete (cap added in scaffold PR #54).
 		$abilities = wp_get_abilities();
 		$out = array();
 		foreach ( $abilities as $slug => $ability ) {
@@ -40,9 +38,7 @@ class FluentFormsPermissionCallbackTest extends FormsAbilitiesTestCase {
 			}
 			$annotations = $ability['meta']['annotations'] ?? array();
 			$permission  = $annotations['permission'] ?? 'read';
-			// Delete annotations map to the 'write' level today.
-			$level = 'delete' === $permission ? 'write' : $permission;
-			$out[ $slug ] = $level;
+			$out[ $slug ] = $permission;
 		}
 		return $out;
 	}
@@ -57,33 +53,50 @@ class FluentFormsPermissionCallbackTest extends FormsAbilitiesTestCase {
 		}
 	}
 
-	public function test_user_with_only_read_cap_is_rejected_from_writes() {
+	public function test_user_with_only_read_cap_is_rejected_from_writes_and_deletes() {
 		$GLOBALS['_test_current_user_id'] = 1;
 		$GLOBALS['_test_user_caps']       = array( 'fluent_forms_read' );
 
-		$writes_rejected = 0;
-		$reads_allowed   = 0;
+		$rejected = 0;
+		$allowed  = 0;
 		foreach ( $this->ability_required_caps() as $slug => $cap ) {
 			$result = $this->invoke_permission_callback( $slug );
 			if ( 'fluent_forms_read' === $cap ) {
 				$this->assertTrue( $result, "Read ability {$slug} must pass permission_callback with fluent_forms_read." );
-				$reads_allowed++;
+				$allowed++;
 			} else {
-				$this->assertFalse( $result, "Write/delete ability {$slug} must be rejected without fluent_forms_write." );
-				$writes_rejected++;
+				$this->assertFalse( $result, "Non-read ability {$slug} must be rejected without {$cap}." );
+				$rejected++;
 			}
 		}
-		$this->assertGreaterThan( 0, $reads_allowed );
-		$this->assertGreaterThan( 0, $writes_rejected );
+		$this->assertGreaterThan( 0, $allowed );
+		$this->assertGreaterThan( 0, $rejected );
 	}
 
-	public function test_user_with_read_and_write_caps_passes_every_ability() {
+	public function test_user_with_write_cap_is_rejected_from_deletes() {
 		$GLOBALS['_test_current_user_id'] = 1;
 		$GLOBALS['_test_user_caps']       = array( 'fluent_forms_read', 'fluent_forms_write' );
 
+		$delete_rejected = 0;
 		foreach ( $this->ability_required_caps() as $slug => $cap ) {
 			$result = $this->invoke_permission_callback( $slug );
-			$this->assertTrue( $result, "Authorized user with read+write must pass permission_callback for {$slug}." );
+			if ( 'fluent_forms_delete' === $cap ) {
+				$this->assertFalse( $result, "Delete ability {$slug} must be rejected without fluent_forms_delete." );
+				$delete_rejected++;
+			} else {
+				$this->assertTrue( $result, "Read/write ability {$slug} must pass with read+write caps." );
+			}
+		}
+		$this->assertGreaterThan( 0, $delete_rejected );
+	}
+
+	public function test_user_with_all_three_caps_passes_every_ability() {
+		$GLOBALS['_test_current_user_id'] = 1;
+		$GLOBALS['_test_user_caps']       = array( 'fluent_forms_read', 'fluent_forms_write', 'fluent_forms_delete' );
+
+		foreach ( $this->ability_required_caps() as $slug => $cap ) {
+			$result = $this->invoke_permission_callback( $slug );
+			$this->assertTrue( $result, "Authorized user with read+write+delete must pass permission_callback for {$slug}." );
 		}
 	}
 }

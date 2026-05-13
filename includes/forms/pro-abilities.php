@@ -1674,7 +1674,6 @@ add_action( 'wp_abilities_api_init', function() {
 	$reg->delete( 'fluent-forms/cancel-scheduled-action', array(
 		'label'       => 'Cancel Scheduled Action',
 		'description' => 'Cancel (delete) one or more Fluent Forms scheduled actions (Pro).',
-		'level'       => 'write',
 		'input_schema' => array(
 			'type'       => 'object',
 			'properties' => array(
@@ -1686,7 +1685,7 @@ add_action( 'wp_abilities_api_init', function() {
 			'count_cancelled' => array( 'type' => 'integer' ),
 		) ),
 		'callback' => function( $input ) {
-			if ( ! fluent_abilities_user_can( 'forms', 'write' ) ) {
+			if ( ! fluent_abilities_user_can( 'forms', 'delete' ) ) {
 				return fluent_abilities_error( 'rest_forbidden', 'You do not have permission to cancel scheduled actions' );
 			}
 			$ids = array();

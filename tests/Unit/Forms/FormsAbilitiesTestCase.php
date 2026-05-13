@@ -49,6 +49,7 @@ abstract class FormsAbilitiesTestCase extends TestCase {
 		$GLOBALS['_test_user_caps'] = array(
 			'fluent_forms_read',
 			'fluent_forms_write',
+			'fluent_forms_delete',
 		);
 		$GLOBALS['_test_current_user_id'] = 1;
 

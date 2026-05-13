@@ -192,7 +192,6 @@ add_action( 'wp_abilities_api_init', function() {
 	$reg->delete( 'fluent-forms/delete-form', array(
 		'label'       => 'Delete Form',
 		'description' => 'Delete a Fluent Form. Cascade-deletes submissions, submission meta, entry details, form meta, form analytics, logs, and (when payment helper is enabled) related transactions, subscriptions, and order items.',
-		'level'       => 'write', // Forms module ships read/write caps only; delete cap addition tracked in PR body scaffold-owned edits.
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'form_id' ),
@@ -206,7 +205,7 @@ add_action( 'wp_abilities_api_init', function() {
 			'deleted_counts'  => array( 'type' => 'object' ),
 		) ),
 		'callback' => function( $input ) {
-			if ( ! fluent_abilities_user_can( 'forms', 'write' ) ) {
+			if ( ! fluent_abilities_user_can( 'forms', 'delete' ) ) {
 				return fluent_abilities_error( 'rest_forbidden', 'You do not have permission to delete forms' );
 			}
 
@@ -707,7 +706,6 @@ add_action( 'wp_abilities_api_init', function() {
 	$reg->delete( 'fluent-forms/delete-submission', array(
 		'label'       => 'Delete Submission',
 		'description' => 'Permanently delete a Fluent Forms submission. Cascade-deletes submission meta, entry details, logs, and (for paid submissions) transactions, subscriptions, order items, and scheduled actions.',
-		'level'       => 'write',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'submission_id' ),
@@ -720,7 +718,7 @@ add_action( 'wp_abilities_api_init', function() {
 			'message'       => array( 'type' => 'string' ),
 		) ),
 		'callback' => function( $input ) {
-			if ( ! fluent_abilities_user_can( 'forms', 'write' ) ) {
+			if ( ! fluent_abilities_user_can( 'forms', 'delete' ) ) {
 				return fluent_abilities_error( 'rest_forbidden', 'You do not have permission to delete submissions' );
 			}
 
@@ -1153,7 +1151,6 @@ add_action( 'wp_abilities_api_init', function() {
 	$reg->delete( 'fluent-forms/delete-submission-note', array(
 		'label'       => 'Delete Submission Note',
 		'description' => 'Delete a single note (by note_id) belonging to a Fluent Forms submission.',
-		'level'       => 'write',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'submission_id', 'note_id' ),
@@ -1167,7 +1164,7 @@ add_action( 'wp_abilities_api_init', function() {
 			'message' => array( 'type' => 'string' ),
 		) ),
 		'callback' => function( $input ) {
-			if ( ! fluent_abilities_user_can( 'forms', 'write' ) ) {
+			if ( ! fluent_abilities_user_can( 'forms', 'delete' ) ) {
 				return fluent_abilities_error( 'rest_forbidden', 'You do not have permission to delete submission notes' );
 			}
 
@@ -1408,7 +1405,6 @@ add_action( 'wp_abilities_api_init', function() {
 	$reg->delete( 'fluent-forms/delete-logs', array(
 		'label'       => 'Delete Logs',
 		'description' => 'Delete one log (log_id) or multiple logs (log_ids) from the Fluent Forms logs table. Optional type filter further restricts the delete.',
-		'level'       => 'write',
 		'input_schema' => array(
 			'type'       => 'object',
 			'properties' => array(
@@ -1422,7 +1418,7 @@ add_action( 'wp_abilities_api_init', function() {
 			'message'       => array( 'type' => 'string' ),
 		) ),
 		'callback' => function( $input ) {
-			if ( ! fluent_abilities_user_can( 'forms', 'write' ) ) {
+			if ( ! fluent_abilities_user_can( 'forms', 'delete' ) ) {
 				return fluent_abilities_error( 'rest_forbidden', 'You do not have permission to delete logs' );
 			}
 
@@ -1463,7 +1459,6 @@ add_action( 'wp_abilities_api_init', function() {
 	$reg->delete( 'fluent-forms/delete-submission-logs', array(
 		'label'       => 'Delete Submission Logs',
 		'description' => 'Wipe the log trail for a single Fluent Forms submission (source_type=submission_item).',
-		'level'       => 'write',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'submission_id' ),
@@ -1475,7 +1470,7 @@ add_action( 'wp_abilities_api_init', function() {
 			'count_deleted' => array( 'type' => 'integer' ),
 		) ),
 		'callback' => function( $input ) {
-			if ( ! fluent_abilities_user_can( 'forms', 'write' ) ) {
+			if ( ! fluent_abilities_user_can( 'forms', 'delete' ) ) {
 				return fluent_abilities_error( 'rest_forbidden', 'You do not have permission to delete submission logs' );
 			}
 
@@ -1695,7 +1690,6 @@ add_action( 'wp_abilities_api_init', function() {
 	$reg->delete( 'fluent-forms/delete-form-notification', array(
 		'label'       => 'Delete Form Notification',
 		'description' => 'Remove a notification config at the given array index.',
-		'level'       => 'write',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'form_id', 'index' ),
@@ -1709,7 +1703,7 @@ add_action( 'wp_abilities_api_init', function() {
 			'message' => array( 'type' => 'string' ),
 		) ),
 		'callback' => function( $input ) use ( $load_form_meta_array, $persist_form_meta_array, $notification_meta_key ) {
-			if ( ! fluent_abilities_user_can( 'forms', 'write' ) ) {
+			if ( ! fluent_abilities_user_can( 'forms', 'delete' ) ) {
 				return fluent_abilities_error( 'rest_forbidden', 'You do not have permission to delete notifications' );
 			}
 			$form_id = (int) ( $input['form_id'] ?? 0 );
@@ -1847,7 +1841,6 @@ add_action( 'wp_abilities_api_init', function() {
 	$reg->delete( 'fluent-forms/delete-form-confirmation', array(
 		'label'       => 'Delete Form Confirmation',
 		'description' => 'Remove a confirmation config at the given array index.',
-		'level'       => 'write',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'form_id', 'index' ),
@@ -1861,7 +1854,7 @@ add_action( 'wp_abilities_api_init', function() {
 			'message' => array( 'type' => 'string' ),
 		) ),
 		'callback' => function( $input ) use ( $load_form_meta_array, $persist_form_meta_array, $confirmation_meta_key ) {
-			if ( ! fluent_abilities_user_can( 'forms', 'write' ) ) {
+			if ( ! fluent_abilities_user_can( 'forms', 'delete' ) ) {
 				return fluent_abilities_error( 'rest_forbidden', 'You do not have permission to delete confirmations' );
 			}
 			$form_id = (int) ( $input['form_id'] ?? 0 );
@@ -2210,7 +2203,6 @@ add_action( 'wp_abilities_api_init', function() {
 	$reg->delete( 'fluent-forms/delete-form-integration', array(
 		'label'       => 'Delete Form Integration',
 		'description' => 'Delete an integration feed by row id.',
-		'level'       => 'write',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'form_id', 'integration_id' ),
@@ -2224,7 +2216,7 @@ add_action( 'wp_abilities_api_init', function() {
 			'message'        => array( 'type' => 'string' ),
 		) ),
 		'callback' => function( $input ) {
-			if ( ! fluent_abilities_user_can( 'forms', 'write' ) ) {
+			if ( ! fluent_abilities_user_can( 'forms', 'delete' ) ) {
 				return fluent_abilities_error( 'rest_forbidden', 'You do not have permission to delete form integrations' );
 			}
 			$form_id        = (int) ( $input['form_id'] ?? 0 );
@@ -2684,7 +2676,6 @@ add_action( 'wp_abilities_api_init', function() {
 	$reg->delete( 'fluent-forms/remove-manager', array(
 		'label'       => 'Remove Manager',
 		'description' => 'Remove all Fluent Forms capabilities and per-user form scope from a WordPress user.',
-		'level'       => 'write',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'user_id' ),
@@ -2697,7 +2688,7 @@ add_action( 'wp_abilities_api_init', function() {
 			'message' => array( 'type' => 'string' ),
 		) ),
 		'callback' => function( $input ) use ( $ff_caps ) {
-			if ( ! fluent_abilities_user_can( 'forms', 'write' ) ) {
+			if ( ! fluent_abilities_user_can( 'forms', 'delete' ) ) {
 				return fluent_abilities_error( 'rest_forbidden', 'You do not have permission to remove form managers' );
 			}
 			$user_id = (int) ( $input['user_id'] ?? 0 );
@@ -2899,7 +2890,6 @@ add_action( 'wp_abilities_api_init', function() {
 	$reg->delete( 'fluent-forms/reset-form-analytics', array(
 		'label'       => 'Reset Form Analytics',
 		'description' => 'Delete all rows from fluentform_form_analytics for a given form (clears view tracking).',
-		'level'       => 'write',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'form_id' ),
@@ -2912,7 +2902,7 @@ add_action( 'wp_abilities_api_init', function() {
 			'count_deleted' => array( 'type' => 'integer' ),
 		) ),
 		'callback' => function( $input ) {
-			if ( ! fluent_abilities_user_can( 'forms', 'write' ) ) {
+			if ( ! fluent_abilities_user_can( 'forms', 'delete' ) ) {
 				return fluent_abilities_error( 'rest_forbidden', 'You do not have permission to reset form analytics' );
 			}
 			$form_id = (int) ( $input['form_id'] ?? 0 );

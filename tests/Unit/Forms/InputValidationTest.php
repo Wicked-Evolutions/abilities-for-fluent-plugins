@@ -28,7 +28,7 @@ class FluentFormsInputValidationTest extends FormsAbilitiesTestCase {
 
 	public function test_callback_returns_invalid_input_for_missing_required_field() {
 		$GLOBALS['_test_current_user_id'] = 1;
-		$GLOBALS['_test_user_caps']       = array( 'fluent_forms_read', 'fluent_forms_write' );
+		$GLOBALS['_test_user_caps']       = array( 'fluent_forms_read', 'fluent_forms_write', 'fluent_forms_delete' );
 
 		// create-form requires title.
 		$result = $this->invoke_execute_callback( 'fluent-forms/create-form', array() );
@@ -108,7 +108,7 @@ class FluentFormsInputValidationTest extends FormsAbilitiesTestCase {
 
 	public function test_delete_callbacks_reject_when_required_id_is_missing() {
 		$GLOBALS['_test_current_user_id'] = 1;
-		$GLOBALS['_test_user_caps']       = array( 'fluent_forms_read', 'fluent_forms_write' );
+		$GLOBALS['_test_user_caps']       = array( 'fluent_forms_read', 'fluent_forms_write', 'fluent_forms_delete' );
 
 		foreach ( array(
 			'fluent-forms/delete-form',
@@ -131,7 +131,7 @@ class FluentFormsInputValidationTest extends FormsAbilitiesTestCase {
 		// Mirror LegacyManagerScopes migration: has_specific_forms=true with empty
 		// allowed_forms normalizes to false (per research §7.Q5 disposition (a)).
 		$GLOBALS['_test_current_user_id'] = 1;
-		$GLOBALS['_test_user_caps']       = array( 'fluent_forms_read', 'fluent_forms_write' );
+		$GLOBALS['_test_user_caps']       = array( 'fluent_forms_read', 'fluent_forms_write', 'fluent_forms_delete' );
 
 		// Stub the WP user functions required by add-manager.
 		if ( ! function_exists( 'get_user_by' ) ) {
@@ -153,7 +153,7 @@ class FluentFormsInputValidationTest extends FormsAbilitiesTestCase {
 
 	public function test_delete_form_returns_plugin_missing_without_vendor_classes() {
 		$GLOBALS['_test_current_user_id'] = 1;
-		$GLOBALS['_test_user_caps']       = array( 'fluent_forms_read', 'fluent_forms_write' );
+		$GLOBALS['_test_user_caps']       = array( 'fluent_forms_read', 'fluent_forms_write', 'fluent_forms_delete' );
 
 		if ( class_exists( '\\FluentForm\\App\\Models\\Form' ) ) {
 			$this->markTestSkipped( 'Vendor class loaded; integration tests cover happy path.' );
