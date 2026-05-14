@@ -287,10 +287,15 @@ function fluent_abilities_register_messaging_v2() {
 	// implementation chooses simplest interpretation: any participant may
 	// remove themselves; manage_options users may remove anyone.
 
+	// Outer permission_callback uses `level => 'write'` (fluent_messaging_write
+	// cap exists; fluent_messaging_delete does NOT — security.php only registers
+	// read+write for messaging). Inner callback enforces self-removal-or-admin
+	// semantics per research §7.Q2 — author/admin check runs inside execute_callback.
 	$reg->delete( 'fluent-messaging/remove-participant', array(
 		'label'       => 'Remove Thread Participant',
 		'description' => 'Remove a user from a chat thread. Users may always remove themselves; only admins (manage_options) may remove other participants.',
 		'category'    => 'fluent-messaging',
+		'level'       => 'write',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'thread_id', 'user_id' ),
@@ -385,10 +390,14 @@ function fluent_abilities_register_messaging_v2() {
 	// 4.11.7 — DELETE MESSAGE
 	// =========================================================================
 
+	// Outer permission_callback uses `level => 'write'` (fluent_messaging_write
+	// cap exists; fluent_messaging_delete does NOT — security.php only registers
+	// read+write for messaging). Inner callback enforces author-or-admin check.
 	$reg->delete( 'fluent-messaging/delete-message', array(
 		'label'       => 'Delete Chat Message',
 		'description' => 'Delete a chat message. Only the original author or an admin (manage_options) may delete. Decrements thread message_count.',
 		'category'    => 'fluent-messaging',
+		'level'       => 'write',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'id' ),
