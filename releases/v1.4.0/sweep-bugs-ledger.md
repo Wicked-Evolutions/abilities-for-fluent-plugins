@@ -113,8 +113,62 @@ Field-name inconsistency across abilities (id vs funnel_id vs campaign_id vs con
 
 **Working findings file (Chat 1 side):** `/tmp/sprint-v2-crm-findings.md` — detailed per-ability evidence.
 
-### Chat 2 — Claude · Fluent Boards + Messaging
-_(not started)_
+### Chat 2 — Claude · Fluent Boards + Messaging (BLOCKED mid-sweep, partial: ~60 abilities + production residue)
+
+**Status:** sweep blocked mid-Boards run after ~60 abilities executed. Bridge crashed in same OAuth-degraded-mode pattern as Chat 3 hit. MCP server fully disconnected; teardown could not run.
+
+**⚠️ CRITICAL — production residue on helenawillow:**
+
+Marker `[SPRINT-V2-TEST-BOARDS]` — 10 fixtures left behind:
+- Board id=24 (parent — cascade-delete should remove most children)
+- Stage 208 ("Stage Alpha v2")
+- Task 1159 ("Task One updated")
+- Comment 34 + reply 35
+- Subtask group 74 + subtask 1160
+- Task 1161 (clone of 1159)
+- Label 210
+- Custom field 209
+- Incoming webhook 44
+- Folder 25 (separate from board)
+
+Marker `[SPRINT-V2-TEST-MSG]` — zero residue (messaging never started).
+
+**Cleanup plan dispatched to Chat 2 (cascade-first):** delete board id=24 → verify cascade → delete folder 25 + webhook 44 separately → audit clean before resuming sweep.
+
+**Bridge crash root cause:** same as Chat 3. `wickedevolutions` OAuth refresh expired → bridge entered sticky degraded mode → all tool calls blocked (even healthy helenawillow per wp_bridge_health) → MCP server fully disconnected. Worth filing on `abilities-mcp` repo post-sweep — should be per-site quarantine, not global. Also "fully crashed and disconnected" beyond just degraded-mode is a separate fragility (not just sticky OAuth state).
+
+**Bridge ergonomics observation:** rate limit trips at ≥5 parallel calls (`-32099` error). Throttle to ≤3 in production sweep batches.
+
+**Findings before crash:**
+
+| # | Ability slug | Class | Issue |
+|---|---|---|---|
+| 22 | `fluent-boards/list-board-assignees` | **F** | `array_map(): Argument #2 must be of type array, FluentForm\Framework\Support\Collection given`. Same Class F as CRM — missing `->toArray()` on Collection. |
+| 23 | `fluent-boards/start-time-track` | suspected B/C | 3 attempts → "Connection closed". Uncaught exception in handler suspected. |
+| 24 | `fluent-boards/mark-all-notifications-as-read` | suspected B/C | "Connection closed". Pattern same as #23. |
+| 25 | `fluent-boards/delete-notification` | suspected B/C | "Connection closed". Pattern same as #23. |
+
+**Class G findings — schema-vs-handler drift (~12 abilities affected):**
+Discovery input_schema doesn't match what handlers actually require. Examples:
+- `get-board` / `get-task` / `update-task` need `id` (not `board_id` / `task_id`)
+- `update-stage` / `create-subtask` / `list-subtasks` need extra `board_id`
+- `update-custom-field` / `save-task-custom-field-values` need `custom_field_id`
+- `update-label` needs `id`
+- `get-board-image-templates` / `get-board-menu-items` / `get-active-time-track` claim no-arg but require IDs
+- `has-data-changed` needs `last_check_at`
+- `update-comment-privacy` needs `privacy`
+
+**AI-consumer hostile pattern.** Sweeping the suite blind is impossible from discovery alone. Same defect class as Forms `get-form` / `get-submission` (Class G), but broader scope on Boards.
+
+**Other observations:**
+- `create-outgoing-webhook` requires resolvable target URL (vendor precondition — `example.invalid` rejected; expected behavior)
+- `move-task-to-next-stage` errors when task is already in last stage (operator-pattern — correct vendor state semantics)
+
+**Action awaiting J:**
+1. ✅ Reauth `wickedevolutions` (orchestrator gave paste command)
+2. Restart MCP server / Claude Code session to clear cached degraded state
+3. Re-dispatch Chat 2 with cleanup-first prompt (orchestrator drafted)
+4. Decide whether 1 confirmed + 3 suspected product bugs + ~12 Class G drift = v1.4.0 hold
 
 ### Chat 3 — Claude · Fluent Forms + Bookings (BLOCKED mid-sweep, partial: 32 Forms abilities)
 
