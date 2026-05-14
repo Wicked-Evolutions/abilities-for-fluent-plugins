@@ -95,7 +95,14 @@ class MessagingV2AbilitiesTest extends TestCase {
 		foreach ( array_keys( self::SLUGS ) as $slug ) {
 			$cb = $abilities[ $slug ]['permission_callback'];
 			$this->assertIsCallable( $cb, "permission_callback not callable on $slug" );
-			$this->assertFalse( (bool) call_user_func( $cb ), "permission_callback allowed anonymous on $slug" );
+			$result = call_user_func( $cb );
+			// Registrar may return bool false OR WP_Error per Abilities API spec
+			// (denial_for_anonymous_cli fires when sibling tests left WP_CLI defined).
+			// See orchestrator scaffold-hygiene fix 843a716 / #70.
+			$this->assertTrue(
+				$result === false || ( is_wp_error( $result ) && $result->get_error_code() === 'fluent_abilities_no_cli_user_context' ),
+				"permission_callback must reject anonymous on $slug (got: " . ( is_wp_error( $result ) ? $result->get_error_code() : var_export( $result, true ) ) . ')'
+			);
 		}
 	}
 
@@ -105,7 +112,11 @@ class MessagingV2AbilitiesTest extends TestCase {
 
 		$GLOBALS['_test_current_user_id'] = 5;
 		$GLOBALS['_test_user_caps']       = array( 'fluent_messaging_write', 'fluent_messaging_read' );
-		$this->assertFalse( (bool) call_user_func( $cb ), 'delete-thread accepted non-admin caps' );
+		$result = call_user_func( $cb );
+		$this->assertTrue(
+			$result === false || ( is_wp_error( $result ) && $result->get_error_code() === 'fluent_abilities_no_cli_user_context' ),
+			'delete-thread accepted non-admin caps (got: ' . ( is_wp_error( $result ) ? $result->get_error_code() : var_export( $result, true ) ) . ')'
+		);
 
 		$GLOBALS['_test_user_caps'] = array( 'manage_options' );
 		$this->assertTrue( (bool) call_user_func( $cb ), 'delete-thread denied manage_options' );

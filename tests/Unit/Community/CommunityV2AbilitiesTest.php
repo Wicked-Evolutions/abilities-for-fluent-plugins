@@ -226,7 +226,16 @@ class CommunityV2AbilitiesTest extends TestCase {
 		foreach ( array_keys( self::SLUGS ) as $slug ) {
 			$cb = $abilities[ $slug ]['permission_callback'];
 			$this->assertIsCallable( $cb, "permission_callback not callable on $slug" );
-			$this->assertFalse( (bool) call_user_func( $cb ), "permission_callback allowed anonymous on $slug" );
+			$result = call_user_func( $cb );
+			// Registrar may return bool false (legacy contract) OR
+			// WP_Error( 'fluent_abilities_no_cli_user_context' ) (current contract,
+			// WordPress Abilities API spec-compliant bool|WP_Error return shape;
+			// fires when sibling test pollution leaves WP_CLI constant defined).
+			// See orchestrator scaffold-hygiene fix 843a716 / #70.
+			$this->assertTrue(
+				$result === false || ( is_wp_error( $result ) && $result->get_error_code() === 'fluent_abilities_no_cli_user_context' ),
+				"permission_callback must reject anonymous on $slug (got: " . ( is_wp_error( $result ) ? $result->get_error_code() : var_export( $result, true ) ) . ')'
+			);
 		}
 	}
 
