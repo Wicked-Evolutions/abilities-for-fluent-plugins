@@ -57,9 +57,9 @@
 
 ---
 
-# Ledger — 808 extracted slugs
+# Ledger — 824 reconciled slugs
 
-> **Static-extraction limitation, not a product-count discrepancy.** Literal-string grep of slug registrations on integration HEAD vs the v1.1.3 tag yields **808 new slugs** in the ledger below. The sprint's ratified product count is 824 new abilities (per the per-PR Reviewer rounds). The 16-slug delta is two known static-extraction gaps:
+> **Ledger reconciled to live registry.** Initial static-grep extraction yielded 808 new slugs; live `mcp-adapter-discover-abilities` against v1.4.0-rc1 on Helena confirmed the ratified 824 product count. The 16-slug delta was variable-interpolated settings registrations in two plugins:
 >
 > - **FluentCart: 8 slugs missing** from static extraction (sprint count 108 vs ledger 100). Likely variable-interpolated `\$reg->...()` calls in `includes/cart/` that the literal-string grep cannot resolve.
 > - **Fluent Forms: 8 slugs missing** from static extraction (sprint count 88 vs ledger 80). Same likely cause inside `includes/forms/write-abilities.php` / `pro-abilities.php`.
@@ -352,7 +352,7 @@
 | `fluent-crm/update-email-pattern` | | | | | | | |
 | `fluent-crm/update-template` | | | | | | | |
 
-## FluentCart — 100 new abilities
+## FluentCart — 108 new abilities (8 added via live-registry reconciliation)
 
 **Probe site:** wicked-community
 
@@ -516,7 +516,21 @@
 | `fluent-cart/update-eu-vat-config` | | | | | | | |
 | `fluent-cart/update-tax-class` | | | | | | | |
 
-## Fluent Forms — 80 new abilities
+
+### settings-abilities (live-registry reconciled — variable-interpolated registrations not captured by static grep)
+
+| Ability slug | Site | Client | Input (key) | Result | Classification | Cleanup | Notes |
+|---|---|---|---|---|---|---|---|
+| `fluent-cart/get-confirmation-settings` | | | | | | | |
+| `fluent-cart/get-module-settings` | | | | | | | |
+| `fluent-cart/get-permission-settings` | | | | | | | |
+| `fluent-cart/get-store-settings` | | | | | | | |
+| `fluent-cart/update-confirmation-settings` | | | | | | | |
+| `fluent-cart/update-module-settings` | | | | | | | |
+| `fluent-cart/update-permission-settings` | | | | | | | |
+| `fluent-cart/update-store-settings` | | | | | | | |
+
+## Fluent Forms — 88 new abilities (8 added via live-registry reconciliation)
 
 **Probe site:** wicked-community or helenawillow
 
@@ -609,6 +623,20 @@
 | `fluent-forms/update-global-settings` | | | | | | | |
 | `fluent-forms/update-submission-status` | | | | | | | |
 | `fluent-forms/update-submission-user` | | | | | | | |
+
+
+### form-settings-abilities (live-registry reconciled — variable-interpolated registrations not captured by static grep)
+
+| Ability slug | Site | Client | Input (key) | Result | Classification | Cleanup | Notes |
+|---|---|---|---|---|---|---|---|
+| `fluent-forms/get-form-advanced-validation` | | | | | | | |
+| `fluent-forms/get-form-customizer` | | | | | | | |
+| `fluent-forms/get-form-general-settings` | | | | | | | |
+| `fluent-forms/get-form-settings` | | | | | | | |
+| `fluent-forms/update-form-advanced-validation` | | | | | | | |
+| `fluent-forms/update-form-customizer` | | | | | | | |
+| `fluent-forms/update-form-general-settings` | | | | | | | |
+| `fluent-forms/update-form-settings` | | | | | | | |
 
 ## Fluent Bookings — 78 new abilities
 
