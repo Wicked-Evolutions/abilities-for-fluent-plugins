@@ -322,8 +322,16 @@ function fluent_abilities_player_register_email_abilities() {
 			if ( is_wp_error( $result ) ) {
 				return $result;
 			}
-			$fields = is_array( $result ) ? ( $result['fields'] ?? $result ) : array();
-			return array( 'fields' => fluent_abilities_safe_array( $fields ) );
+			// Vendor returns {integrations: {<slug>: {label, fields: [...]}}};
+			// extract just the requested integration's field list.
+			$fields = array();
+			if ( is_array( $result ) && isset( $result['integrations'][ $integration ]['fields'] ) ) {
+				$fields = $result['integrations'][ $integration ]['fields'];
+			} elseif ( is_array( $result ) && isset( $result['fields'] ) ) {
+				$fields = $result['fields'];
+			}
+			$fields = is_array( $fields ) ? array_values( $fields ) : array();
+			return array( 'fields' => $fields );
 		},
 	) );
 
@@ -493,10 +501,13 @@ function fluent_abilities_player_register_email_abilities() {
 				'resource' => array( 'type' => 'string', 'description' => 'lists | tags | forms' ),
 			),
 		),
-		'output_schema' => fluent_abilities_schema_item_output( array(
-			'resource' => array( 'type' => 'string' ),
-			'items'    => array( 'type' => 'array' ),
-		) ),
+		'output_schema' => array(
+			'type'       => 'object',
+			'properties' => array(
+				'resource' => array( 'type' => 'string' ),
+				'items'    => array( 'type' => array( 'array', 'object' ), 'description' => 'Vendor returns item shape that varies by provider+resource — keep permissive.' ),
+			),
+		),
 		'callback'      => function ( $input ) {
 			$provider = isset( $input['provider'] ) ? sanitize_key( $input['provider'] ) : '';
 			$resource = isset( $input['resource'] ) ? sanitize_key( $input['resource'] ) : '';
@@ -593,10 +604,13 @@ function fluent_abilities_player_register_email_abilities() {
 				'type' => array( 'type' => 'string', 'description' => 'Form type slug.' ),
 			),
 		),
-		'output_schema' => fluent_abilities_schema_collection_output( 'forms', array(
-			'id'    => array( 'type' => 'integer' ),
-			'title' => array( 'type' => 'string' ),
-		) ),
+		'output_schema' => array(
+			'type'       => 'object',
+			'properties' => array(
+				'total' => array( 'type' => 'integer' ),
+				'forms' => array( 'type' => 'array' ),
+			),
+		),
 		'callback'      => function ( $input ) {
 			$type = isset( $input['type'] ) ? sanitize_key( $input['type'] ) : '';
 			if ( '' === $type ) {

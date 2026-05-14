@@ -121,8 +121,10 @@ function fluent_abilities_player_register_presets_abilities() {
 				if ( null === $settings ) {
 					return fluent_abilities_error( 'ability_invalid_input', 'settings (object) is required.' );
 				}
+				// Vendor PresetController::preparePreset() calls json_decode($args['settings']),
+				// so settings must be passed as a JSON-encoded string, not a raw array.
 				$input['name']     = $name;
-				$input['settings'] = $settings;
+				$input['settings'] = wp_json_encode( $settings );
 				$result            = fluent_abilities_player_invoke_controller(
 					'\FluentPlayerPro\App\Http\Controllers\PresetController',
 					'store',
@@ -166,8 +168,9 @@ function fluent_abilities_player_register_presets_abilities() {
 				if ( null === $settings ) {
 					return fluent_abilities_error( 'ability_invalid_input', 'settings (object) is required.' );
 				}
+				// Vendor PresetController::preparePreset() calls json_decode($args['settings']).
 				$input['name']     = $name;
-				$input['settings'] = $settings;
+				$input['settings'] = wp_json_encode( $settings );
 				$result            = fluent_abilities_player_invoke_controller(
 					'\FluentPlayerPro\App\Http\Controllers\PresetController',
 					'update',

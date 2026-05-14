@@ -346,11 +346,13 @@ function fluent_abilities_player_register_playlists_abilities() {
 				'media_id' => array( 'type' => 'integer' ),
 			),
 		),
-		'output_schema' => fluent_abilities_schema_collection_output( 'captions', array(
-			'language'       => array( 'type' => 'string' ),
-			'name'           => array( 'type' => 'string' ),
-			'auto_generated' => array( 'type' => 'boolean' ),
-		) ),
+		'output_schema' => array(
+			'type'       => 'object',
+			'properties' => array(
+				'total'    => array( 'type' => 'integer' ),
+				'captions' => array( 'type' => 'array' ),
+			),
+		),
 		'callback'      => function ( $input ) {
 			$media_id = absint( $input['media_id'] ?? 0 );
 			if ( ! $media_id ) {

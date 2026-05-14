@@ -39,10 +39,13 @@ function fluent_abilities_player_register_bunny_abilities() {
 		'label'         => 'Bunny Stream — list libraries',
 		'description'   => 'List Bunny Stream libraries available on the connected account.',
 		'category'      => 'fluent-player',
-		'output_schema' => fluent_abilities_schema_collection_output( 'libraries', array(
-			'id'   => array( 'type' => 'integer' ),
-			'name' => array( 'type' => 'string' ),
-		) ),
+		'output_schema' => array(
+			'type'       => 'object',
+			'properties' => array(
+				'total'     => array( 'type' => 'integer' ),
+				'libraries' => array( 'type' => 'array' ),
+			),
+		),
 		'callback'      => function ( $input ) use ( $call ) {
 			$result    = $call( '\FluentPlayerPro\App\Http\Controllers\BunnyCDNController', 'getLibraries', $input );
 			if ( is_wp_error( $result ) ) {

@@ -113,6 +113,11 @@ if ( ! function_exists( 'size_format' ) ) {
 		return number_format( (float) $bytes, $decimals ) . ' B';
 	}
 }
+if ( ! function_exists( 'wp_json_encode' ) ) {
+	function wp_json_encode( $data, $options = 0, $depth = 512 ) {
+		return json_encode( $data, $options, $depth );
+	}
+}
 
 // In-memory option store.
 $_wp_options_store = array();
