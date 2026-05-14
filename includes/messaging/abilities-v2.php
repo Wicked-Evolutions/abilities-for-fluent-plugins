@@ -58,21 +58,25 @@ function fluent_abilities_register_messaging_v2() {
 				return fluent_abilities_error( 'rest_forbidden', 'No authenticated user' );
 			}
 
-			$now = current_time( 'mysql' );
+			if ( ! class_exists( '\\FluentMessaging\\App\\Models\\Thread' ) || ! class_exists( '\\FluentMessaging\\App\\Models\\ThreadUser' ) ) {
+				return fluent_abilities_error( 'not_available', 'FluentMessaging Thread/ThreadUser model not available' );
+			}
 
-			$thread_id = wpFluent()->table( 'fcom_chat_threads' )->insert( array(
-				'title'         => isset( $input['title'] ) ? sanitize_text_field( (string) $input['title'] ) : null,
-				'space_id'      => isset( $input['space_id'] ) ? (int) $input['space_id'] : null,
-				'message_count' => 0,
-				'status'        => isset( $input['status'] ) ? sanitize_text_field( $input['status'] ) : 'active',
-				'provider'      => isset( $input['provider'] ) ? sanitize_text_field( $input['provider'] ) : null,
-				'created_at'    => $now,
-				'updated_at'    => $now,
+			// Use Eloquent create() (returns model with populated id) instead of
+			// wpFluent()->insert() (which returns boolean-as-int 1 regardless of
+			// inserted ID — phantom-id bug surfaced during Phase B live verification).
+			$thread = \FluentMessaging\App\Models\Thread::create( array(
+				'title'    => isset( $input['title'] ) ? sanitize_text_field( (string) $input['title'] ) : null,
+				'space_id' => isset( $input['space_id'] ) ? (int) $input['space_id'] : null,
+				'status'   => isset( $input['status'] ) ? sanitize_text_field( $input['status'] ) : 'active',
+				'provider' => isset( $input['provider'] ) ? sanitize_text_field( $input['provider'] ) : null,
 			) );
 
-			if ( ! $thread_id ) {
+			if ( ! $thread || empty( $thread->id ) ) {
 				return fluent_abilities_error( 'create_failed', 'Failed to create thread' );
 			}
+
+			$thread_id = (int) $thread->id;
 
 			$participants = array( $user_id );
 			if ( ! empty( $input['participant_ids'] ) && is_array( $input['participant_ids'] ) ) {
@@ -85,18 +89,16 @@ function fluent_abilities_register_messaging_v2() {
 			}
 
 			foreach ( $participants as $pid ) {
-				wpFluent()->table( 'fcom_chat_thread_users' )->insert( array(
-					'thread_id'  => (int) $thread_id,
-					'user_id'    => $pid,
-					'status'     => 'active',
-					'created_at' => $now,
-					'updated_at' => $now,
+				\FluentMessaging\App\Models\ThreadUser::create( array(
+					'thread_id' => $thread_id,
+					'user_id'   => $pid,
+					'status'    => 'active',
 				) );
 			}
 
 			return array(
 				'success'   => true,
-				'thread_id' => (int) $thread_id,
+				'thread_id' => $thread_id,
 			);
 		},
 	) );
@@ -260,13 +262,14 @@ function fluent_abilities_register_messaging_v2() {
 				);
 			}
 
-			$now = current_time( 'mysql' );
-			wpFluent()->table( 'fcom_chat_thread_users' )->insert( array(
-				'thread_id'  => $thread_id,
-				'user_id'    => $user_id,
-				'status'     => isset( $input['status'] ) ? sanitize_text_field( $input['status'] ) : 'active',
-				'created_at' => $now,
-				'updated_at' => $now,
+			if ( ! class_exists( '\\FluentMessaging\\App\\Models\\ThreadUser' ) ) {
+				return fluent_abilities_error( 'not_available', 'FluentMessaging ThreadUser model not available' );
+			}
+
+			\FluentMessaging\App\Models\ThreadUser::create( array(
+				'thread_id' => $thread_id,
+				'user_id'   => $user_id,
+				'status'    => isset( $input['status'] ) ? sanitize_text_field( $input['status'] ) : 'active',
 			) );
 
 			return array(

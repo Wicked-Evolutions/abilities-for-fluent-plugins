@@ -165,4 +165,38 @@ class MessagingV2AbilitiesTest extends TestCase {
 			'delete-thread should be idempotent (re-delete returns not_found error, no side effect)'
 		);
 	}
+
+	// ── Phantom-ID regression guard ──────────────────────────────────────────
+	//
+	// Surfaced during Phase B live verification on helena: create-thread
+	// returned `thread_id: 1` while the actual DB row was id=28. Root cause
+	// was wpFluent()->insert() returning boolean-as-int 1 (not last insert id).
+	// Fix: use Eloquent Model::create() which returns model instance with
+	// populated id. This test guards against regression by asserting the
+	// callback source uses Model::create rather than wpFluent()->insert().
+
+	public function test_create_thread_callback_uses_eloquent_create_for_id() {
+		$src = file_get_contents( dirname( __DIR__, 3 ) . '/includes/messaging/abilities-v2.php' );
+		$this->assertStringContainsString(
+			'\\FluentMessaging\\App\\Models\\Thread::create(',
+			$src,
+			'create-thread must use Eloquent Thread::create() so $thread->id is the real DB id, not wpFluent()->insert() phantom-id 1'
+		);
+		// Negative guard: the old wpFluent()->insert() pattern on fcom_chat_threads
+		// must not reappear in the create-thread callback.
+		$this->assertStringNotContainsString(
+			"wpFluent()->table( 'fcom_chat_threads' )->insert(",
+			$src,
+			'create-thread must not use wpFluent()->table(fcom_chat_threads)->insert() — that returns int 1, not last insert id (phantom-id bug)'
+		);
+	}
+
+	public function test_add_participant_callback_uses_eloquent_create() {
+		$src = file_get_contents( dirname( __DIR__, 3 ) . '/includes/messaging/abilities-v2.php' );
+		$this->assertStringContainsString(
+			'\\FluentMessaging\\App\\Models\\ThreadUser::create(',
+			$src,
+			'add-participant must use Eloquent ThreadUser::create() for consistency with create-thread phantom-id fix'
+		);
+	}
 }
