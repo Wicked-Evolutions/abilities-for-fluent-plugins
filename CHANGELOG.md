@@ -2,13 +2,13 @@
 
 All notable changes to Abilities for Fluent Plugins will be documented in this file.
 
-## [2.0.0] - UNRELEASED
+## [1.4.0] - UNRELEASED
 
-> **Sprint:** [Fluent Suite Registrar Bundle Sprint 2026-05-13](../../00%20Influencentricity%20OS/Plans/Alpha%20Release%20Gate/Fluent%20Suite%20Registrar%20Bundle%20Sprint%202026-05-13.md) (vault path).
+> **Sprint:** [Fluent Suite Registrar Bundle Sprint 2026-05-13](../../00%20Influencentricity%20OS/Plans/Alpha%20Release%20Gate/Fluent%20Suite%20Registrar%20Bundle%20Sprint%202026-05-13.md) (vault path). Sprint plan / dispatch briefs were authored with a "v2.0.0" working label; ratified release version is v1.4.0 per semver (additive feature wave, zero breaking changes).
 >
 > **Surface delta:** 272 existing abilities + 824 new abilities = 1,096 total abilities across the seven sprint-covered plugins and preserved v1.1.3 surfaces. Original sprint plan projected ~728 new abilities; final delivery exceeded projection because the per-plugin authoritative inventory sections were higher than several TL;DR estimates, and those count reconciliations were reviewed/ratified during Phase B. Existing abilities for `support`, `smtp`, `auth`, `snippets`, `affiliate`, `cross-module` ship unchanged from v1.1.3.
 >
-> **Stable Ability Contracts:** every ability shipping in v1.1.3 is contract-identical in v2.0.0 (slug + input_schema + output_schema + permission_callback). Known v1.1.3 defects are explicitly preserved per [`docs/V1.1.3-KNOWN-DEFECTS.md`](docs/V1.1.3-KNOWN-DEFECTS.md); fixes ship in v1.1.x hotfixes, not in v2.0.0.
+> **Stable Ability Contracts:** every ability shipping in v1.1.3 is contract-identical in v1.4.0 (slug + input_schema + output_schema + permission_callback). Known v1.1.3 defects are explicitly preserved per [`docs/V1.1.3-KNOWN-DEFECTS.md`](docs/V1.1.3-KNOWN-DEFECTS.md); fixes ship in a future v1.x hotfix lane, not in v1.4.0.
 
 ### FluentCRM
 
@@ -26,7 +26,7 @@ All notable changes to Abilities for Fluent Plugins will be documented in this f
 - Pro settings + commerce reports (9)
 - Global search helpers (1)
 
-`§5.32` drift-fix abilities deferred to v1.1.x hotfix lane per Principle 10 Stable Contracts (filed as KD-8 [#62](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/62) + KD-9 [#63](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/63)).
+`§5.32` drift-fix abilities deferred to a future v1.x hotfix lane per Principle 10 Stable Contracts (filed as KD-8 [#62](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/62) + KD-9 [#63](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/63)).
 
 ### FluentCart
 
@@ -88,9 +88,9 @@ All notable changes to Abilities for Fluent Plugins will be documented in this f
 - **`permission_callback` return shape now matches WordPress Abilities API spec.** Anonymous-CLI denials return `WP_Error('fluent_abilities_no_cli_user_context', ...)` instead of bare `bool false`. This aligns with the upstream `check_permissions()` documented `bool|WP_Error` return shape. Existing operator integrations that introspected `permission_callback` return values for the strict `bool` type should accept the typed WP_Error as a valid denial signal. Not a breaking change for standard ability execution paths; this only affects code that directly introspects `permission_callback` return types.
 - **Abilities for AI permission gating:** new delete-tier abilities across Fluent modules may require updates to the `wp_abilities_suite_permissions` site option before execution is allowed. Operators upgrading from v1.1.3 may need to verify the option includes delete-tier for Fluent modules they intend to use. See [#72](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/72).
 
-### Preserved v1.1.3 defects (queued for v1.1.x hotfix lane)
+### Preserved v1.1.3 defects (queued for a future v1.x hotfix lane)
 
-Per Principle 10 Stable Contracts, the following v1.1.3 defects are preserved as-is in v2.0.0 and tracked for separate v1.1.x hotfix resolution. None block v2.0.0 release.
+Per Principle 10 Stable Contracts, the following v1.1.3 defects are preserved as-is in v1.4.0 and tracked for separate v1.x hotfix resolution. None block v1.4.0 release.
 
 | KD | Plugin | Symptom | Issue |
 |---|---|---|---|
