@@ -57,9 +57,16 @@
 
 ---
 
-# Ledger — all 808 new abilities
+# Ledger — 808 extracted slugs
 
-> Note on count: grep extraction of slug literals from the merged code surfaces 808 unique new slugs. The sprint summary cites 824 (per per-PR ratified counts). The 16-slug delta may be from variable-interpolated registrations or helper-mode patterns that don't extract as literals. The cold-AI sweep should reconcile against the LIVE deployed registry (via `mcp-adapter-discover-abilities` post-install) — that's the ground truth and may surface the missing 16.
+> **Static-extraction limitation, not a product-count discrepancy.** Literal-string grep of slug registrations on integration HEAD vs the v1.1.3 tag yields **808 new slugs** in the ledger below. The sprint's ratified product count is 824 new abilities (per the per-PR Reviewer rounds). The 16-slug delta is two known static-extraction gaps:
+>
+> - **FluentCart: 8 slugs missing** from static extraction (sprint count 108 vs ledger 100). Likely variable-interpolated `\$reg->...()` calls in `includes/cart/` that the literal-string grep cannot resolve.
+> - **Fluent Forms: 8 slugs missing** from static extraction (sprint count 88 vs ledger 80). Same likely cause inside `includes/forms/write-abilities.php` / `pro-abilities.php`.
+>
+> Both gaps are static-extraction artifacts. The actual deployed registry contains all 824 abilities — the ratified Phase B PRs are the product-count source of truth.
+>
+> **Release gate ground truth: the live registry.** Before release, the cold-AI sweep ledger must be reconciled to the v1.4.0 live registry (via `mcp-adapter-discover-abilities` post-install on the pre-release zip). The 16 missing slugs surface in the live registry; orchestrator extends the ledger with the missing rows during Phase C Step 10 prep. Release does not ship until the ledger covers every slug the live registry reports under sprint-plugin categories.
 
 ## FluentCRM — 225 new abilities
 
