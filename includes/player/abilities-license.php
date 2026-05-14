@@ -38,15 +38,11 @@ function fluent_abilities_player_register_license_abilities() {
 			'activated_on'  => array( 'type' => array( 'string', 'null' ) ),
 		) ),
 		'callback'      => function ( $input ) {
-			if ( ! class_exists( '\FluentPlayerPro\App\Http\Controllers\LicenseController' ) ) {
-				return fluent_abilities_error( 'missing_class', 'FluentPlayerPro LicenseController not found.' );
-			}
-			try {
-				$controller = new \FluentPlayerPro\App\Http\Controllers\LicenseController();
-				return $controller->getLicenseDetails();
-			} catch ( \Throwable $e ) {
-				return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-			}
+			return fluent_abilities_player_invoke_controller(
+				'\FluentPlayerPro\App\Http\Controllers\LicenseController',
+				'getLicenseDetails',
+				is_array( $input ) ? $input : array()
+			);
 		},
 	) );
 
@@ -76,24 +72,20 @@ function fluent_abilities_player_register_license_abilities() {
 			if ( '' === $license_key ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'license_key is required.' );
 			}
-			if ( ! class_exists( '\FluentPlayerPro\App\Http\Controllers\LicenseController' ) ) {
-				return fluent_abilities_error( 'missing_class', 'FluentPlayerPro LicenseController not found.' );
+			$input['license_key'] = $license_key;
+			$result               = fluent_abilities_player_invoke_controller(
+				'\FluentPlayerPro\App\Http\Controllers\LicenseController',
+				'activateLicense',
+				$input
+			);
+			if ( is_wp_error( $result ) ) {
+				return $result;
 			}
-			try {
-				$_REQUEST['license_key'] = $license_key;
-				$_POST['license_key']    = $license_key;
-				$controller              = new \FluentPlayerPro\App\Http\Controllers\LicenseController();
-				$result                  = $controller->activateLicense();
-				$message                 = is_array( $result ) ? ( $result['message'] ?? 'License activated.' ) : 'License activated.';
-				$status                  = is_array( $result ) ? ( $result['status'] ?? 'active' ) : 'active';
-				return array(
-					'success' => true,
-					'message' => $message,
-					'status'  => $status,
-				);
-			} catch ( \Throwable $e ) {
-				return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-			}
+			return array(
+				'success' => true,
+				'message' => is_array( $result ) ? ( $result['message'] ?? 'License activated.' ) : 'License activated.',
+				'status'  => is_array( $result ) ? ( $result['status'] ?? 'active' ) : 'active',
+			);
 		},
 	) );
 
@@ -108,20 +100,18 @@ function fluent_abilities_player_register_license_abilities() {
 		) ),
 		'annotations'   => array( 'idempotent' => false ),
 		'callback'      => function ( $input ) {
-			if ( ! class_exists( '\FluentPlayerPro\App\Http\Controllers\LicenseController' ) ) {
-				return fluent_abilities_error( 'missing_class', 'FluentPlayerPro LicenseController not found.' );
+			$result = fluent_abilities_player_invoke_controller(
+				'\FluentPlayerPro\App\Http\Controllers\LicenseController',
+				'deactivateLicense',
+				is_array( $input ) ? $input : array()
+			);
+			if ( is_wp_error( $result ) ) {
+				return $result;
 			}
-			try {
-				$controller = new \FluentPlayerPro\App\Http\Controllers\LicenseController();
-				$result     = $controller->deactivateLicense();
-				$message    = is_array( $result ) ? ( $result['message'] ?? 'License deactivated.' ) : 'License deactivated.';
-				return array(
-					'success' => true,
-					'message' => $message,
-				);
-			} catch ( \Throwable $e ) {
-				return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-			}
+			return array(
+				'success' => true,
+				'message' => is_array( $result ) ? ( $result['message'] ?? 'License deactivated.' ) : 'License deactivated.',
+			);
 		},
 	) );
 }

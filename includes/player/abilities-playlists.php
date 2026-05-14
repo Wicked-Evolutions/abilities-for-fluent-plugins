@@ -150,28 +150,24 @@ function fluent_abilities_player_register_playlists_abilities() {
 			if ( '' === $title ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'title is required.' );
 			}
-			if ( ! class_exists( '\FluentPlayerPro\App\Http\Controllers\PlaylistController' ) ) {
-				return fluent_abilities_error( 'missing_class', 'PlaylistController not found.' );
+			$input['title']    = $title;
+			$input['settings'] = $input['settings'] ?? array();
+			$result            = fluent_abilities_player_invoke_controller(
+				'\FluentPlayerPro\App\Http\Controllers\PlaylistController',
+				'store',
+				$input
+			);
+			if ( is_wp_error( $result ) ) {
+				return $result;
 			}
-			try {
-				$_REQUEST['title']    = $title;
-				$_REQUEST['settings'] = $input['settings'] ?? array();
-				$_POST['title']       = $title;
-				$_POST['settings']    = $input['settings'] ?? array();
-				$controller           = new \FluentPlayerPro\App\Http\Controllers\PlaylistController();
-				$result               = $controller->store();
-				$row                  = is_array( $result ) ? ( $result['playlist'] ?? $result ) : array();
-				$row                  = fluent_abilities_safe_array( $row );
-				return array(
-					'success'     => true,
-					'ID'          => (int) ( $row['ID'] ?? 0 ),
-					'post_title'  => $row['post_title'] ?? $title,
-					'post_status' => $row['post_status'] ?? 'publish',
-					'settings'    => $row['settings'] ?? null,
-				);
-			} catch ( \Throwable $e ) {
-				return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-			}
+			$row = fluent_abilities_safe_array( is_array( $result ) ? ( $result['playlist'] ?? $result ) : array() );
+			return array(
+				'success'     => true,
+				'ID'          => (int) ( $row['ID'] ?? 0 ),
+				'post_title'  => $row['post_title'] ?? $title,
+				'post_status' => $row['post_status'] ?? 'publish',
+				'settings'    => $row['settings'] ?? null,
+			);
 		},
 	) );
 
@@ -197,29 +193,24 @@ function fluent_abilities_player_register_playlists_abilities() {
 			if ( ! $id ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'id is required.' );
 			}
-			if ( ! class_exists( '\FluentPlayerPro\App\Http\Controllers\PlaylistController' ) ) {
-				return fluent_abilities_error( 'missing_class', 'PlaylistController not found.' );
+			if ( isset( $input['title'] ) ) {
+				$input['title'] = sanitize_text_field( $input['title'] );
 			}
-			try {
-				if ( isset( $input['title'] ) ) {
-					$_REQUEST['title'] = sanitize_text_field( $input['title'] );
-					$_POST['title']    = $_REQUEST['title'];
-				}
-				if ( isset( $input['settings'] ) ) {
-					$_REQUEST['settings'] = $input['settings'];
-					$_POST['settings']    = $input['settings'];
-				}
-				$controller = new \FluentPlayerPro\App\Http\Controllers\PlaylistController();
-				$result     = $controller->update( $id );
-				$row        = fluent_abilities_safe_array( is_array( $result ) ? ( $result['playlist'] ?? $result ) : array() );
-				return array(
-					'success'  => true,
-					'ID'       => (int) ( $row['ID'] ?? $id ),
-					'settings' => $row['settings'] ?? null,
-				);
-			} catch ( \Throwable $e ) {
-				return fluent_abilities_error( 'execution_failed', $e->getMessage() );
+			$result = fluent_abilities_player_invoke_controller(
+				'\FluentPlayerPro\App\Http\Controllers\PlaylistController',
+				'update',
+				$input,
+				array( 'id' => $id )
+			);
+			if ( is_wp_error( $result ) ) {
+				return $result;
 			}
+			$row = fluent_abilities_safe_array( is_array( $result ) ? ( $result['playlist'] ?? $result ) : array() );
+			return array(
+				'success'  => true,
+				'ID'       => (int) ( $row['ID'] ?? $id ),
+				'settings' => $row['settings'] ?? null,
+			);
 		},
 	) );
 
@@ -241,20 +232,19 @@ function fluent_abilities_player_register_playlists_abilities() {
 			if ( ! $id ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'id is required.' );
 			}
-			if ( ! class_exists( '\FluentPlayerPro\App\Http\Controllers\PlaylistController' ) ) {
-				return fluent_abilities_error( 'missing_class', 'PlaylistController not found.' );
+			$result = fluent_abilities_player_invoke_controller(
+				'\FluentPlayerPro\App\Http\Controllers\PlaylistController',
+				'delete',
+				is_array( $input ) ? $input : array(),
+				array( 'id' => $id )
+			);
+			if ( is_wp_error( $result ) ) {
+				return $result;
 			}
-			try {
-				$controller = new \FluentPlayerPro\App\Http\Controllers\PlaylistController();
-				$result     = $controller->delete( $id );
-				$message    = is_array( $result ) ? ( $result['message'] ?? 'Playlist deleted.' ) : 'Playlist deleted.';
-				return array(
-					'success' => true,
-					'message' => $message,
-				);
-			} catch ( \Throwable $e ) {
-				return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-			}
+			return array(
+				'success' => true,
+				'message' => is_array( $result ) ? ( $result['message'] ?? 'Playlist deleted.' ) : 'Playlist deleted.',
+			);
 		},
 	) );
 
@@ -285,29 +275,23 @@ function fluent_abilities_player_register_playlists_abilities() {
 			if ( ! $media_id || ! $attachment_id ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'media_id and attachment_id are required.' );
 			}
-			if ( ! class_exists( '\FluentPlayerPro\App\Http\Controllers\SubtitleController' ) ) {
-				return fluent_abilities_error( 'missing_class', 'SubtitleController not found.' );
+			$input['attachment_id'] = $attachment_id;
+			$input['language']      = isset( $input['language'] ) ? sanitize_text_field( $input['language'] ) : '';
+			$input['label']         = isset( $input['label'] ) ? sanitize_text_field( $input['label'] ) : '';
+			$result = fluent_abilities_player_invoke_controller(
+				'\FluentPlayerPro\App\Http\Controllers\SubtitleController',
+				'uploadSubtitle',
+				$input,
+				array( 'mediaId' => $media_id )
+			);
+			if ( is_wp_error( $result ) ) {
+				return $result;
 			}
-			try {
-				$_REQUEST['attachment_id'] = $attachment_id;
-				$_REQUEST['language']      = isset( $input['language'] ) ? sanitize_text_field( $input['language'] ) : '';
-				$_REQUEST['label']         = isset( $input['label'] ) ? sanitize_text_field( $input['label'] ) : '';
-				$_POST                     = array_merge( $_POST, array(
-					'attachment_id' => $attachment_id,
-					'language'      => $_REQUEST['language'],
-					'label'         => $_REQUEST['label'],
-				) );
-				$controller = new \FluentPlayerPro\App\Http\Controllers\SubtitleController();
-				$result     = $controller->uploadSubtitle( $media_id );
-				$data       = fluent_abilities_safe_array( is_array( $result ) ? ( $result['data'] ?? $result ) : null );
-				return array(
-					'success' => true,
-					'message' => is_array( $result ) ? ( $result['message'] ?? 'Subtitle uploaded.' ) : 'Subtitle uploaded.',
-					'data'    => $data,
-				);
-			} catch ( \Throwable $e ) {
-				return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-			}
+			return array(
+				'success' => true,
+				'message' => is_array( $result ) ? ( $result['message'] ?? 'Subtitle uploaded.' ) : 'Subtitle uploaded.',
+				'data'    => fluent_abilities_safe_array( is_array( $result ) ? ( $result['data'] ?? $result ) : null ),
+			);
 		},
 	) );
 
@@ -334,20 +318,20 @@ function fluent_abilities_player_register_playlists_abilities() {
 			if ( ! $media_id || '' === $subtitle_id ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'media_id and subtitle_id are required.' );
 			}
-			if ( ! class_exists( '\FluentPlayerPro\App\Http\Controllers\SubtitleController' ) ) {
-				return fluent_abilities_error( 'missing_class', 'SubtitleController not found.' );
+			$result = fluent_abilities_player_invoke_controller(
+				'\FluentPlayerPro\App\Http\Controllers\SubtitleController',
+				'removeSubtitle',
+				is_array( $input ) ? $input : array(),
+				array( 'mediaId' => $media_id, 'subtitleId' => $subtitle_id )
+			);
+			if ( is_wp_error( $result ) ) {
+				return $result;
 			}
-			try {
-				$controller = new \FluentPlayerPro\App\Http\Controllers\SubtitleController();
-				$result     = $controller->removeSubtitle( $media_id, $subtitle_id );
-				return array(
-					'success'        => true,
-					'removed'        => true,
-					'media_settings' => fluent_abilities_safe_array( is_array( $result ) ? ( $result['media_settings'] ?? null ) : null ),
-				);
-			} catch ( \Throwable $e ) {
-				return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-			}
+			return array(
+				'success'        => true,
+				'removed'        => true,
+				'media_settings' => fluent_abilities_safe_array( is_array( $result ) ? ( $result['media_settings'] ?? null ) : null ),
+			);
 		},
 	) );
 
@@ -372,18 +356,18 @@ function fluent_abilities_player_register_playlists_abilities() {
 			if ( ! $media_id ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'media_id is required.' );
 			}
-			if ( ! class_exists( '\FluentPlayerPro\App\Http\Controllers\SubtitleController' ) ) {
-				return fluent_abilities_error( 'missing_class', 'SubtitleController not found.' );
+			$result = fluent_abilities_player_invoke_controller(
+				'\FluentPlayerPro\App\Http\Controllers\SubtitleController',
+				'getYouTubeCaptions',
+				is_array( $input ) ? $input : array(),
+				array( 'mediaId' => $media_id )
+			);
+			if ( is_wp_error( $result ) ) {
+				return $result;
 			}
-			try {
-				$controller = new \FluentPlayerPro\App\Http\Controllers\SubtitleController();
-				$result     = $controller->getYouTubeCaptions( $media_id );
-				$items      = fluent_abilities_safe_array( is_array( $result ) ? ( $result['captions'] ?? $result ) : array() );
-				$items      = is_array( $items ) ? array_values( $items ) : array();
-				return array( 'captions' => $items, 'total' => count( $items ) );
-			} catch ( \Throwable $e ) {
-				return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-			}
+			$items = fluent_abilities_safe_array( is_array( $result ) ? ( $result['captions'] ?? $result ) : array() );
+			$items = is_array( $items ) ? array_values( $items ) : array();
+			return array( 'captions' => $items, 'total' => count( $items ) );
 		},
 	) );
 
@@ -410,22 +394,21 @@ function fluent_abilities_player_register_playlists_abilities() {
 			if ( ! $media_id || '' === $language ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'media_id and language are required.' );
 			}
-			if ( ! class_exists( '\FluentPlayerPro\App\Http\Controllers\SubtitleController' ) ) {
-				return fluent_abilities_error( 'missing_class', 'SubtitleController not found.' );
+			$input['language'] = $language;
+			$result            = fluent_abilities_player_invoke_controller(
+				'\FluentPlayerPro\App\Http\Controllers\SubtitleController',
+				'importYouTubeCaptions',
+				$input,
+				array( 'mediaId' => $media_id )
+			);
+			if ( is_wp_error( $result ) ) {
+				return $result;
 			}
-			try {
-				$_REQUEST['language'] = $language;
-				$_POST['language']    = $language;
-				$controller           = new \FluentPlayerPro\App\Http\Controllers\SubtitleController();
-				$result               = $controller->importYouTubeCaptions( $media_id );
-				return array(
-					'success'        => true,
-					'subtitle'       => fluent_abilities_safe_array( is_array( $result ) ? ( $result['subtitle'] ?? null ) : null ),
-					'media_settings' => fluent_abilities_safe_array( is_array( $result ) ? ( $result['media_settings'] ?? null ) : null ),
-				);
-			} catch ( \Throwable $e ) {
-				return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-			}
+			return array(
+				'success'        => true,
+				'subtitle'       => fluent_abilities_safe_array( is_array( $result ) ? ( $result['subtitle'] ?? null ) : null ),
+				'media_settings' => fluent_abilities_safe_array( is_array( $result ) ? ( $result['media_settings'] ?? null ) : null ),
+			);
 		},
 	) );
 
@@ -451,21 +434,21 @@ function fluent_abilities_player_register_playlists_abilities() {
 			if ( ! $media_id ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'media_id is required.' );
 			}
-			if ( ! class_exists( '\FluentPlayerPro\App\Http\Controllers\SubtitleController' ) ) {
-				return fluent_abilities_error( 'missing_class', 'SubtitleController not found.' );
+			$result = fluent_abilities_player_invoke_controller(
+				'\FluentPlayerPro\App\Http\Controllers\SubtitleController',
+				'generateYouTubeStoryboard',
+				is_array( $input ) ? $input : array(),
+				array( 'mediaId' => $media_id )
+			);
+			if ( is_wp_error( $result ) ) {
+				return $result;
 			}
-			try {
-				$controller = new \FluentPlayerPro\App\Http\Controllers\SubtitleController();
-				$result     = $controller->generateYouTubeStoryboard( $media_id );
-				return array(
-					'success'                  => true,
-					'storyboard_attachment_id' => isset( $result['storyboard_attachment_id'] ) ? (int) $result['storyboard_attachment_id'] : null,
-					'status'                   => is_array( $result ) ? ( $result['status'] ?? 'queued' ) : 'queued',
-					'message'                  => is_array( $result ) ? ( $result['message'] ?? 'Storyboard generation queued.' ) : 'Storyboard generation queued.',
-				);
-			} catch ( \Throwable $e ) {
-				return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-			}
+			return array(
+				'success'                  => true,
+				'storyboard_attachment_id' => isset( $result['storyboard_attachment_id'] ) ? (int) $result['storyboard_attachment_id'] : null,
+				'status'                   => is_array( $result ) ? ( $result['status'] ?? 'queued' ) : 'queued',
+				'message'                  => is_array( $result ) ? ( $result['message'] ?? 'Storyboard generation queued.' ) : 'Storyboard generation queued.',
+			);
 		},
 	) );
 
@@ -498,27 +481,19 @@ function fluent_abilities_player_register_playlists_abilities() {
 			if ( ! $media_id ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'media_id is required.' );
 			}
-			if ( ! class_exists( '\FluentPlayerPro\App\Http\Controllers\TimedContentController' ) ) {
-				return fluent_abilities_error( 'missing_class', 'TimedContentController not found.' );
+			$result = fluent_abilities_player_invoke_controller(
+				'\FluentPlayerPro\App\Http\Controllers\TimedContentController',
+				'updateTimedContent',
+				is_array( $input ) ? $input : array(),
+				array( 'id' => $media_id )
+			);
+			if ( is_wp_error( $result ) ) {
+				return $result;
 			}
-			try {
-				if ( isset( $input['chapters'] ) ) {
-					$_REQUEST['chapters'] = $input['chapters'];
-					$_POST['chapters']    = $input['chapters'];
-				}
-				if ( isset( $input['overlays'] ) ) {
-					$_REQUEST['overlays'] = $input['overlays'];
-					$_POST['overlays']    = $input['overlays'];
-				}
-				$controller = new \FluentPlayerPro\App\Http\Controllers\TimedContentController();
-				$result     = $controller->updateTimedContent( $media_id );
-				return array(
-					'success'        => true,
-					'media_settings' => fluent_abilities_safe_array( is_array( $result ) ? ( $result['media_settings'] ?? null ) : null ),
-				);
-			} catch ( \Throwable $e ) {
-				return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-			}
+			return array(
+				'success'        => true,
+				'media_settings' => fluent_abilities_safe_array( is_array( $result ) ? ( $result['media_settings'] ?? null ) : null ),
+			);
 		},
 	) );
 }

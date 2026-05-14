@@ -22,24 +22,26 @@ function fluent_abilities_player_register_mux_abilities() {
 
 	$reg = new Fluent_Abilities_Registrar( 'player' );
 
-	$mux_call = function ( $method, $input, $args = array(), $merge_keys = array() ) {
-		if ( ! class_exists( '\FluentPlayerPro\App\Http\Controllers\MuxController' ) ) {
-			return fluent_abilities_error( 'missing_class', 'FluentPlayerPro MuxController not found.' );
-		}
-		try {
-			foreach ( $merge_keys as $k ) {
-				if ( array_key_exists( $k, $input ) ) {
-					$_REQUEST[ $k ] = is_scalar( $input[ $k ] ) ? sanitize_text_field( (string) $input[ $k ] ) : $input[ $k ];
-					$_GET[ $k ]     = $_REQUEST[ $k ];
-					$_POST[ $k ]    = $_REQUEST[ $k ];
-				}
+	$mux_call = function ( $method, $input, $extra_args = array() ) {
+		// Mux $extra_args are positional after Request — but Mux controller
+		// methods name them consistently ($id for asset/upload/stream/restriction/
+		// signing_key, $assetId/$trackId for two-arg methods). Map positionals
+		// to canonical names so the container resolves them by name.
+		$params = array();
+		if ( ! empty( $extra_args ) ) {
+			if ( count( $extra_args ) === 1 ) {
+				$params['id'] = $extra_args[0];
+			} elseif ( count( $extra_args ) === 2 ) {
+				$params['assetId'] = $extra_args[0];
+				$params['trackId'] = $extra_args[1];
 			}
-			$controller = new \FluentPlayerPro\App\Http\Controllers\MuxController();
-			$result     = empty( $args ) ? $controller->{$method}() : $controller->{$method}( ...$args );
-			return fluent_abilities_safe_array( is_array( $result ) ? $result : array() );
-		} catch ( \Throwable $e ) {
-			return fluent_abilities_error( 'execution_failed', $e->getMessage() );
 		}
+		return fluent_abilities_player_invoke_controller(
+			'\FluentPlayerPro\App\Http\Controllers\MuxController',
+			$method,
+			is_array( $input ) ? $input : array(),
+			$params
+		);
 	};
 
 	// ─── Assets ────────────────────────────────────────────────────────────
@@ -57,7 +59,7 @@ function fluent_abilities_player_register_mux_abilities() {
 		),
 		'output_schema' => fluent_abilities_schema_collection_output( 'data' ),
 		'callback'      => function ( $input ) use ( $mux_call ) {
-			$result = $mux_call( 'getAssets', $input, array(), array( 'page', 'limit' ) );
+			$result = $mux_call( 'getAssets', $input, array() );
 			if ( is_wp_error( $result ) ) {
 				return $result;
 			}
@@ -104,7 +106,7 @@ function fluent_abilities_player_register_mux_abilities() {
 			if ( empty( $input['input_url'] ) ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'input_url is required.' );
 			}
-			$r = $mux_call( 'createAsset', $input, array(), array( 'input_url', 'playback_policy' ) );
+			$r = $mux_call( 'createAsset', $input, array() );
 			return is_wp_error( $r ) ? $r : array( 'success' => true, 'data' => $r['data'] ?? $r );
 		},
 	) );
@@ -127,7 +129,7 @@ function fluent_abilities_player_register_mux_abilities() {
 			if ( '' === $id ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'asset_id is required.' );
 			}
-			$r = $mux_call( 'updateAsset', $input, array( $id ), array( 'passthrough' ) );
+			$r = $mux_call( 'updateAsset', $input, array( $id ) );
 			return is_wp_error( $r ) ? $r : array( 'success' => true, 'data' => $r['data'] ?? $r );
 		},
 	) );
@@ -171,7 +173,7 @@ function fluent_abilities_player_register_mux_abilities() {
 			if ( '' === $id || empty( $input['mp4_support'] ) ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'asset_id and mp4_support are required.' );
 			}
-			$r = $mux_call( 'updateMp4Support', $input, array( $id ), array( 'mp4_support' ) );
+			$r = $mux_call( 'updateMp4Support', $input, array( $id ) );
 			return is_wp_error( $r ) ? $r : array( 'success' => true, 'data' => $r['data'] ?? $r );
 		},
 	) );
@@ -192,7 +194,7 @@ function fluent_abilities_player_register_mux_abilities() {
 		'output_schema' => fluent_abilities_schema_success_output( array( 'data' => array( 'type' => array( 'object', 'null' ) ) ) ),
 		'annotations'   => array( 'idempotent' => false ),
 		'callback'      => function ( $input ) use ( $mux_call ) {
-			$r = $mux_call( 'createUpload', $input, array(), array( 'passthrough', 'cors_origin' ) );
+			$r = $mux_call( 'createUpload', $input, array() );
 			return is_wp_error( $r ) ? $r : array( 'success' => true, 'data' => $r['data'] ?? $r );
 		},
 	) );
@@ -242,7 +244,7 @@ function fluent_abilities_player_register_mux_abilities() {
 			if ( '' === $id ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'asset_id is required.' );
 			}
-			$r = $mux_call( 'createTrack', $input, array( $id ), array( 'url', 'type', 'text_type', 'language_code', 'name' ) );
+			$r = $mux_call( 'createTrack', $input, array( $id ) );
 			return is_wp_error( $r ) ? $r : array( 'success' => true, 'data' => $r['data'] ?? $r );
 		},
 	) );
@@ -294,7 +296,7 @@ function fluent_abilities_player_register_mux_abilities() {
 			if ( '' === $asset_id || '' === $track_id ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'asset_id and track_id are required.' );
 			}
-			$r = $mux_call( 'generateSubtitles', $input, array( $asset_id, $track_id ), array( 'language_code', 'name' ) );
+			$r = $mux_call( 'generateSubtitles', $input, array( $asset_id, $track_id ) );
 			return is_wp_error( $r ) ? $r : array( 'success' => true, 'data' => $r['data'] ?? $r );
 		},
 	) );
@@ -332,7 +334,7 @@ function fluent_abilities_player_register_mux_abilities() {
 		'output_schema' => fluent_abilities_schema_success_output( array( 'data' => array( 'type' => array( 'object', 'null' ) ) ) ),
 		'annotations'   => array( 'idempotent' => false ),
 		'callback'      => function ( $input ) use ( $mux_call ) {
-			$r = $mux_call( 'createLiveStream', $input, array(), array( 'playback_policy', 'reconnect_window', 'latency_mode', 'name' ) );
+			$r = $mux_call( 'createLiveStream', $input, array() );
 			return is_wp_error( $r ) ? $r : array( 'success' => true, 'data' => $r['data'] ?? $r );
 		},
 	) );
@@ -436,7 +438,7 @@ function fluent_abilities_player_register_mux_abilities() {
 			if ( empty( $input['allowed_domains'] ) ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'allowed_domains is required.' );
 			}
-			$r = $mux_call( 'createPlaybackRestriction', $input, array(), array( 'allowed_domains' ) );
+			$r = $mux_call( 'createPlaybackRestriction', $input, array() );
 			return is_wp_error( $r ) ? $r : array( 'success' => true, 'data' => $r['data'] ?? $r );
 		},
 	) );
@@ -480,7 +482,7 @@ function fluent_abilities_player_register_mux_abilities() {
 		),
 		'output_schema' => fluent_abilities_schema_collection_output( 'data' ),
 		'callback'      => function ( $input ) use ( $mux_call ) {
-			$r = $mux_call( 'getDeliveryUsage', $input, array(), array( 'timeframe' ) );
+			$r = $mux_call( 'getDeliveryUsage', $input, array() );
 			if ( is_wp_error( $r ) ) {
 				return $r;
 			}

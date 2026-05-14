@@ -24,23 +24,13 @@ function fluent_abilities_player_register_bunny_abilities() {
 	$reg = new Fluent_Abilities_Registrar( 'player' );
 
 	$call = function ( $controller_class, $method, $input, $id_arg = null, $merge_keys = array() ) {
-		if ( ! class_exists( $controller_class ) ) {
-			return fluent_abilities_error( 'missing_class', $controller_class . ' not found.' );
-		}
-		try {
-			foreach ( $merge_keys as $k ) {
-				if ( array_key_exists( $k, $input ) ) {
-					$_REQUEST[ $k ] = is_scalar( $input[ $k ] ) ? sanitize_text_field( (string) $input[ $k ] ) : $input[ $k ];
-					$_GET[ $k ]     = $_REQUEST[ $k ];
-					$_POST[ $k ]    = $_REQUEST[ $k ];
-				}
-			}
-			$controller = new $controller_class();
-			$result     = null === $id_arg ? $controller->{$method}() : $controller->{$method}( $id_arg );
-			return fluent_abilities_safe_array( is_array( $result ) ? $result : array() );
-		} catch ( \Throwable $e ) {
-			return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-		}
+		$extra = ( null === $id_arg ) ? array() : array( 'id' => $id_arg );
+		return fluent_abilities_player_invoke_controller(
+			$controller_class,
+			$method,
+			is_array( $input ) ? $input : array(),
+			$extra
+		);
 	};
 
 	// ─── Cluster 14: Bunny Stream ──────────────────────────────────────────

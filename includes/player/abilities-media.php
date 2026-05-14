@@ -396,37 +396,21 @@ function fluent_abilities_player_register_media_abilities() {
 		) ),
 		'annotations' => array( 'idempotent' => false ),
 		'callback'    => function ( $input ) {
-			if ( ! class_exists( '\FluentPlayer\App\Http\Controllers\MediaController' ) ) {
-				return fluent_abilities_error( 'missing_class', 'FluentPlayer MediaController not found.' );
-			}
-			if ( ! class_exists( '\FluentPlayer\Framework\Http\Request\Request' ) && ! class_exists( '\FluentPlayer\Framework\Http\Request' ) ) {
-				return fluent_abilities_error( 'missing_class', 'FluentPlayer Request class not found.' );
-			}
-
 			$settings = isset( $input['settings'] ) && is_array( $input['settings'] ) ? $input['settings'] : null;
 			if ( ! $settings ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'settings is required.' );
 			}
 
-			try {
-				$request_class = class_exists( '\FluentPlayer\Framework\Http\Request\Request' )
-					? '\FluentPlayer\Framework\Http\Request\Request'
-					: '\FluentPlayer\Framework\Http\Request';
-
-				$payload = array( 'settings' => $settings );
-				$request = new $request_class( $payload );
-
-				$controller = new \FluentPlayer\App\Http\Controllers\MediaController();
-				$response   = $controller->store( $request );
-			} catch ( \Throwable $e ) {
-				return fluent_abilities_error( 'execution_failed', $e->getMessage() );
+			$response = fluent_abilities_player_invoke_controller(
+				'\FluentPlayer\App\Http\Controllers\MediaController',
+				'store',
+				array( 'settings' => $settings )
+			);
+			if ( is_wp_error( $response ) ) {
+				return $response;
 			}
 
-			$data = fluent_abilities_safe_array( $response );
-			if ( ! is_array( $data ) ) {
-				$data = array();
-			}
-
+			$data  = is_array( $response ) ? $response : array();
 			$media = $data['media'] ?? null;
 			if ( is_array( $media ) ) {
 				$media = array(
@@ -527,34 +511,20 @@ function fluent_abilities_player_register_media_abilities() {
 			if ( ! $id ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'id is required.' );
 			}
-			if ( ! class_exists( '\FluentPlayer\App\Http\Controllers\MediaController' ) ) {
-				return fluent_abilities_error( 'missing_class', 'FluentPlayer MediaController not found.' );
-			}
-			if ( ! class_exists( '\FluentPlayer\Framework\Http\Request\Request' ) && ! class_exists( '\FluentPlayer\Framework\Http\Request' ) ) {
-				return fluent_abilities_error( 'missing_class', 'FluentPlayer Request class not found.' );
-			}
 
 			$settings = isset( $input['settings'] ) && is_array( $input['settings'] ) ? $input['settings'] : array();
 
-			try {
-				$request_class = class_exists( '\FluentPlayer\Framework\Http\Request\Request' )
-					? '\FluentPlayer\Framework\Http\Request\Request'
-					: '\FluentPlayer\Framework\Http\Request';
-
-				$payload = array( 'settings' => $settings, 'id' => $id );
-				$request = new $request_class( $payload );
-
-				$controller = new \FluentPlayer\App\Http\Controllers\MediaController();
-				$response   = $controller->update( $request, $id );
-			} catch ( \Throwable $e ) {
-				return fluent_abilities_error( 'execution_failed', $e->getMessage() );
+			$response = fluent_abilities_player_invoke_controller(
+				'\FluentPlayer\App\Http\Controllers\MediaController',
+				'update',
+				array( 'settings' => $settings, 'id' => $id ),
+				array( 'id' => $id )
+			);
+			if ( is_wp_error( $response ) ) {
+				return $response;
 			}
 
-			$data = fluent_abilities_safe_array( $response );
-			if ( ! is_array( $data ) ) {
-				$data = array();
-			}
-
+			$data  = is_array( $response ) ? $response : array();
 			$media = $data['media'] ?? null;
 			if ( is_array( $media ) ) {
 				$media = array(
@@ -593,20 +563,17 @@ function fluent_abilities_player_register_media_abilities() {
 			if ( ! $id ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'id is required.' );
 			}
-			if ( ! class_exists( '\FluentPlayer\App\Http\Controllers\MediaController' ) ) {
-				return fluent_abilities_error( 'missing_class', 'FluentPlayer MediaController not found.' );
+			$response = fluent_abilities_player_invoke_controller(
+				'\FluentPlayer\App\Http\Controllers\MediaController',
+				'delete',
+				is_array( $input ) ? $input : array(),
+				array( 'id' => $id )
+			);
+			if ( is_wp_error( $response ) ) {
+				return $response;
 			}
-
-			try {
-				$controller = new \FluentPlayer\App\Http\Controllers\MediaController();
-				$response   = $controller->delete( $id );
-			} catch ( \Throwable $e ) {
-				return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-			}
-
-			$data = fluent_abilities_safe_array( $response );
-			$message = is_array( $data ) ? ( $data['message'] ?? 'Media deleted.' ) : 'Media deleted.';
-
+			$data    = is_array( $response ) ? $response : array();
+			$message = $data['message'] ?? 'Media deleted.';
 			return array(
 				'success' => true,
 				'message' => (string) $message,
@@ -642,31 +609,15 @@ function fluent_abilities_player_register_media_abilities() {
 			if ( ! $url ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'url is required.' );
 			}
-			if ( ! class_exists( '\FluentPlayer\App\Http\Controllers\MediaController' ) ) {
-				return fluent_abilities_error( 'missing_class', 'FluentPlayer MediaController not found.' );
+			$response = fluent_abilities_player_invoke_controller(
+				'\FluentPlayer\App\Http\Controllers\MediaController',
+				'getMetadata',
+				array( 'url' => $url )
+			);
+			if ( is_wp_error( $response ) ) {
+				return $response;
 			}
-			if ( ! class_exists( '\FluentPlayer\Framework\Http\Request\Request' ) && ! class_exists( '\FluentPlayer\Framework\Http\Request' ) ) {
-				return fluent_abilities_error( 'missing_class', 'FluentPlayer Request class not found.' );
-			}
-
-			try {
-				$request_class = class_exists( '\FluentPlayer\Framework\Http\Request\Request' )
-					? '\FluentPlayer\Framework\Http\Request\Request'
-					: '\FluentPlayer\Framework\Http\Request';
-
-				$request = new $request_class( array( 'url' => $url ) );
-
-				$controller = new \FluentPlayer\App\Http\Controllers\MediaController();
-				$response   = $controller->getMetadata( $request );
-			} catch ( \Throwable $e ) {
-				return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-			}
-
-			$data = fluent_abilities_safe_array( $response );
-			if ( ! is_array( $data ) ) {
-				$data = array();
-			}
-
+			$data = is_array( $response ) ? $response : array();
 			$meta = isset( $data['metaData'] ) && is_array( $data['metaData'] ) ? $data['metaData'] : array();
 
 			return array(
@@ -717,33 +668,16 @@ function fluent_abilities_player_register_media_abilities() {
 				),
 			),
 			'callback' => function ( $input ) {
-				if ( ! class_exists( '\FluentPlayerPro\App\Http\Controllers\TagController' ) ) {
-					return fluent_abilities_error( 'missing_class', 'FluentPlayer Pro TagController not found.' );
-				}
-				if ( ! class_exists( '\FluentPlayer\Framework\Http\Request\Request' ) && ! class_exists( '\FluentPlayer\Framework\Http\Request' ) ) {
-					return fluent_abilities_error( 'missing_class', 'FluentPlayer Request class not found.' );
-				}
-
 				$with_counts = ! empty( $input['with_counts'] );
-
-				try {
-					$request_class = class_exists( '\FluentPlayer\Framework\Http\Request\Request' )
-						? '\FluentPlayer\Framework\Http\Request\Request'
-						: '\FluentPlayer\Framework\Http\Request';
-
-					$request = new $request_class( array( 'with_counts' => $with_counts ? 1 : 0 ) );
-
-					$controller = new \FluentPlayerPro\App\Http\Controllers\TagController();
-					$response   = $controller->getTags( $request );
-				} catch ( \Throwable $e ) {
-					return fluent_abilities_error( 'execution_failed', $e->getMessage() );
+				$response    = fluent_abilities_player_invoke_controller(
+					'\FluentPlayerPro\App\Http\Controllers\TagController',
+					'getTags',
+					array( 'with_counts' => $with_counts ? 1 : 0 )
+				);
+				if ( is_wp_error( $response ) ) {
+					return $response;
 				}
-
-				$data = fluent_abilities_safe_array( $response );
-				if ( ! is_array( $data ) ) {
-					$data = array();
-				}
-
+				$data = is_array( $response ) ? $response : array();
 				$tags = array();
 				if ( isset( $data['tags'] ) && is_array( $data['tags'] ) ) {
 					foreach ( $data['tags'] as $tag ) {
@@ -787,29 +721,16 @@ function fluent_abilities_player_register_media_abilities() {
 				if ( '' === $tag_name ) {
 					return fluent_abilities_error( 'ability_invalid_input', 'tag_name is required.' );
 				}
-				if ( ! class_exists( '\FluentPlayerPro\App\Http\Controllers\TagController' ) ) {
-					return fluent_abilities_error( 'missing_class', 'FluentPlayer Pro TagController not found.' );
+				$response = fluent_abilities_player_invoke_controller(
+					'\FluentPlayerPro\App\Http\Controllers\TagController',
+					'createTag',
+					array( 'tag_name' => $tag_name )
+				);
+				if ( is_wp_error( $response ) ) {
+					return $response;
 				}
-				if ( ! class_exists( '\FluentPlayer\Framework\Http\Request\Request' ) && ! class_exists( '\FluentPlayer\Framework\Http\Request' ) ) {
-					return fluent_abilities_error( 'missing_class', 'FluentPlayer Request class not found.' );
-				}
-
-				try {
-					$request_class = class_exists( '\FluentPlayer\Framework\Http\Request\Request' )
-						? '\FluentPlayer\Framework\Http\Request\Request'
-						: '\FluentPlayer\Framework\Http\Request';
-
-					$request = new $request_class( array( 'tag_name' => $tag_name ) );
-
-					$controller = new \FluentPlayerPro\App\Http\Controllers\TagController();
-					$response   = $controller->createTag( $request );
-				} catch ( \Throwable $e ) {
-					return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-				}
-
-				$data    = fluent_abilities_safe_array( $response );
-				$message = is_array( $data ) ? ( $data['message'] ?? 'Tag created.' ) : 'Tag created.';
-
+				$data    = is_array( $response ) ? $response : array();
+				$message = $data['message'] ?? 'Tag created.';
 				return array(
 					'success' => true,
 					'message' => (string) $message,
@@ -838,32 +759,16 @@ function fluent_abilities_player_register_media_abilities() {
 				if ( '' === $old_name || '' === $new_name ) {
 					return fluent_abilities_error( 'ability_invalid_input', 'old_name and new_name are required.' );
 				}
-				if ( ! class_exists( '\FluentPlayerPro\App\Http\Controllers\TagController' ) ) {
-					return fluent_abilities_error( 'missing_class', 'FluentPlayer Pro TagController not found.' );
+				$response = fluent_abilities_player_invoke_controller(
+					'\FluentPlayerPro\App\Http\Controllers\TagController',
+					'renameTag',
+					array( 'old_name' => $old_name, 'new_name' => $new_name )
+				);
+				if ( is_wp_error( $response ) ) {
+					return $response;
 				}
-				if ( ! class_exists( '\FluentPlayer\Framework\Http\Request\Request' ) && ! class_exists( '\FluentPlayer\Framework\Http\Request' ) ) {
-					return fluent_abilities_error( 'missing_class', 'FluentPlayer Request class not found.' );
-				}
-
-				try {
-					$request_class = class_exists( '\FluentPlayer\Framework\Http\Request\Request' )
-						? '\FluentPlayer\Framework\Http\Request\Request'
-						: '\FluentPlayer\Framework\Http\Request';
-
-					$request = new $request_class( array(
-						'old_name' => $old_name,
-						'new_name' => $new_name,
-					) );
-
-					$controller = new \FluentPlayerPro\App\Http\Controllers\TagController();
-					$response   = $controller->renameTag( $request );
-				} catch ( \Throwable $e ) {
-					return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-				}
-
-				$data    = fluent_abilities_safe_array( $response );
-				$message = is_array( $data ) ? ( $data['message'] ?? 'Tag renamed.' ) : 'Tag renamed.';
-
+				$data    = is_array( $response ) ? $response : array();
+				$message = $data['message'] ?? 'Tag renamed.';
 				return array(
 					'success' => true,
 					'message' => (string) $message,
@@ -890,29 +795,16 @@ function fluent_abilities_player_register_media_abilities() {
 				if ( '' === $tag_name ) {
 					return fluent_abilities_error( 'ability_invalid_input', 'tag_name is required.' );
 				}
-				if ( ! class_exists( '\FluentPlayerPro\App\Http\Controllers\TagController' ) ) {
-					return fluent_abilities_error( 'missing_class', 'FluentPlayer Pro TagController not found.' );
+				$response = fluent_abilities_player_invoke_controller(
+					'\FluentPlayerPro\App\Http\Controllers\TagController',
+					'deleteTag',
+					array( 'tag_name' => $tag_name )
+				);
+				if ( is_wp_error( $response ) ) {
+					return $response;
 				}
-				if ( ! class_exists( '\FluentPlayer\Framework\Http\Request\Request' ) && ! class_exists( '\FluentPlayer\Framework\Http\Request' ) ) {
-					return fluent_abilities_error( 'missing_class', 'FluentPlayer Request class not found.' );
-				}
-
-				try {
-					$request_class = class_exists( '\FluentPlayer\Framework\Http\Request\Request' )
-						? '\FluentPlayer\Framework\Http\Request\Request'
-						: '\FluentPlayer\Framework\Http\Request';
-
-					$request = new $request_class( array( 'tag_name' => $tag_name ) );
-
-					$controller = new \FluentPlayerPro\App\Http\Controllers\TagController();
-					$response   = $controller->deleteTag( $request );
-				} catch ( \Throwable $e ) {
-					return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-				}
-
-				$data    = fluent_abilities_safe_array( $response );
-				$message = is_array( $data ) ? ( $data['message'] ?? 'Tag deleted.' ) : 'Tag deleted.';
-
+				$data    = is_array( $response ) ? $response : array();
+				$message = $data['message'] ?? 'Tag deleted.';
 				return array(
 					'success' => true,
 					'message' => (string) $message,

@@ -21,23 +21,20 @@ function fluent_abilities_player_register_analytics_abilities() {
 
 	$reg = new Fluent_Abilities_Registrar( 'player' );
 
-	$invoke = function ( $method, $input, $id_arg = null ) {
-		if ( ! class_exists( '\FluentPlayerPro\App\Http\Controllers\AnalyticsController' ) ) {
-			return fluent_abilities_error( 'missing_class', 'FluentPlayerPro AnalyticsController not found.' );
+	$invoke = function ( $method, $input, $extra = null ) {
+		if ( null === $extra ) {
+			$params = array();
+		} elseif ( is_array( $extra ) ) {
+			$params = $extra;
+		} else {
+			$params = array( 'id' => $extra );
 		}
-		try {
-			foreach ( array( 'start', 'end', 'scope', 'granularity', 'per_page', 'page' ) as $k ) {
-				if ( isset( $input[ $k ] ) ) {
-					$_REQUEST[ $k ] = is_scalar( $input[ $k ] ) ? sanitize_text_field( (string) $input[ $k ] ) : $input[ $k ];
-					$_GET[ $k ]     = $_REQUEST[ $k ];
-				}
-			}
-			$controller = new \FluentPlayerPro\App\Http\Controllers\AnalyticsController();
-			$result     = null === $id_arg ? $controller->{$method}() : $controller->{$method}( $id_arg );
-			return fluent_abilities_safe_array( is_array( $result ) ? $result : array() );
-		} catch ( \Throwable $e ) {
-			return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-		}
+		return fluent_abilities_player_invoke_controller(
+			'\FluentPlayerPro\App\Http\Controllers\AnalyticsController',
+			$method,
+			is_array( $input ) ? $input : array(),
+			$params
+		);
 	};
 
 	$date_range_schema = array(
@@ -167,7 +164,7 @@ function fluent_abilities_player_register_analytics_abilities() {
 			if ( in_array( $scope, array( 'video', 'user' ), true ) && ! $id ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'id is required when scope = ' . $scope );
 			}
-			return $invoke( 'getPerformanceOverTime', $input, 'global' === $scope ? null : $id );
+			return $invoke( 'getPerformanceOverTime', $input, array( 'scope' => $scope, 'id' => $id ) );
 		},
 	) );
 

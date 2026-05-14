@@ -19,6 +19,20 @@ if ( ! defined( 'FLUENT_ABILITIES_VERSION' ) ) {
 	define( 'FLUENT_ABILITIES_VERSION', 'test' );
 }
 
+// WP_REST_Response class (minimal stub — only enough surface for the player
+// invoke_controller normalization path to introspect get_data() in tests).
+if ( ! class_exists( 'WP_REST_Response' ) ) {
+	class WP_REST_Response {
+		protected $data;
+		public function __construct( $data = null, $status = 200 ) {
+			$this->data = $data;
+		}
+		public function get_data() {
+			return $this->data;
+		}
+	}
+}
+
 // WP_Error class.
 if ( ! class_exists( 'WP_Error' ) ) {
 	class WP_Error {

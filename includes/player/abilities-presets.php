@@ -121,26 +121,21 @@ function fluent_abilities_player_register_presets_abilities() {
 				if ( null === $settings ) {
 					return fluent_abilities_error( 'ability_invalid_input', 'settings (object) is required.' );
 				}
-				if ( ! class_exists( '\FluentPlayerPro\App\Http\Controllers\PresetController' ) ) {
-					return fluent_abilities_error( 'missing_class', 'FluentPlayerPro PresetController not found.' );
+				$input['name']     = $name;
+				$input['settings'] = $settings;
+				$result            = fluent_abilities_player_invoke_controller(
+					'\FluentPlayerPro\App\Http\Controllers\PresetController',
+					'store',
+					$input
+				);
+				if ( is_wp_error( $result ) ) {
+					return $result;
 				}
-				try {
-					$_REQUEST['name']     = $name;
-					$_REQUEST['settings'] = $settings;
-					$_POST['name']        = $name;
-					$_POST['settings']    = $settings;
-					$controller           = new \FluentPlayerPro\App\Http\Controllers\PresetController();
-					$result               = $controller->store();
-					$message              = is_array( $result ) ? ( $result['message'] ?? 'Preset created.' ) : 'Preset created.';
-					$preset               = is_array( $result ) ? ( $result['preset'] ?? array() ) : array();
-					return array(
-						'success' => true,
-						'message' => $message,
-						'preset'  => fluent_abilities_safe_array( $preset ),
-					);
-				} catch ( \Throwable $e ) {
-					return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-				}
+				return array(
+					'success' => true,
+					'message' => is_array( $result ) ? ( $result['message'] ?? 'Preset created.' ) : 'Preset created.',
+					'preset'  => fluent_abilities_safe_array( is_array( $result ) ? ( $result['preset'] ?? array() ) : array() ),
+				);
 			},
 		) );
 
@@ -171,26 +166,22 @@ function fluent_abilities_player_register_presets_abilities() {
 				if ( null === $settings ) {
 					return fluent_abilities_error( 'ability_invalid_input', 'settings (object) is required.' );
 				}
-				if ( ! class_exists( '\FluentPlayerPro\App\Http\Controllers\PresetController' ) ) {
-					return fluent_abilities_error( 'missing_class', 'FluentPlayerPro PresetController not found.' );
+				$input['name']     = $name;
+				$input['settings'] = $settings;
+				$result            = fluent_abilities_player_invoke_controller(
+					'\FluentPlayerPro\App\Http\Controllers\PresetController',
+					'update',
+					$input,
+					array( 'slug' => $slug )
+				);
+				if ( is_wp_error( $result ) ) {
+					return $result;
 				}
-				try {
-					$_REQUEST['name']     = $name;
-					$_REQUEST['settings'] = $settings;
-					$_POST['name']        = $name;
-					$_POST['settings']    = $settings;
-					$controller           = new \FluentPlayerPro\App\Http\Controllers\PresetController();
-					$result               = $controller->update( $slug );
-					$message              = is_array( $result ) ? ( $result['message'] ?? 'Preset updated.' ) : 'Preset updated.';
-					$preset               = is_array( $result ) ? ( $result['preset'] ?? array() ) : array();
-					return array(
-						'success' => true,
-						'message' => $message,
-						'preset'  => fluent_abilities_safe_array( $preset ),
-					);
-				} catch ( \Throwable $e ) {
-					return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-				}
+				return array(
+					'success' => true,
+					'message' => is_array( $result ) ? ( $result['message'] ?? 'Preset updated.' ) : 'Preset updated.',
+					'preset'  => fluent_abilities_safe_array( is_array( $result ) ? ( $result['preset'] ?? array() ) : array() ),
+				);
 			},
 		) );
 
@@ -218,20 +209,19 @@ function fluent_abilities_player_register_presets_abilities() {
 				if ( in_array( $slug, $reserved, true ) ) {
 					return fluent_abilities_error( 'preset_reserved', 'Cannot delete reserved preset: ' . $slug );
 				}
-				if ( ! class_exists( '\FluentPlayerPro\App\Http\Controllers\PresetController' ) ) {
-					return fluent_abilities_error( 'missing_class', 'FluentPlayerPro PresetController not found.' );
+				$result = fluent_abilities_player_invoke_controller(
+					'\FluentPlayerPro\App\Http\Controllers\PresetController',
+					'delete',
+					is_array( $input ) ? $input : array(),
+					array( 'slug' => $slug )
+				);
+				if ( is_wp_error( $result ) ) {
+					return $result;
 				}
-				try {
-					$controller = new \FluentPlayerPro\App\Http\Controllers\PresetController();
-					$result     = $controller->delete( $slug );
-					$message    = is_array( $result ) ? ( $result['message'] ?? 'Preset deleted.' ) : 'Preset deleted.';
-					return array(
-						'success' => true,
-						'message' => $message,
-					);
-				} catch ( \Throwable $e ) {
-					return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-				}
+				return array(
+					'success' => true,
+					'message' => is_array( $result ) ? ( $result['message'] ?? 'Preset deleted.' ) : 'Preset deleted.',
+				);
 			},
 		) );
 

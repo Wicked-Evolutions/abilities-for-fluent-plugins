@@ -277,18 +277,17 @@ function fluent_abilities_player_register_email_abilities() {
 			'configured' => array( 'type' => 'boolean' ),
 		) ),
 		'callback'      => function ( $input ) {
-			if ( ! class_exists( '\FluentPlayer\App\Http\Controllers\IntegrationController' ) ) {
-				return fluent_abilities_error( 'missing_class', 'FluentPlayer IntegrationController not found.' );
+			$result = fluent_abilities_player_invoke_controller(
+				'\FluentPlayer\App\Http\Controllers\IntegrationController',
+				'getIntegrations',
+				is_array( $input ) ? $input : array()
+			);
+			if ( is_wp_error( $result ) ) {
+				return $result;
 			}
-			try {
-				$controller = new \FluentPlayer\App\Http\Controllers\IntegrationController();
-				$result     = $controller->getIntegrations();
-				$items      = is_array( $result ) ? ( $result['integrations'] ?? $result ) : array();
-				$items      = fluent_abilities_safe_array( $items );
-				return array( 'integrations' => is_array( $items ) ? array_values( $items ) : array(), 'total' => is_array( $items ) ? count( $items ) : 0 );
-			} catch ( \Throwable $e ) {
-				return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-			}
+			$items = is_array( $result ) ? ( $result['integrations'] ?? $result ) : array();
+			$items = is_array( $items ) ? array_values( $items ) : array();
+			return array( 'integrations' => $items, 'total' => count( $items ) );
 		},
 	) );
 
@@ -314,19 +313,17 @@ function fluent_abilities_player_register_email_abilities() {
 			if ( '' === $integration ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'integration is required.' );
 			}
-			if ( ! class_exists( '\FluentPlayer\App\Http\Controllers\IntegrationController' ) ) {
-				return fluent_abilities_error( 'missing_class', 'FluentPlayer IntegrationController not found.' );
+			$result = fluent_abilities_player_invoke_controller(
+				'\FluentPlayer\App\Http\Controllers\IntegrationController',
+				'getIntegrationFields',
+				array( 'integration' => $integration ),
+				array( 'integration' => $integration )
+			);
+			if ( is_wp_error( $result ) ) {
+				return $result;
 			}
-			try {
-				$_REQUEST['integration'] = $integration;
-				$_GET['integration']     = $integration;
-				$controller              = new \FluentPlayer\App\Http\Controllers\IntegrationController();
-				$result                  = method_exists( $controller, 'getIntegrationFields' ) ? $controller->getIntegrationFields() : array();
-				$fields                  = is_array( $result ) ? ( $result['fields'] ?? $result ) : array();
-				return array( 'fields' => fluent_abilities_safe_array( $fields ) );
-			} catch ( \Throwable $e ) {
-				return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-			}
+			$fields = is_array( $result ) ? ( $result['fields'] ?? $result ) : array();
+			return array( 'fields' => fluent_abilities_safe_array( $fields ) );
 		},
 	) );
 
@@ -353,23 +350,20 @@ function fluent_abilities_player_register_email_abilities() {
 			if ( '' === $integration || null === $settings ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'integration and settings are required.' );
 			}
-			if ( ! class_exists( '\FluentPlayer\App\Http\Controllers\IntegrationController' ) ) {
-				return fluent_abilities_error( 'missing_class', 'FluentPlayer IntegrationController not found.' );
+			$result = fluent_abilities_player_invoke_controller(
+				'\FluentPlayer\App\Http\Controllers\IntegrationController',
+				'saveIntegrationSettings',
+				array( 'integration' => $integration, 'settings' => $settings ),
+				array( 'integration' => $integration )
+			);
+			if ( is_wp_error( $result ) ) {
+				return $result;
 			}
-			try {
-				$_REQUEST['integration'] = $integration;
-				$_REQUEST['settings']    = $settings;
-				$_POST['settings']       = $settings;
-				$controller              = new \FluentPlayer\App\Http\Controllers\IntegrationController();
-				$result                  = method_exists( $controller, 'saveIntegrationSettings' ) ? $controller->saveIntegrationSettings( $integration ) : array();
-				return array(
-					'success'     => true,
-					'message'     => is_array( $result ) ? ( $result['message'] ?? 'Integration settings saved.' ) : 'Integration settings saved.',
-					'integration' => fluent_abilities_safe_array( is_array( $result ) ? ( $result['integration'] ?? $result ) : array() ),
-				);
-			} catch ( \Throwable $e ) {
-				return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-			}
+			return array(
+				'success'     => true,
+				'message'     => is_array( $result ) ? ( $result['message'] ?? 'Integration settings saved.' ) : 'Integration settings saved.',
+				'integration' => fluent_abilities_safe_array( is_array( $result ) ? ( $result['integration'] ?? $result ) : array() ),
+			);
 		},
 	) );
 
@@ -394,25 +388,24 @@ function fluent_abilities_player_register_email_abilities() {
 			if ( '' === $integration ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'integration is required.' );
 			}
-			if ( ! class_exists( '\FluentPlayer\App\Http\Controllers\IntegrationController' ) ) {
-				return fluent_abilities_error( 'missing_class', 'FluentPlayer IntegrationController not found.' );
+			$payload = array( 'integration' => $integration );
+			if ( isset( $input['settings'] ) && is_array( $input['settings'] ) ) {
+				$payload['settings'] = $input['settings'];
 			}
-			try {
-				$_REQUEST['integration'] = $integration;
-				if ( isset( $input['settings'] ) ) {
-					$_REQUEST['settings'] = $input['settings'];
-					$_POST['settings']    = $input['settings'];
-				}
-				$controller = new \FluentPlayer\App\Http\Controllers\IntegrationController();
-				$result     = method_exists( $controller, 'testConnection' ) ? $controller->testConnection( $integration ) : array();
-				return array(
-					'success' => is_array( $result ) ? (bool) ( $result['success'] ?? true ) : true,
-					'message' => is_array( $result ) ? ( $result['message'] ?? '' ) : '',
-					'details' => fluent_abilities_safe_array( is_array( $result ) ? ( $result['details'] ?? null ) : null ),
-				);
-			} catch ( \Throwable $e ) {
-				return fluent_abilities_error( 'execution_failed', $e->getMessage() );
+			$result = fluent_abilities_player_invoke_controller(
+				'\FluentPlayer\App\Http\Controllers\IntegrationController',
+				'testConnection',
+				$payload,
+				array( 'integration' => $integration )
+			);
+			if ( is_wp_error( $result ) ) {
+				return $result;
 			}
+			return array(
+				'success' => is_array( $result ) ? (bool) ( $result['success'] ?? true ) : true,
+				'message' => is_array( $result ) ? ( $result['message'] ?? '' ) : '',
+				'details' => fluent_abilities_safe_array( is_array( $result ) ? ( $result['details'] ?? null ) : null ),
+			);
 		},
 	) );
 
@@ -432,19 +425,17 @@ function fluent_abilities_player_register_email_abilities() {
 			'settings'   => array( 'type' => array( 'object', 'null' ) ),
 		) ),
 		'callback'      => function ( $input ) {
-			if ( ! class_exists( '\FluentPlayer\App\Http\Controllers\EmailProviderController' ) ) {
-				return fluent_abilities_error( 'missing_class', 'EmailProviderController not found.' );
+			$result = fluent_abilities_player_invoke_controller(
+				'\FluentPlayer\App\Http\Controllers\EmailProviderController',
+				'getProvidersSettings',
+				is_array( $input ) ? $input : array()
+			);
+			if ( is_wp_error( $result ) ) {
+				return $result;
 			}
-			try {
-				$controller = new \FluentPlayer\App\Http\Controllers\EmailProviderController();
-				$result     = method_exists( $controller, 'getProvidersSettings' ) ? $controller->getProvidersSettings() : array();
-				$providers  = is_array( $result ) ? ( $result['providers'] ?? $result ) : array();
-				$providers  = fluent_abilities_safe_array( $providers );
-				$providers  = is_array( $providers ) ? array_values( $providers ) : array();
-				return array( 'providers' => $providers, 'total' => count( $providers ) );
-			} catch ( \Throwable $e ) {
-				return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-			}
+			$providers = is_array( $result ) ? ( $result['providers'] ?? $result ) : array();
+			$providers = is_array( $providers ) ? array_values( $providers ) : array();
+			return array( 'providers' => $providers, 'total' => count( $providers ) );
 		},
 	) );
 
@@ -472,23 +463,20 @@ function fluent_abilities_player_register_email_abilities() {
 				if ( '' === $provider || null === $settings ) {
 					return fluent_abilities_error( 'ability_invalid_input', 'provider and settings are required.' );
 				}
-				if ( ! class_exists( '\FluentPlayer\App\Http\Controllers\EmailProviderController' ) ) {
-					return fluent_abilities_error( 'missing_class', 'EmailProviderController not found.' );
+				$result = fluent_abilities_player_invoke_controller(
+					'\FluentPlayer\App\Http\Controllers\EmailProviderController',
+					'saveProviderSettings',
+					array( 'provider' => $provider, 'settings' => $settings ),
+					array( 'provider' => $provider )
+				);
+				if ( is_wp_error( $result ) ) {
+					return $result;
 				}
-				try {
-					$_REQUEST['provider'] = $provider;
-					$_REQUEST['settings'] = $settings;
-					$_POST['settings']    = $settings;
-					$controller           = new \FluentPlayer\App\Http\Controllers\EmailProviderController();
-					$result               = method_exists( $controller, 'saveProviderSettings' ) ? $controller->saveProviderSettings( $provider ) : array();
-					return array(
-						'success'  => true,
-						'message'  => is_array( $result ) ? ( $result['message'] ?? 'Provider settings saved.' ) : 'Provider settings saved.',
-						'provider' => fluent_abilities_safe_array( is_array( $result ) ? ( $result['provider'] ?? $result ) : array() ),
-					);
-				} catch ( \Throwable $e ) {
-					return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-				}
+				return array(
+					'success'  => true,
+					'message'  => is_array( $result ) ? ( $result['message'] ?? 'Provider settings saved.' ) : 'Provider settings saved.',
+					'provider' => fluent_abilities_safe_array( is_array( $result ) ? ( $result['provider'] ?? $result ) : array() ),
+				);
 			},
 		) );
 	}
@@ -515,17 +503,17 @@ function fluent_abilities_player_register_email_abilities() {
 			if ( '' === $provider || '' === $resource ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'provider and resource are required.' );
 			}
-			if ( ! class_exists( '\FluentPlayer\App\Http\Controllers\EmailProviderController' ) ) {
-				return fluent_abilities_error( 'missing_class', 'EmailProviderController not found.' );
+			$result = fluent_abilities_player_invoke_controller(
+				'\FluentPlayer\App\Http\Controllers\EmailProviderController',
+				'getProviderResource',
+				array( 'provider' => $provider, 'resource' => $resource ),
+				array( 'provider' => $provider, 'resource' => $resource )
+			);
+			if ( is_wp_error( $result ) ) {
+				return $result;
 			}
-			try {
-				$controller = new \FluentPlayer\App\Http\Controllers\EmailProviderController();
-				$result     = method_exists( $controller, 'getProviderResource' ) ? $controller->getProviderResource( $provider, $resource ) : array();
-				$items      = is_array( $result ) ? ( $result['items'] ?? $result ) : array();
-				return array( 'resource' => $resource, 'items' => fluent_abilities_safe_array( $items ) );
-			} catch ( \Throwable $e ) {
-				return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-			}
+			$items = is_array( $result ) ? ( $result['items'] ?? $result ) : array();
+			return array( 'resource' => $resource, 'items' => fluent_abilities_safe_array( $items ) );
 		},
 	) );
 
@@ -553,21 +541,19 @@ function fluent_abilities_player_register_email_abilities() {
 			if ( '' === $provider || '' === $field ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'provider and field are required.' );
 			}
-			if ( ! class_exists( '\FluentPlayer\App\Http\Controllers\EmailProviderController' ) ) {
-				return fluent_abilities_error( 'missing_class', 'EmailProviderController not found.' );
+			$result = fluent_abilities_player_invoke_controller(
+				'\FluentPlayer\App\Http\Controllers\EmailProviderController',
+				'validateProviderField',
+				array( 'provider' => $provider, 'field' => $field, 'value' => $value ),
+				array( 'provider' => $provider, 'field' => $field )
+			);
+			if ( is_wp_error( $result ) ) {
+				return $result;
 			}
-			try {
-				$_REQUEST['value'] = $value;
-				$_POST['value']    = $value;
-				$controller        = new \FluentPlayer\App\Http\Controllers\EmailProviderController();
-				$result            = method_exists( $controller, 'validateProviderField' ) ? $controller->validateProviderField( $provider, $field ) : array();
-				return array(
-					'valid'   => is_array( $result ) ? (bool) ( $result['valid'] ?? false ) : false,
-					'message' => is_array( $result ) ? ( $result['message'] ?? '' ) : '',
-				);
-			} catch ( \Throwable $e ) {
-				return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-			}
+			return array(
+				'valid'   => is_array( $result ) ? (bool) ( $result['valid'] ?? false ) : false,
+				'message' => is_array( $result ) ? ( $result['message'] ?? '' ) : '',
+			);
 		},
 	) );
 
@@ -581,17 +567,16 @@ function fluent_abilities_player_register_email_abilities() {
 			'channel' => array( 'type' => 'object' ),
 		) ),
 		'callback'      => function ( $input ) {
-			if ( ! class_exists( '\FluentPlayer\App\Http\Controllers\YouTubeController' ) ) {
-				return fluent_abilities_error( 'missing_class', 'FluentPlayer YouTubeController not found.' );
+			$result = fluent_abilities_player_invoke_controller(
+				'\FluentPlayer\App\Http\Controllers\YouTubeController',
+				'getChannelInfo',
+				is_array( $input ) ? $input : array()
+			);
+			if ( is_wp_error( $result ) ) {
+				return $result;
 			}
-			try {
-				$controller = new \FluentPlayer\App\Http\Controllers\YouTubeController();
-				$result     = method_exists( $controller, 'getChannelInfo' ) ? $controller->getChannelInfo() : array();
-				$channel    = is_array( $result ) ? ( $result['channel'] ?? $result ) : array();
-				return array( 'channel' => fluent_abilities_safe_array( $channel ) );
-			} catch ( \Throwable $e ) {
-				return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-			}
+			$channel = is_array( $result ) ? ( $result['channel'] ?? $result ) : array();
+			return array( 'channel' => fluent_abilities_safe_array( $channel ) );
 		},
 	) );
 
@@ -617,19 +602,18 @@ function fluent_abilities_player_register_email_abilities() {
 			if ( '' === $type ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'type is required.' );
 			}
-			if ( ! class_exists( '\FluentPlayer\App\Http\Controllers\LayerController' ) ) {
-				return fluent_abilities_error( 'missing_class', 'FluentPlayer LayerController not found.' );
+			$result = fluent_abilities_player_invoke_controller(
+				'\FluentPlayer\App\Http\Controllers\LayerController',
+				'getForms',
+				array( 'type' => $type ),
+				array( 'type' => $type )
+			);
+			if ( is_wp_error( $result ) ) {
+				return $result;
 			}
-			try {
-				$controller = new \FluentPlayer\App\Http\Controllers\LayerController();
-				$result     = method_exists( $controller, 'getForms' ) ? $controller->getForms( $type ) : array();
-				$forms      = is_array( $result ) ? ( $result['forms'] ?? $result ) : array();
-				$forms      = fluent_abilities_safe_array( $forms );
-				$forms      = is_array( $forms ) ? array_values( $forms ) : array();
-				return array( 'forms' => $forms, 'total' => count( $forms ) );
-			} catch ( \Throwable $e ) {
-				return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-			}
+			$forms = is_array( $result ) ? ( $result['forms'] ?? $result ) : array();
+			$forms = is_array( $forms ) ? array_values( $forms ) : array();
+			return array( 'forms' => $forms, 'total' => count( $forms ) );
 		},
 	) );
 
@@ -643,19 +627,17 @@ function fluent_abilities_player_register_email_abilities() {
 			'group' => array( 'type' => array( 'string', 'null' ) ),
 		) ),
 		'callback'      => function ( $input ) {
-			if ( ! class_exists( '\FluentPlayer\App\Http\Controllers\SmartcodeController' ) ) {
-				return fluent_abilities_error( 'missing_class', 'FluentPlayer SmartcodeController not found.' );
+			$result = fluent_abilities_player_invoke_controller(
+				'\FluentPlayer\App\Http\Controllers\SmartcodeController',
+				'get',
+				is_array( $input ) ? $input : array()
+			);
+			if ( is_wp_error( $result ) ) {
+				return $result;
 			}
-			try {
-				$controller = new \FluentPlayer\App\Http\Controllers\SmartcodeController();
-				$result     = method_exists( $controller, 'get' ) ? $controller->get() : array();
-				$items      = is_array( $result ) ? ( $result['smartcodes'] ?? $result ) : array();
-				$items      = fluent_abilities_safe_array( $items );
-				$items      = is_array( $items ) ? array_values( $items ) : array();
-				return array( 'smartcodes' => $items, 'total' => count( $items ) );
-			} catch ( \Throwable $e ) {
-				return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-			}
+			$items = is_array( $result ) ? ( $result['smartcodes'] ?? $result ) : array();
+			$items = is_array( $items ) ? array_values( $items ) : array();
+			return array( 'smartcodes' => $items, 'total' => count( $items ) );
 		},
 	) );
 }

@@ -67,6 +67,71 @@ add_action(
 	5
 );
 
+// ─── Shared controller-invocation helpers ──────────────────────────────────
+// FluentPlayer (free + Pro) controller methods follow a Laravel-style HTTP
+// dispatch contract: they take `\FluentPlayer\Framework\Http\Request\Request`
+// as their first arg (constructor signature `(Application $app, $get, $post)`),
+// with downstream services auto-injected via the framework's IoC container.
+// Passing $input as an array directly to controller methods throws TypeError.
+//
+// `fluent_abilities_player_make_request()` builds the Request object.
+// `fluent_abilities_player_invoke_controller()` is the canonical entry point —
+// constructs the Request, binds it to the container so DI sees it, instantiates
+// the controller, and dispatches the method via `$app->call()` (which auto-
+// resolves Request + service-typed parameters and accepts scalars by name).
+//
+// Both return a WP_Error('missing_class', …) when FluentPlayer / Application
+// isn't loaded (unit-test env), so callbacks short-circuit gracefully.
+
+if ( ! function_exists( 'fluent_abilities_player_make_request' ) ) {
+	function fluent_abilities_player_make_request( array $input = array() ) {
+		if ( ! class_exists( '\FluentPlayer\App\App' ) || ! class_exists( '\FluentPlayer\Framework\Http\Request\Request' ) ) {
+			return null;
+		}
+		$app = \FluentPlayer\App\App::getInstance();
+		if ( ! $app ) {
+			return null;
+		}
+		return new \FluentPlayer\Framework\Http\Request\Request( $app, $input, $input );
+	}
+}
+
+if ( ! function_exists( 'fluent_abilities_player_invoke_controller' ) ) {
+	function fluent_abilities_player_invoke_controller( $controller_class, $method, array $input = array(), array $extra_params = array() ) {
+		if ( ! class_exists( $controller_class ) ) {
+			return fluent_abilities_error( 'missing_class', $controller_class . ' not found.' );
+		}
+		if ( ! class_exists( '\FluentPlayer\App\App' ) || ! class_exists( '\FluentPlayer\Framework\Http\Request\Request' ) ) {
+			return fluent_abilities_error( 'missing_class', 'FluentPlayer Request framework not available.' );
+		}
+		$app = \FluentPlayer\App\App::getInstance();
+		if ( ! $app ) {
+			return fluent_abilities_error( 'missing_class', 'FluentPlayer Application not initialized.' );
+		}
+		try {
+			$request = new \FluentPlayer\Framework\Http\Request\Request( $app, $input, $input );
+			$app->instance( 'request', $request );
+			$app->instance( \FluentPlayer\Framework\Http\Request\Request::class, $request );
+			$controller = new $controller_class();
+			$result     = $app->call( array( $controller, $method ), $extra_params );
+			// Normalize WP_REST_Response → underlying data array.
+			if ( $result instanceof \WP_REST_Response ) {
+				$data = $result->get_data();
+				return is_array( $data ) ? $data : array( 'data' => $data );
+			}
+			if ( is_array( $result ) ) {
+				return fluent_abilities_safe_array( $result );
+			}
+			if ( is_object( $result ) && method_exists( $result, 'toArray' ) ) {
+				return fluent_abilities_safe_array( $result->toArray() );
+			}
+			return $result;
+		} catch ( \Throwable $e ) {
+			return fluent_abilities_error( 'execution_failed', $e->getMessage() );
+		}
+	}
+}
+
 // ─── Sub-file loader ───────────────────────────────────────────────────────
 // Each sub-file defines a named registration function and hooks it onto
 // wp_abilities_api_init. Named functions (rather than inline closures) keep
