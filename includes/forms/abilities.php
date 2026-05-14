@@ -13,6 +13,16 @@
 
 defined( 'ABSPATH' ) || exit;
 
+// v2.0.0 — chain-load additional Forms ability sub-files. Each sub-file
+// registers its own abilities on 'wp_abilities_api_init'; the existing 6
+// registrations below remain byte-identical (Stable Ability Contracts).
+foreach ( array( 'write-abilities', 'pro-abilities' ) as $forms_sub ) {
+	$forms_sub_file = __DIR__ . "/{$forms_sub}.php";
+	if ( file_exists( $forms_sub_file ) ) {
+		require_once $forms_sub_file;
+	}
+}
+
 add_action( 'wp_abilities_api_init', function() {
 
 	$reg = new Fluent_Abilities_Registrar( 'forms' );

@@ -68,6 +68,90 @@ if ( ! function_exists( 'sanitize_text_field' ) ) {
 		return trim( strip_tags( $str ) );
 	}
 }
+if ( ! function_exists( 'sanitize_key' ) ) {
+	function sanitize_key( $key ) {
+		$key = strtolower( (string) $key );
+		return preg_replace( '/[^a-z0-9_\-]/', '', $key );
+	}
+}
+if ( ! function_exists( 'wp_kses_post' ) ) {
+	function wp_kses_post( $data ) {
+		return $data;
+	}
+}
+if ( ! function_exists( 'wp_json_encode' ) ) {
+	function wp_json_encode( $data, $options = 0, $depth = 512 ) {
+		return json_encode( $data, $options, $depth );
+	}
+}
+if ( ! function_exists( 'maybe_unserialize' ) ) {
+	function maybe_unserialize( $data ) {
+		if ( is_string( $data ) && '' !== $data ) {
+			$un = @unserialize( $data );
+			if ( false !== $un || 'b:0;' === $data ) {
+				return $un;
+			}
+		}
+		return $data;
+	}
+}
+if ( ! function_exists( 'current_time' ) ) {
+	function current_time( $type, $gmt = 0 ) {
+		return ( 'mysql' === $type ) ? gmdate( 'Y-m-d H:i:s' ) : time();
+	}
+}
+if ( ! function_exists( 'wp_get_current_user' ) ) {
+	function wp_get_current_user() {
+		$u = new stdClass();
+		$u->ID = $GLOBALS['_test_current_user_id'] ?? 1;
+		$u->display_name = 'Test User';
+		$u->user_email   = 'test@example.com';
+		$u->allcaps      = array();
+		if ( isset( $GLOBALS['_test_user_caps'] ) && is_array( $GLOBALS['_test_user_caps'] ) ) {
+			foreach ( $GLOBALS['_test_user_caps'] as $cap ) {
+				$u->allcaps[ $cap ] = true;
+			}
+		}
+		return $u;
+	}
+}
+if ( ! function_exists( 'esc_url_raw' ) ) {
+	function esc_url_raw( $url ) {
+		return $url;
+	}
+}
+if ( ! function_exists( 'get_user_by' ) ) {
+	function get_user_by( $field, $value ) {
+		return new class( (int) $value ) {
+			public $ID;
+			public $display_name = 'Test User';
+			public $user_email   = 'test@example.com';
+			public function __construct( $id ) {
+				$this->ID = $id;
+			}
+			public function add_cap( $cap ) {}
+			public function remove_cap( $cap ) {}
+		};
+	}
+}
+if ( ! function_exists( 'update_user_meta' ) ) {
+	function update_user_meta( $user_id, $key, $value ) {
+		$GLOBALS['_test_user_meta'][ $user_id ][ $key ] = $value;
+		return true;
+	}
+}
+if ( ! function_exists( 'get_user_meta' ) ) {
+	function get_user_meta( $user_id, $key = '', $single = false ) {
+		$value = $GLOBALS['_test_user_meta'][ $user_id ][ $key ] ?? '';
+		return $single ? $value : ( '' === $value ? array() : array( $value ) );
+	}
+}
+if ( ! function_exists( 'delete_user_meta' ) ) {
+	function delete_user_meta( $user_id, $key ) {
+		unset( $GLOBALS['_test_user_meta'][ $user_id ][ $key ] );
+		return true;
+	}
+}
 if ( ! function_exists( 'absint' ) ) {
 	function absint( $maybeint ) {
 		return abs( (int) $maybeint );
@@ -156,8 +240,26 @@ if ( ! function_exists( 'defined' ) ) {
 	// PHP builtin — don't override.
 }
 
+$_wp_test_action_callbacks = array();
+
 if ( ! function_exists( 'add_action' ) ) {
-	function add_action( $hook, $callback, $priority = 10, $args = 1 ) {}
+	function add_action( $hook, $callback, $priority = 10, $args = 1 ) {
+		global $_wp_test_action_callbacks;
+		if ( ! isset( $_wp_test_action_callbacks[ $hook ] ) ) {
+			$_wp_test_action_callbacks[ $hook ] = array();
+		}
+		$_wp_test_action_callbacks[ $hook ][] = $callback;
+	}
+}
+if ( ! function_exists( 'do_action' ) ) {
+	function do_action( $hook, ...$args ) {
+		global $_wp_test_action_callbacks;
+		foreach ( $_wp_test_action_callbacks[ $hook ] ?? array() as $cb ) {
+			if ( is_callable( $cb ) ) {
+				call_user_func_array( $cb, $args );
+			}
+		}
+	}
 }
 if ( ! function_exists( 'apply_filters' ) ) {
 	function apply_filters( $hook, $value, ...$args ) {
