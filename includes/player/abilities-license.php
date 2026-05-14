@@ -38,15 +38,20 @@ function fluent_abilities_player_register_license_abilities() {
 			'activated_on'  => array( 'type' => array( 'string', 'null' ) ),
 		) ),
 		'callback'      => function ( $input ) {
-			return fluent_abilities_player_invoke_controller(
+			$result = fluent_abilities_player_invoke_controller(
 				'\FluentPlayerPro\App\Http\Controllers\LicenseController',
 				'getLicenseDetails',
 				is_array( $input ) ? $input : array()
 			);
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
+			// Redact license_key, payment_id, customer_email, customer_name (per Reviewer pre-flight #1).
+			return fluent_abilities_player_redact( $result );
 		},
 	) );
 
-	// SECURITY NOTE: input contains secret license key — flag for mcp.public=false + redaction in v1.2 meta-override.
+	// SECURITY NOTE: input contains secret license key — redacted in output (per Reviewer pre-flight #1).
 	$reg->write( 'fluent-player/activate-license', array(
 		'label'         => 'Activate license',
 		'description'   => 'Activate a FluentPlayer Pro license against the vendor.',
@@ -81,10 +86,12 @@ function fluent_abilities_player_register_license_abilities() {
 			if ( is_wp_error( $result ) ) {
 				return $result;
 			}
+			// Activation response may echo the license key back; redact before returning.
+			$result = fluent_abilities_player_redact( is_array( $result ) ? $result : array() );
 			return array(
 				'success' => true,
-				'message' => is_array( $result ) ? ( $result['message'] ?? 'License activated.' ) : 'License activated.',
-				'status'  => is_array( $result ) ? ( $result['status'] ?? 'active' ) : 'active',
+				'message' => $result['message'] ?? 'License activated.',
+				'status'  => $result['status'] ?? 'active',
 			);
 		},
 	) );

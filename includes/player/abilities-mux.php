@@ -36,12 +36,16 @@ function fluent_abilities_player_register_mux_abilities() {
 				$params['trackId'] = $extra_args[1];
 			}
 		}
-		return fluent_abilities_player_invoke_controller(
+		$result = fluent_abilities_player_invoke_controller(
 			'\FluentPlayerPro\App\Http\Controllers\MuxController',
 			$method,
 			is_array( $input ) ? $input : array(),
 			$params
 		);
+		// Signing-key endpoints return private_key (only on create); list/delete
+		// surfaces don't. Redact via shared helper — idempotent on non-secret
+		// responses. Per Reviewer pre-flight #1.
+		return is_wp_error( $result ) ? $result : fluent_abilities_player_redact( $result );
 	};
 
 	// ─── Assets ────────────────────────────────────────────────────────────
@@ -57,7 +61,7 @@ function fluent_abilities_player_register_mux_abilities() {
 				'limit' => array( 'type' => 'integer', 'default' => 25 ),
 			),
 		),
-		'output_schema' => fluent_abilities_schema_collection_output( 'data' ),
+		'output_schema' => fluent_abilities_player_loose_collection_schema( 'data' ),
 		'callback'      => function ( $input ) use ( $mux_call ) {
 			$result = $mux_call( 'getAssets', $input, array() );
 			if ( is_wp_error( $result ) ) {
@@ -307,7 +311,7 @@ function fluent_abilities_player_register_mux_abilities() {
 		'label'         => 'Mux — list live streams',
 		'description'   => 'List Mux live streams on the connected account.',
 		'category'      => 'fluent-player',
-		'output_schema' => fluent_abilities_schema_collection_output( 'data' ),
+		'output_schema' => fluent_abilities_player_loose_collection_schema( 'data' ),
 		'callback'      => function ( $input ) use ( $mux_call ) {
 			$r = $mux_call( 'getLiveStreams', $input );
 			if ( is_wp_error( $r ) ) {
@@ -407,7 +411,7 @@ function fluent_abilities_player_register_mux_abilities() {
 		'label'         => 'Mux — list playback restrictions',
 		'description'   => 'List Mux playback restrictions on the connected account.',
 		'category'      => 'fluent-player',
-		'output_schema' => fluent_abilities_schema_collection_output( 'data' ),
+		'output_schema' => fluent_abilities_player_loose_collection_schema( 'data' ),
 		'callback'      => function ( $input ) use ( $mux_call ) {
 			$r = $mux_call( 'getPlaybackRestrictions', $input );
 			if ( is_wp_error( $r ) ) {
@@ -480,7 +484,7 @@ function fluent_abilities_player_register_mux_abilities() {
 				),
 			),
 		),
-		'output_schema' => fluent_abilities_schema_collection_output( 'data' ),
+		'output_schema' => fluent_abilities_player_loose_collection_schema( 'data' ),
 		'callback'      => function ( $input ) use ( $mux_call ) {
 			$r = $mux_call( 'getDeliveryUsage', $input, array() );
 			if ( is_wp_error( $r ) ) {
@@ -498,10 +502,7 @@ function fluent_abilities_player_register_mux_abilities() {
 		'label'         => 'Mux — list signing keys',
 		'description'   => 'List Mux signing keys on the connected account (IDs + created_at only; private keys never re-exposed).',
 		'category'      => 'fluent-player',
-		'output_schema' => fluent_abilities_schema_collection_output( 'data', array(
-			'id'         => array( 'type' => 'string' ),
-			'created_at' => array( 'type' => array( 'string', 'null' ) ),
-		) ),
+		'output_schema' => fluent_abilities_player_loose_collection_schema( 'data' ),
 		'callback'      => function ( $input ) use ( $mux_call ) {
 			$r = $mux_call( 'getSigningKeys', $input );
 			if ( is_wp_error( $r ) ) {
@@ -569,14 +570,7 @@ function fluent_abilities_player_register_mux_abilities() {
 			'required'   => array( 'asset_id' ),
 			'properties' => array( 'asset_id' => array( 'type' => 'string' ) ),
 		),
-		'output_schema' => fluent_abilities_schema_collection_output( 'items', array(
-			'id'            => array( 'type' => 'string' ),
-			'type'          => array( 'type' => 'string' ),
-			'text_type'     => array( 'type' => 'string' ),
-			'language_code' => array( 'type' => 'string' ),
-			'name'          => array( 'type' => array( 'string', 'null' ) ),
-			'status'        => array( 'type' => array( 'string', 'null' ) ),
-		) ),
+		'output_schema' => fluent_abilities_player_loose_collection_schema( 'items' ),
 		'callback'      => function ( $input ) use ( $mux_call ) {
 			$id = isset( $input['asset_id'] ) ? sanitize_text_field( $input['asset_id'] ) : '';
 			if ( '' === $id ) {

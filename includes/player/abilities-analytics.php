@@ -29,12 +29,16 @@ function fluent_abilities_player_register_analytics_abilities() {
 		} else {
 			$params = array( 'id' => $extra );
 		}
-		return fluent_abilities_player_invoke_controller(
+		$result = fluent_abilities_player_invoke_controller(
 			'\FluentPlayerPro\App\Http\Controllers\AnalyticsController',
 			$method,
 			is_array( $input ) ? $input : array(),
 			$params
 		);
+		// Top-users + per-user reports return display_name / email — redact via the
+		// shared helper (idempotent on non-PII responses; only matching keys swap to
+		// [REDACTED]). Per Reviewer pre-flight #1.
+		return is_wp_error( $result ) ? $result : fluent_abilities_player_redact( $result );
 	};
 
 	$date_range_schema = array(

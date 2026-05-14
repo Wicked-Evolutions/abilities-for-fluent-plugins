@@ -95,12 +95,12 @@ function fluent_abilities_player_register_email_abilities() {
 						'updated_at'  => $r->updated_at ?? null,
 					);
 				}
-				return array(
+				return fluent_abilities_player_redact( array(
 					'total'             => $total,
 					'page'              => $pg['page'],
 					'per_page'          => $pg['per_page'],
 					'email_collections' => $items,
-				);
+				) );
 			} catch ( \Throwable $e ) {
 				return fluent_abilities_error( 'execution_failed', $e->getMessage() );
 			}
@@ -139,7 +139,7 @@ function fluent_abilities_player_register_email_abilities() {
 				if ( ! $row ) {
 					return fluent_abilities_error( 'not_found', 'Email collection not found: ' . $id );
 				}
-				return array(
+				return fluent_abilities_player_redact( array(
 					'id'          => (int) $row->id,
 					'email'       => $row->email ?? '',
 					'media_id'    => isset( $row->media_id ) ? (int) $row->media_id : null,
@@ -153,7 +153,7 @@ function fluent_abilities_player_register_email_abilities() {
 					'meta'        => $row->meta ?? null,
 					'created_at'  => $row->created_at ?? null,
 					'updated_at'  => $row->updated_at ?? null,
-				);
+				) );
 			} catch ( \Throwable $e ) {
 				return fluent_abilities_error( 'execution_failed', $e->getMessage() );
 			}
@@ -201,15 +201,19 @@ function fluent_abilities_player_register_email_abilities() {
 				$headers = array( 'id', 'email', 'media_id', 'preset_slug', 'layer_id', 'user_id', 'video_time', 'ip_address', 'device', 'browser', 'created_at' );
 				$data    = array();
 				foreach ( $rows as $r ) {
-					$data[] = array(
+					// Email + IP columns redacted in row tuples (per Reviewer pre-flight #1).
+					// Operators needing raw PII export should use the database directly under admin scope.
+					$has_email = ! empty( $r->email );
+					$has_ip    = ! empty( $r->ip_address );
+					$data[]    = array(
 						(int) $r->id,
-						$r->email ?? '',
+						$has_email ? '[REDACTED]' : '',
 						isset( $r->media_id ) ? (int) $r->media_id : '',
 						$r->preset_slug ?? '',
 						isset( $r->layer_id ) ? (int) $r->layer_id : '',
 						isset( $r->user_id ) ? (int) $r->user_id : '',
 						isset( $r->video_time ) ? (float) $r->video_time : '',
-						$r->ip_address ?? '',
+						$has_ip ? '[REDACTED]' : '',
 						$r->device ?? '',
 						$r->browser ?? '',
 						$r->created_at ?? '',
@@ -367,10 +371,12 @@ function fluent_abilities_player_register_email_abilities() {
 			if ( is_wp_error( $result ) ) {
 				return $result;
 			}
+			// Response echoes saved settings (which contain the API keys we just received) — redact.
+			$result = fluent_abilities_player_redact( is_array( $result ) ? $result : array() );
 			return array(
 				'success'     => true,
-				'message'     => is_array( $result ) ? ( $result['message'] ?? 'Integration settings saved.' ) : 'Integration settings saved.',
-				'integration' => fluent_abilities_safe_array( is_array( $result ) ? ( $result['integration'] ?? $result ) : array() ),
+				'message'     => $result['message'] ?? 'Integration settings saved.',
+				'integration' => fluent_abilities_safe_array( $result['integration'] ?? $result ),
 			);
 		},
 	) );
@@ -443,7 +449,8 @@ function fluent_abilities_player_register_email_abilities() {
 			}
 			$providers = is_array( $result ) ? ( $result['providers'] ?? $result ) : array();
 			$providers = is_array( $providers ) ? array_values( $providers ) : array();
-			return array( 'providers' => $providers, 'total' => count( $providers ) );
+			// Each provider entry contains api_key / connectUrl / list_id — redact before returning.
+			return fluent_abilities_player_redact( array( 'providers' => $providers, 'total' => count( $providers ) ) );
 		},
 	) );
 
@@ -480,10 +487,12 @@ function fluent_abilities_player_register_email_abilities() {
 				if ( is_wp_error( $result ) ) {
 					return $result;
 				}
+				// Response echoes saved provider settings; redact api_key etc.
+				$result = fluent_abilities_player_redact( is_array( $result ) ? $result : array() );
 				return array(
 					'success'  => true,
-					'message'  => is_array( $result ) ? ( $result['message'] ?? 'Provider settings saved.' ) : 'Provider settings saved.',
-					'provider' => fluent_abilities_safe_array( is_array( $result ) ? ( $result['provider'] ?? $result ) : array() ),
+					'message'  => $result['message'] ?? 'Provider settings saved.',
+					'provider' => fluent_abilities_safe_array( $result['provider'] ?? $result ),
 				);
 			},
 		) );

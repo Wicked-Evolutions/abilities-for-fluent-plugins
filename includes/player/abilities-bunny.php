@@ -33,6 +33,32 @@ function fluent_abilities_player_register_bunny_abilities() {
 		);
 	};
 
+	// Pre-check helper: returns true when Bunny Storage credentials are present.
+	// Bunny Storage's vendor controllers call wp_send_json + wp_die when the
+	// integration isn't connected, which terminates PHP execution and prevents
+	// any error from reaching the caller. We pre-check via the public
+	// BunnyCDNStorageService::getSettings() — returns [] when disabled — and
+	// short-circuit with a typed WP_Error before invoking the controller.
+	// Per Reviewer pre-flight #3.
+	$bunny_storage_enabled = function () {
+		if ( ! class_exists( '\FluentPlayerPro\App\Services\BunnyCDNStorageService' ) ) {
+			return false;
+		}
+		try {
+			$settings = \FluentPlayerPro\App\Services\BunnyCDNStorageService::getSettings();
+		} catch ( \Throwable $e ) {
+			return false;
+		}
+		if ( ! is_array( $settings ) || empty( $settings ) ) {
+			return false;
+		}
+		// Common "enabled" indicators across Fluent integrations.
+		if ( isset( $settings['enabled'] ) && ! $settings['enabled'] ) {
+			return false;
+		}
+		return true;
+	};
+
 	// ─── Cluster 14: Bunny Stream ──────────────────────────────────────────
 
 	$reg->read( 'fluent-player/bunny-stream-list-libraries', array(
@@ -362,7 +388,10 @@ function fluent_abilities_player_register_bunny_abilities() {
 			),
 		),
 		'output_schema' => fluent_abilities_schema_collection_output( 'items' ),
-		'callback'      => function ( $input ) use ( $call ) {
+		'callback'      => function ( $input ) use ( $call, $bunny_storage_enabled ) {
+			if ( ! $bunny_storage_enabled() ) {
+				return fluent_abilities_error( 'integration_not_configured', 'BunnyCDN Storage integration is not enabled — configure credentials before calling Bunny Storage abilities.' );
+			}
 			$result = $call(
 				'\FluentPlayerPro\App\Http\Controllers\BunnyCDNStorageController',
 				'listVideos',
@@ -392,9 +421,12 @@ function fluent_abilities_player_register_bunny_abilities() {
 		'output_schema' => fluent_abilities_schema_item_output( array(
 			'item' => array( 'type' => array( 'object', 'null' ) ),
 		) ),
-		'callback'      => function ( $input ) use ( $call ) {
+		'callback'      => function ( $input ) use ( $call, $bunny_storage_enabled ) {
 			if ( empty( $input['path'] ) ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'path is required.' );
+			}
+			if ( ! $bunny_storage_enabled() ) {
+				return fluent_abilities_error( 'integration_not_configured', 'BunnyCDN Storage integration is not enabled.' );
 			}
 			$result = $call(
 				'\FluentPlayerPro\App\Http\Controllers\BunnyCDNStorageController',
@@ -425,9 +457,12 @@ function fluent_abilities_player_register_bunny_abilities() {
 			'message' => array( 'type' => 'string' ),
 		) ),
 		'annotations'   => array( 'idempotent' => false ),
-		'callback'      => function ( $input ) use ( $call ) {
+		'callback'      => function ( $input ) use ( $call, $bunny_storage_enabled ) {
 			if ( empty( $input['path'] ) ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'path is required.' );
+			}
+			if ( ! $bunny_storage_enabled() ) {
+				return fluent_abilities_error( 'integration_not_configured', 'BunnyCDN Storage integration is not enabled.' );
 			}
 			$result = $call(
 				'\FluentPlayerPro\App\Http\Controllers\BunnyCDNStorageController',
@@ -462,9 +497,12 @@ function fluent_abilities_player_register_bunny_abilities() {
 			'message' => array( 'type' => 'string' ),
 		) ),
 		'annotations'   => array( 'idempotent' => false ),
-		'callback'      => function ( $input ) use ( $call ) {
+		'callback'      => function ( $input ) use ( $call, $bunny_storage_enabled ) {
 			if ( empty( $input['name'] ) ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'name is required.' );
+			}
+			if ( ! $bunny_storage_enabled() ) {
+				return fluent_abilities_error( 'integration_not_configured', 'BunnyCDN Storage integration is not enabled.' );
 			}
 			$result = $call(
 				'\FluentPlayerPro\App\Http\Controllers\BunnyCDNStorageController',

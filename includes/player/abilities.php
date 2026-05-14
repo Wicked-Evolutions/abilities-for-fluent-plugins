@@ -96,6 +96,75 @@ if ( ! function_exists( 'fluent_abilities_player_make_request' ) ) {
 	}
 }
 
+// ─── Output redaction helper (Reviewer pre-flight #2) ─────────────────────
+// Replaces secret + PII field values in callback output with "[REDACTED]"
+// before the response leaves the ability boundary. Walks arrays recursively;
+// replaces any non-empty value where the key matches the secret/PII list.
+//
+// Empty strings + null + false are preserved as-is — operators on
+// unconfigured/unregistered surfaces see the natural empty state, while
+// configured surfaces never expose real secrets / PII.
+//
+// Key list is intentionally conservative: operationally-required identifiers
+// (user_id, list_id, tag_id, form_id) and non-sensitive metadata (timestamps,
+// status enums, video_time, integer counts) are NOT in scope and pass through.
+if ( ! function_exists( 'fluent_abilities_player_redact' ) ) {
+	function fluent_abilities_player_redact( $data ) {
+		static $secret_keys = array(
+			// Secrets
+			'license_key', 'api_key', 'api_token', 'private_key', 'signing_key',
+			'secret', 'token', 'password', 'bearer', 'auth_token', 'connectUrl',
+			'webhook_secret', 'mux_webhook_secret', 'mux_token_id', 'mux_token_secret',
+			'access_token', 'refresh_token', 'client_secret', 'consumer_secret',
+			// Email PII
+			'email', 'customer_email', 'user_email',
+			// Name PII
+			'display_name', 'customer_name', 'full_name',
+			// Other PII
+			'phone', 'ip_address',
+			// Financial cross-ref
+			'payment_id',
+		);
+		if ( ! is_array( $data ) ) {
+			return $data;
+		}
+		$out = array();
+		foreach ( $data as $k => $v ) {
+			if ( is_string( $k ) && in_array( $k, $secret_keys, true ) ) {
+				if ( '' === $v || null === $v || false === $v || array() === $v ) {
+					$out[ $k ] = $v;
+				} else {
+					$out[ $k ] = '[REDACTED]';
+				}
+			} elseif ( is_array( $v ) ) {
+				$out[ $k ] = fluent_abilities_player_redact( $v );
+			} else {
+				$out[ $k ] = $v;
+			}
+		}
+		return $out;
+	}
+}
+
+// ─── Permissive collection schema for third-party-API-passthrough abilities ─
+// FluentPlayer/Pro controllers wrapping Bunny/Mux/etc. return wildly variant
+// shapes depending on connection state — array of objects when connected, array
+// of error-message strings when not. The shared `fluent_abilities_schema_collection_output()`
+// helper enforces `items: {type: object}` which fails validation on the
+// not-connected scalar path. This helper relaxes items.type, accepting any
+// shape under the items_key.
+if ( ! function_exists( 'fluent_abilities_player_loose_collection_schema' ) ) {
+	function fluent_abilities_player_loose_collection_schema( $items_key = 'data' ) {
+		return array(
+			'type'       => 'object',
+			'properties' => array(
+				'total'    => array( 'type' => 'integer' ),
+				$items_key => array( 'type' => 'array' ),
+			),
+		);
+	}
+}
+
 if ( ! function_exists( 'fluent_abilities_player_invoke_controller' ) ) {
 	function fluent_abilities_player_invoke_controller( $controller_class, $method, array $input = array(), array $extra_params = array() ) {
 		if ( ! class_exists( $controller_class ) ) {

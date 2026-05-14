@@ -63,7 +63,7 @@ class PlayerCallbackTest extends TestCase {
 		if ( $result instanceof WP_Error ) {
 			$this->assertContains(
 				$result->get_error_code(),
-				array( 'missing_class', 'ability_invalid_input', 'not_found', 'execution_failed' ),
+				array( 'missing_class', 'ability_invalid_input', 'not_found', 'execution_failed', 'integration_not_configured' ),
 				"Unexpected error code from {$slug}: " . $result->get_error_code()
 			);
 			return;
