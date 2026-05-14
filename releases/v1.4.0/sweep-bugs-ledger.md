@@ -45,6 +45,14 @@ Callback invokes a vendor controller method that expects a `Request` object as p
 
 **Likely scope:** any callback that bypasses a Request-wrapping helper and directly invokes vendor controller methods.
 
+### Class G — API consistency violation (input-parameter naming)
+
+Input schema uses an inconsistent parameter name compared to its sibling abilities. Examples: `get-form` requires `id` but every other form-scoped ability uses `form_id`; `get-submission` requires `id` but every other submission-scoped ability uses `submission_id`. Not a crash — operator passes `form_id`, ability rejects, operator can recover by passing `id`. But every LLM operator following convention will trip until they figure out the exception.
+
+**Fix shape:** either rename the input param to match siblings (preferred — consistent API design), OR accept both names in the input schema (backwards-compat for any current consumers). The latter has Stable Contracts implications — adding an alternative param name is additive (safe).
+
+**Likely scope:** any ability whose input schema diverges from its plugin's dominant entity-id naming convention. May exist in other plugins too.
+
 ### Class F — Eloquent / Laravel-paginator serialization leak
 
 Callback returns a raw Eloquent model or Laravel paginator object instead of calling `->toArray()` first. `structuredContent` in the response leaks internal model traits (`incrementing`, `preventsLazyLoading`, `exists`, `wasRecentlyCreated`, `timestamps`, `usesUniqueIds`) or paginator internals (`onEachSide`) instead of the actual data. Text content is correct (because `__toString` works); structured content is corrupted.
@@ -108,8 +116,37 @@ Field-name inconsistency across abilities (id vs funnel_id vs campaign_id vs con
 ### Chat 2 — Claude · Fluent Boards + Messaging
 _(not started)_
 
-### Chat 3 — Claude · Fluent Forms + Bookings
-_(not started)_
+### Chat 3 — Claude · Fluent Forms + Bookings (BLOCKED mid-sweep, partial: 32 Forms abilities)
+
+**Status:** sweep blocked mid-Forms-readonly batch. 32 abilities executed; remaining ~56 Forms + 78 Bookings pending bridge recovery.
+
+**Blocker (operator-pattern, NOT a product bug):** abilities-mcp bridge entered sticky degraded mode. `wickedevolutions` + `abilitiesforai` OAuth refresh tokens expired (`invalid_grant`). Bridge refuses ALL tool calls (including healthy helenawillow) while any registered site is in this state. Recovery: J runs reauth commands for both sites (see orchestrator chat).
+
+**Bridge design observation (file as adapter follow-up after sweep):** "all-or-nothing" degraded mode means any one site's expired token blocks the whole bridge. Worth filing on `abilities-mcp` repo — should be per-site quarantine, not global. Not v1.4.0 release blocker; affects sweep ergonomics.
+
+**Findings before bridge degraded (32 executed):**
+
+| Bucket | Count |
+|---|---|
+| ✅ pass | 24 |
+| **product bug** (Class G — API consistency) | **2** |
+| operator-pattern (bridge-degraded "Connection closed") | 3 (re-run after reauth) |
+| client limitation (self-corrected) | 1 |
+
+**2 product bugs — Class G API consistency:**
+
+| # | Ability slug | Class | Issue |
+|---|---|---|---|
+| 20 | `fluent-forms/get-form` | **G** | Requires `id` parameter; every sibling form-scoped ability uses `form_id`. Works when called with `id` (not crash; consistency violation). |
+| 21 | `fluent-forms/get-submission` | **G** | Requires `id` parameter; every sibling submission-scoped ability uses `submission_id`. Works when called with `id`. |
+
+J disposition request: release blocker or v1.4.1 follow-up? (Inconsistency will trip every LLM operator following convention until they discover the exception.)
+
+**Audit:** ✅ Clean. Zero `[SPRINT-V2-TEST-FORMS]` / `[SPRINT-V2-TEST-BOOKING]` fixture records — sweep blocked before any create phase. Production data on helenawillow untouched.
+
+**Helena context (informational):** 7 forms / 183 submissions / 336 logs / 2 active integration feeds (fluentcrm + fluent_community). Empty surfaces (legitimate, not bugs): payments/transactions/subscriptions/managers/scheduled-actions/available-integrations/form-views.
+
+**To resume:** orchestrator chat has paste-ready reauth commands for J. After reauth + bridge restart, Chat 3 re-runs scope: 3 connection-closed reruns + remaining ~56 Forms abilities + full 78 Bookings.
 
 ### Chat 4 — GPT 5.5 · FluentCart + FluentCommunity (COMPLETE — 161/161)
 
