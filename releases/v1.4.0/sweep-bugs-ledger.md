@@ -4,6 +4,54 @@
 >
 > **Build under test:** plugin v1.4.0, integration HEAD `72668c0`, zip sha256 `fe6150...`
 > **Probe sites:** wicked-community + helenawillow
+>
+> **Sweep doubles as adapter/MCP load test:** 5 parallel cold-AI chats hitting the bridge simultaneously surface adapter-side behavior under load — separate from plugin product bugs but valuable intel for `abilities-mcp-adapter` follow-up sprint.
+
+## MCP / adapter intel (cross-cutting infrastructure findings)
+
+These are bridge / adapter / OAuth tier findings — NOT plugin product bugs. They affect operator UX and sprint ergonomics; tracked for [`abilities-mcp-adapter` follow-up](https://github.com/Wicked-Evolutions/abilities-mcp-adapter) sprint. None block v1.4.0 plugin release on their own (plugin code path is independent of adapter), but they shape what bundled-adapter operators experience.
+
+### MCP-1: ScopeRegistry missing new category — `fluent-player`
+
+**Severity:** release-affecting for bundled-adapter operators.
+
+CLI `abilities-mcp reauth --add-scope=abilities:fluent-player:read` rejects the scope as UNKNOWN. ScopeRegistry doesn't have `fluent-player` registered as a valid category. This isn't an OAuth grant issue (operator hasn't granted) — it's a registry registration issue (adapter literally can't accept the grant).
+
+**Impact:** all 103 Player abilities are unreachable via the bundled adapter, even with full operator OAuth scope intent. Direct `WP_Ability::execute()` works (PR #57 evidence); MCP Mode-C through bundled adapter is 100% blocked.
+
+**Fix shape:** adapter code update to derive ScopeRegistry from registered ability categories (Principle 9 — coverage is derived, not maintained separately). Cross-repo work.
+
+**Tracked under:** [`abilities-mcp-adapter` #116](https://github.com/Wicked-Evolutions/abilities-mcp-adapter/issues/116) — strengthens urgency.
+
+### MCP-2: Sticky degraded mode — all-or-nothing site failures
+
+**Severity:** sweep ergonomics + production operator impact.
+
+When ANY registered site's OAuth refresh token expires, the bridge enters sticky degraded mode and refuses ALL tool calls — including healthy sites confirmed reachable via `wp_bridge_health`. Hit during Chats 2 + 3 (Boards / Forms sweeps).
+
+**Impact:** an operator with multiple sites configured loses access to all sites when any one site's OAuth lapses. Not an OAuth design choice — a bridge degraded-mode design choice.
+
+**Fix shape:** per-site quarantine instead of global. Bridge should serve healthy sites and only reject calls to the specific affected site, with a clear error pointing at reauth path for that site.
+
+**File post-sweep on adapter repo.** Not v1.4.0 plugin blocker.
+
+### MCP-3: Bridge full crash beyond degraded state
+
+**Severity:** sweep continuity + operator UX.
+
+Hit during Chat 2 (Boards). Bridge moved from degraded state to full disconnect — MCP server fully unavailable, requires Claude Code session restart. Distinct from MCP-2 — recovery is more invasive.
+
+**File post-sweep on adapter repo.** Not v1.4.0 plugin blocker.
+
+### MCP-4: Rate limit `-32099` at ≥5 parallel calls
+
+**Severity:** operator UX + sweep parallelization ceiling.
+
+Hit during Chats 5 (Player retry, 52 of 103 calls) and observed indirectly in Chat 2. Recommended throttle: ≤3 parallel calls. Operators running LLM-driven bulk operations with high concurrency will hit this.
+
+**Fix shape:** either raise rate limit, OR provide clearer back-off semantics, OR document recommended concurrency caps in operator docs.
+
+**File post-sweep on adapter repo.** Not v1.4.0 plugin blocker but shapes documentation.
 
 ## Defect classes (running)
 
@@ -242,25 +290,33 @@ J disposition request: release blocker or v1.4.1 follow-up? (Inconsistency will 
 - ⚠️ Cart order shells cancelled + stripped where no `delete-order` ability exists (testclient §3 in-run cleanup pairing partial — same scope observation as earlier; not a bug)
 - ⚠️ Settings marker keys read back as `null` (not marker-bearing values) — confirms Class C silent-persistence pattern across multiple settings update abilities
 
-### Chat 5 — GPT 5.5 · FluentPlayer (COMPLETE — adapter-scope-blocked)
+### Chat 5 — GPT 5.5 · FluentPlayer (COMPLETE — post-reauth re-run; adapter-scope-blocked at registry layer)
 
-**Status:** sweep complete. 103 of 103 Player abilities executed; **all 103 classified as `adapter scope`** — release-gate evidence of authorization blockage, NOT a FluentPlayer product failure.
+**Status:** sweep re-run complete after J's bridge reauth. 103 / 103 Player abilities executed; 0 product bugs in Player code; remains adapter-blocked.
+
+**Post-reauth classifications:**
 
 | Bucket | Count |
 |---|---|
-| adapter scope | 103 (read 55 + write 32 + delete 16) |
-| product bug | 0 observed |
-| vendor precondition / permission gate / client limitation / operator-pattern | 0 observed |
+| adapter scope (still blocked) | 51 (read 20 + write 20 + delete 11) |
+| client limitation (rate limit `-32099`) | 52 |
+| product bug | 0 |
 
-**Root cause:** adapter's OAuth client lacks `abilities:fluent-player:{read,write,delete}` scopes. Discovery succeeded for all 103 abilities on helenawillow; every execution returned `Required scope: abilities:fluent-player:{read|write|delete}`.
+**Root cause — DEEPER than initially understood:** the adapter CLI's `reauth --add-scope` **rejects `abilities:fluent-player:{read,write,delete}` as UNKNOWN scopes**. Helena's OAuth config has broad `abilities:{read,write,delete}` plus other Fluent module scopes, but not fluent-player; product layer still returns `Required scope: abilities:fluent-player:*`.
 
-**Audit:** clean — no creates reached the product layer, no fixtures created, zero `[SPRINT-V2-TEST-PLAYER]` residue.
+This isn't "operator hasn't granted scopes." This is "**ScopeRegistry literally doesn't have `fluent-player` registered as a valid category scope.**" Adapter code work required, not operator action. Strengthens [`abilities-mcp-adapter` #116](https://github.com/Wicked-Evolutions/abilities-mcp-adapter/issues/116) urgency — fix is registry registration, not grant.
 
-**Tracked under:** [`abilities-mcp-adapter` #116](https://github.com/Wicked-Evolutions/abilities-mcp-adapter/issues/116) (Principle 9 ScopeRegistry coverage gap, filed pre-sweep as a known release follow-up).
+**Player product evidence stands:** PR #57 Phase B wp-eval direct-execute live verification — 63 reps across all 17 sub-clusters, Reviewer-ratified round-7-redux. Cold-AI Mode-C remains gated by adapter registry until #116 resolves.
 
-**Authoritative Player code verification:** PR #57 Phase B live verification via direct `WP_Ability::execute()` (Boards-precedent transport deviation). 41 successful executions + intentional typed errors + 12 testclient-skipped + 2 vendor-scalar successes = 63 reps across all 17 sub-clusters. Build identity sha256 `1cdc2406…`. Reviewer-ratified at round-7-redux.
+**Audit:** clean — no creates reached product layer, zero `[SPRINT-V2-TEST-PLAYER]` residue.
 
-**Release decision required:** does adapter-scope-blocked cold-AI Mode-C sweep evidence + PR #57's wp-eval direct-execute evidence together satisfy the release-gate test bar for Player, OR does release block until adapter scope coverage lands?
+**Rate-limit observation (intel):** 52 of 103 attempts hit `-32099` rate limit. Confirms adapter rate limiting kicks in at parallel-call volumes. Combined with Chats 2/3 bridge degradation, adapter behavior under load is itself a finding.
+
+**Release decision for Player remains J's call — three options:**
+
+1. **Ship Player with caveat** — CHANGELOG documents adapter scope coverage as v1.4.x follow-up (#116). Direct WP_Ability or non-adapter MCP paths work. Bundled-adapter operators see Player rejected until #116 ships.
+2. **Defer Player from v1.4.0** — ship the other 6 plugins; Player + adapter scope coordination as v1.4.1.
+3. **Block release until adapter #116 fix lands** — cross-repo scope expansion (sprint plan explicitly excluded this).
 
 ## Fix-wave plan (triggered when all 5 chats report complete)
 
