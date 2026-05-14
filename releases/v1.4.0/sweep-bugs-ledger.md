@@ -45,24 +45,65 @@ Callback invokes a vendor controller method that expects a `Request` object as p
 
 **Likely scope:** any callback that bypasses a Request-wrapping helper and directly invokes vendor controller methods.
 
+### Class F — Eloquent / Laravel-paginator serialization leak
+
+Callback returns a raw Eloquent model or Laravel paginator object instead of calling `->toArray()` first. `structuredContent` in the response leaks internal model traits (`incrementing`, `preventsLazyLoading`, `exists`, `wasRecentlyCreated`, `timestamps`, `usesUniqueIds`) or paginator internals (`onEachSide`) instead of the actual data. Text content is correct (because `__toString` works); structured content is corrupted.
+
+**Fix shape:** call `->toArray()` (or `->jsonSerialize()`) on the model/paginator before returning. Likely one helper / wrapper pattern to fix once and apply across affected callbacks.
+
+**Likely scope:** any callback that returns Eloquent models / paginators directly — heavy in CRM (campaign, funnel, sequence, label, template ops); likely present in other plugins too.
+
 ## Per-chat findings
 
-### Chat 1 — Claude · FluentCRM (in progress)
+### Chat 1 — Claude · FluentCRM (COMPLETE — 225/225 + baseline 81 exercised)
 
-**Status:** continuing sweep after first 20-ability batch surfaced 6 bugs. Re-instructed to catalogue all remaining ~205 abilities, NOT pause for fix.
+**Status:** full sweep complete via batch-execute on wicked-community. All `[SPRINT-V2-TEST-CRM]` fixtures cleaned.
 
-**Findings so far (Batch 1):**
+**Classifications:**
 
-| # | Ability slug | Class | Failure | Source |
-|---|---|---|---|---|
-| 1 | `fluent-crm/get-system-logs` | A | `output[logs] is not of type array` — vendor returns object/null when empty | Chat 1 Batch 1 |
-| 2 | `fluent-crm/get-old-logs` | A | `output[error] is not of type string` (error pathway non-string) | Chat 1 Batch 1 |
-| 3 | `fluent-crm/list-experiments-campaigns` | A | `output[campaigns] is not of type array` | Chat 1 Batch 1 |
-| 4 | `fluent-crm/list-import-drivers` | A | `output[drivers] is not of type array` | Chat 1 Batch 1 |
-| 5 | `fluent-crm/list-funnel-templates` | **B** | PHP type error: Cannot access offset of type string on string | Chat 1 Batch 1 |
-| 6 | `fluent-crm/list-fluent-forms-templates` | A | `output[templates] is not of type array` | Chat 1 Batch 1 |
+| Bucket | Count |
+|---|---|
+| ✅ pass | (passed abilities not enumerated; remaining after deductions) |
+| **product bug** | **41** |
+| vendor precondition | 14 |
+| operator-pattern (input-shape misfires, recovered) | ~30 |
+| permission gate / adapter scope / client limitation | 0 |
 
-**Audit:** clean (readonly-only Batch 1; no fixtures created).
+**Audit:** ✅ Clean. Zero `[SPRINT-V2-TEST-CRM]` residue across tags / lists / labels / webhooks / sequences / automations / editor patterns / contacts / notes / campaigns.
+
+**41 product bugs by class:**
+
+**Class A — empty-array-normalization (24 abilities):**
+`get-system-logs`, `list-experiments-campaigns`, `list-import-drivers`, `list-fluent-forms-templates`, `list-email-patterns`, `list-docs-addons`, `list-campaign-emails`, `get-funnel-all-activities`, `list-subscriber-automations`, `get-contact-purchase-history`, `get-contact-form-submissions`, `get-contact-support-tickets`, `get-contact-info-widgets`, `search-contacts-fast`, `get-report-recent-tags`, `get-report-top-campaigns`, `list-report-emails`, `get-report-advanced-providers`, `get-report-contacts-by-tags`, `get-report-contacts-by-lists`, `get-report-automations`, `list-pro-managers`, `list-form-entries`, `list-campaigns-pro-post-taxonomies`
+
+**Class F — Eloquent/paginator serialization leak (~19 abilities — single root helper):**
+Reads: `list-recurring-campaigns`, `list-campaign-unsubscribers`, `get-campaign-contacts-by-segment`, `get-campaign-processing-stat`, `list-funnel-subscribers`, `list-sequences-for-subscriber`, `get-funnel-subscriber-detail`, `list-templates-all`, `get-report-automation-steps`
+Writes: `create-label`, `update-label`, `update-campaign-title`, `update-campaign`, `update-single-campaign-property`, `schedule-campaign`, `duplicate-campaign`, `duplicate-sequence`, `clone-funnel`, `change-funnel-trigger`
+
+**Class B — output type mismatch / PHP fatals (14 abilities):**
+Type mismatch: `list-campaigns` (⚠️ POTENTIAL BASELINE REGRESSION — `scheduled_at: null` for drafts but schema non-nullable), `list-templates` (⚠️ POTENTIAL BASELINE REGRESSION — every template returns `id: 0`), `get-doc`, `get-commerce-report`, `get-old-logs`, `create-recurring-campaign`, `update-subscribers-property`, `get-campaign-stats` (returns plain string "No email sends found" instead of zero-state object)
+
+PHP fatals (5 abilities): `list-funnel-templates`, `list-dynamic-segment-custom-fields`, `list-commerce-reports-for-provider` (`Call to undefined get_woocommerce_currency_symbol`), `list-campaigns-pro-products` (`Call to undefined wc_get_products`), `sync-subscribers-segments` (`count() on null`), `create-pro-manager` (`Validator::__construct null`)
+
+**Class C — logic/input-handling (1 ability):**
+`create-dynamic-segment` — returns "Please provide segment title" even when `title` IS in input. Reads from wrong place.
+
+**⚠️ Two POTENTIAL BASELINE REGRESSIONS flagged** (`list-campaigns`, `list-templates`):
+These are in the v1.1.3 preserved-baseline 81 abilities. If they ARE regressions introduced by v1.4.0 work, that's a **Principle 10 Stable Contracts violation** that must be fixed pre-release. Phase C Step 2 Stable Contracts diff showed 0 schema mismatches across shared slugs, but BEHAVIOR could have shifted via shared helper changes. Needs targeted re-test against v1.1.3 baseline to confirm.
+
+**Vendor preconditions (14 — not bugs, just unprovisioned on wicked-community):**
+- Smart Links table absent
+- Companies table absent
+- Abandoned cart table absent
+- Event Tracker not enabled
+- AI provider not configured
+- WooCommerce not active (separately bugs as PHP fatals above)
+- No sequences / recurring campaigns exist (expected 404 path)
+
+**Operator-pattern inconsistencies (~30 — API design observations, not bugs):**
+Field-name inconsistency across abilities (id vs funnel_id vs campaign_id vs contact_id, q vs filters, doc_id, etc.). Tag/list-attach typed as comma-separated string not array. Worth a design pass before alpha but doesn't block release.
+
+**Working findings file (Chat 1 side):** `/tmp/sprint-v2-crm-findings.md` — detailed per-ability evidence.
 
 ### Chat 2 — Claude · Fluent Boards + Messaging
 _(not started)_
