@@ -2,43 +2,126 @@
 
 All notable changes to Abilities for Fluent Plugins will be documented in this file.
 
-## [2.0.0] - UNRELEASED
+## [1.4.0] - UNRELEASED
 
-> **Sprint:** [Fluent Suite Registrar Bundle Sprint 2026-05-13](../../00%20Influencentricity%20OS/Plans/Alpha%20Release%20Gate/Fluent%20Suite%20Registrar%20Bundle%20Sprint%202026-05-13.md) (vault path).
+> **Sprint:** [Fluent Suite Registrar Bundle Sprint 2026-05-13](../../00%20Influencentricity%20OS/Plans/Alpha%20Release%20Gate/Fluent%20Suite%20Registrar%20Bundle%20Sprint%202026-05-13.md) (vault path). Sprint plan / dispatch briefs were authored with a "v2.0.0" working label; ratified release version is v1.4.0 per semver (additive feature wave, zero breaking changes).
 >
-> **Surface delta:** 272 existing abilities → +728 proposed = projected ~1000 total abilities for the seven sprint-covered plugins. Existing abilities for `support`, `smtp`, `auth`, `snippets`, `affiliate`, `cross-module` ship unchanged from v1.1.3.
+> **Surface delta:** 272 existing abilities + 824 new abilities = 1,096 total abilities across the seven sprint-covered plugins and preserved v1.1.3 surfaces. Original sprint plan projected ~728 new abilities; final delivery exceeded projection because the per-plugin authoritative inventory sections were higher than several TL;DR estimates, and those count reconciliations were reviewed/ratified during Phase B. Existing abilities for `support`, `smtp`, `auth`, `snippets`, `affiliate`, `cross-module` ship unchanged from v1.1.3.
 >
-> **Stable Ability Contracts:** every ability shipping in v1.1.3 is contract-identical in v2.0.0 (slug + input_schema + output_schema + permission_callback). Known v1.1.3 defects are explicitly preserved per [`docs/V1.1.3-KNOWN-DEFECTS.md`](docs/V1.1.3-KNOWN-DEFECTS.md); fixes ship in v1.1.x hotfixes, not in v2.0.0.
->
-> **Per-plugin sub-sections below are populated by orchestrator at each Phase B feature-PR merge.**
+> **Stable Ability Contracts:** every ability shipping in v1.1.3 is contract-identical in v1.4.0 (slug + input_schema + output_schema + permission_callback). Known v1.1.3 defects are explicitly preserved per [`docs/V1.1.3-KNOWN-DEFECTS.md`](docs/V1.1.3-KNOWN-DEFECTS.md); fixes ship in a future v1.x hotfix lane, not in v1.4.0.
 
 ### FluentCRM
 
-_To be populated by orchestrator on FluentCRM PR merge._
+**+225 abilities across 32 sub-clusters** ([#68](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/pull/68)). Existing 81 v1.1.3 abilities preserved unchanged.
+
+- Subscriber extensions + bulk operations (15)
+- Campaign lifecycle / metrics / recipients / schedule / labels (28)
+- Templates + smart-codes + email patterns + editor patterns (23)
+- Funnel atomic operations + state + reports + templates (26)
+- Reports surface (18)
+- Settings sub-cluster (17 read/write, +2 abandoned-cart from §5.15)
+- AI module / abandoned-cart / custom-fields / labels / webhooks / users / import / forms / docs (17)
+- Companies Pro (17)
+- Sequences / Recurring Campaigns / Dynamic Segments / Campaigns-Pro / Smart Links (38)
+- Pro settings + commerce reports (9)
+- Global search helpers (1)
+
+`§5.32` drift-fix abilities deferred to a future v1.x hotfix lane per Principle 10 Stable Contracts (filed as KD-8 [#62](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/62) + KD-9 [#63](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/63)).
 
 ### FluentCart
 
-_To be populated by orchestrator on FluentCart PR merge._
+**+108 abilities across 19 sub-clusters** ([#53](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/pull/53)). Existing 50 v1.1.3 abilities preserved unchanged.
+
+- Products + customers + orders + transactions + shipping + tax rates (with `delete-tax-rate` added per Reviewer authorization in round-4-redux)
+- Coupons + subscriptions + licenses + activities + reports + settings
+- Cluster 4.11 (product upgrade paths, 4 abilities) deferred — research-cited `UpgradePath` model absent in deployed FluentCart Pro 1.3.26 ([#65](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/65) — vendor-version reconciliation follow-up).
 
 ### Fluent Forms
 
-_To be populated by orchestrator on Fluent Forms PR merge._
+**+88 abilities across 23 sub-clusters** ([#58](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/pull/58)). Existing 6 v1.1.3 abilities preserved unchanged.
+
+- Form CRUD + submissions + fields + analytics + reports + import/export + integrations + payments + webhooks + duplications + permissions + entries + logs + assets + conversational + scheduling + workflows + notifications
 
 ### Fluent Bookings
 
-_To be populated by orchestrator on Fluent Bookings PR merge._
+**+78 abilities across 18 sub-clusters** ([#56](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/pull/56)). Existing 37 v1.1.3 abilities preserved unchanged.
+
+- Bookings + availability + booking-meta + calendar integrations + calendar-meta + coupons + event config + event location + global settings + import + license + multi-host + orders + permissions + reports + reschedule + slots + team + webhooks + Zoom/Twilio
+- New `fluent_booking_admin` capability tier added for license / global settings / integration credentials (high-risk operations distinct from standard write tier).
 
 ### Fluent Boards
 
-_To be populated by orchestrator on Fluent Boards PR merge._
+**+161 abilities across 22 sub-clusters** ([#60](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/pull/60)). Existing 37 v1.1.3 abilities preserved unchanged.
+
+- Board + stage + task + sub-task + relations + assignees + labels + watchers + custom-fields + comments + activities + reports + filters + automations + notifications + permissions + import/export
+- `§4.19.1–.3` deferred (slug collision with v1.1.3 frozen `create-/update-/delete-stage`).
+- KD-6 ([#50](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/50)) `move-subtask-to-board` carries `destructive: true` + explicit data-loss warning. KD-7 ([#51](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/51)) sales-pipeline board surfacing handled via `list-boards-by-type` enum.
 
 ### FluentCommunity (+ Messaging)
 
-_To be populated by orchestrator on FluentCommunity PR merge._
+**+61 abilities across 15 sub-clusters** ([#55](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/pull/55)). Existing 61 v1.1.3 abilities (56 community + 5 messaging) preserved unchanged.
+
+- Community (53): spaces + members + courses + lessons + feeds + notifications + scheduled posts + media + reactions + moderation
+- Messaging (8): threads + participants + messages + thread-read state
+- KD-3 ([#47](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/47)) preserved per Stable Contracts; all new course/lesson code uses canonical `\FluentCommunity\Modules\Course\Model\{Course,CourseLesson}`.
+- Messaging delete operations use `level => 'write'` with inner-callback author/self-removal enforcement (no `fluent_messaging_delete` cap added — intentional Messaging-specific auth model ratified in Reviewer round-8).
 
 ### FluentPlayer (+ FluentPlayer Pro) — new module
 
-_To be populated by orchestrator on FluentPlayer PR merge. Greenfield module; new `fluent-player` category._
+**+103 abilities across 17 sub-clusters** ([#57](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/pull/57)). **Greenfield module — no v1.1.3 baseline.** 22 free + 81 Pro split. New `fluent-player` ability category registered.
+
+- Media + playlists + presets + email collections + analytics + Bunny CDN stream + Bunny storage + Mux + license
+- License cluster gated via `manage_options` capability override per research §5.17 (no separate `fluent_player_admin` cap added — simpler operator model per research recommendation).
+- Pro-tier abilities (81 surfaces) gated by `defined('FLUENT_PLAYER_PRO_VERSION')`; Bunny Storage cluster guarded by `BunnyCDNStorageService::getSettings()` pre-check returning typed `integration_not_configured` errors when credentials absent.
+- Runtime PII / secret redaction applied at callback layer via `fluent_abilities_player_redact()` for License / Email Collections / Analytics / Mux / Bunny credential fields. Operationally-required fields (user_id, list_id, form_id, status enums, counts) preserved.
+
+### Scaffold / shared infrastructure
+
+- New ability category: `fluent-player` ([#67](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/pull/67))
+- New capability: `fluent_booking_admin` ([#66](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/pull/66)) for FluentBooking license / global settings / integration credentials tier
+- New capability: `fluent_forms_delete` ([#54](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/pull/54)) so Fluent Forms delete abilities ship with proper Principle 5 layered permissions
+- Loader wiring for the seven plugin sub-file sets in `abilities-for-fluent-plugins.php` ([#59](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/pull/59), [#61](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/pull/61), [#66](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/pull/66), [#67](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/pull/67) + per-plugin top-of-file requires in Boards / Forms feature PRs)
+- Test-infra hygiene: Booking `permission_callback` assertion updated to tolerate `bool|WP_Error` denial return shapes per WordPress Abilities API spec ([#70](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/pull/70))
+
+### Compatibility / documentation notes
+
+- **`permission_callback` return shape now matches WordPress Abilities API spec.** Anonymous-CLI denials return `WP_Error('fluent_abilities_no_cli_user_context', ...)` instead of bare `bool false`. This aligns with the upstream `check_permissions()` documented `bool|WP_Error` return shape. Existing operator integrations that introspected `permission_callback` return values for the strict `bool` type should accept the typed WP_Error as a valid denial signal. Not a breaking change for standard ability execution paths; this only affects code that directly introspects `permission_callback` return types.
+- **Abilities for AI permission gating:** new delete-tier abilities across Fluent modules may require updates to the `wp_abilities_suite_permissions` site option before execution is allowed. Operators upgrading from v1.1.3 may need to verify the option includes delete-tier for Fluent modules they intend to use. See [#72](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/72).
+
+### Preserved v1.1.3 defects (queued for a future v1.x hotfix lane)
+
+Per Principle 10 Stable Contracts, the following v1.1.3 defects are preserved as-is in v1.4.0 and tracked for separate v1.x hotfix resolution. None block v1.4.0 release.
+
+| KD | Plugin | Symptom | Issue |
+|---|---|---|---|
+| KD-1 | FluentCart | `fluent-cart/create-product` writes wrong CPT (`fct_product` vs canonical `fluent-products`) | [#45](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/45) |
+| KD-2 | FluentCart | 8 schema/CPT drifts across existing 50 FluentCart abilities | [#46](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/46) |
+| KD-3 | FluentCommunity | Always-false `CourseLesson` namespace check (dead branches) | [#47](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/47) |
+| KD-4 | Fluent Bookings | Stale `$count = 22` in abilities.php error_log | [#48](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/48) |
+| KD-5 | Fluent Bookings | Status enum drift (`no-show` read vs `no_show` write) | [#49](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/49) |
+| KD-6 | Fluent Boards | Cross-board `move-task` is destructive (documentation gap) | [#50](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/50) |
+| KD-7 | Fluent Boards | `Board::boot` global scope excludes sales-pipeline (vendor design quirk) | [#51](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/51) |
+| KD-8 | FluentCRM | `delete-automation` capability override drift | [#62](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/62) |
+| KD-9 | FluentCRM | `get-funnel-conversion` schema/callback shape mismatch | [#63](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/63) |
+| KD-10 | FluentCart | `get-customer user_id` schema-strict null bug | [#64](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/64) |
+| KD-11 | Fluent Bookings | `create-event` TypeError on non-simple calendars (vendor filter null reset) | [#69](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/69) |
+| KD-12 | FluentMessaging | `send-message` returns phantom `message_id` (`wpFluent->insert` returns boolean-as-int 1) | [#71](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/71) |
+
+### Known follow-up work (not release blockers)
+
+Plugin-side hygiene tracked separately for follow-up sprint:
+
+- [#65](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/65) — FluentCart cluster 4.11 deferred pending vendor-version/source reconciliation with FluentCart Pro `UpgradePath` model
+- [#72](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/72) — `wp_abilities_suite_permissions` delete-tier may need operator-side updates (see Compatibility note above)
+- [#73](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/73) — `Fluent_Abilities_Plugin_Updater` dev-mode bypass for cleaner Phase B / live verification cycles
+
+Adapter-side (different repo, separate hygiene):
+
+- [`abilities-mcp-adapter` #116](https://github.com/Wicked-Evolutions/abilities-mcp-adapter/issues/116) — ScopeRegistry coverage gap for new Phase B ability categories. Operators using the bundled MCP adapter for ability execution will need adapter-side scope grants updated to access the new `fluent-player` category and the expanded surface in existing Fluent categories. Tracked in the adapter repo per Principle 9.
+
+### Breaking changes
+
+**None.** All v1.1.3 abilities preserved contract-identical. Operator integrations that rely on `permission_callback` strict bool return-type checks should accept `WP_Error` as a valid denial (compatibility note above) — semantically the same denial signal.
 
 ## [1.1.3] - 2026-05-10
 
