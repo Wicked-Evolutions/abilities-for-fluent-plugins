@@ -21,6 +21,14 @@ Callback code accesses a string offset as if array (or similar PHP type confusio
 
 **Fix shape:** targeted per-callback type-guard.
 
+### Class C — Silent persistence failure
+
+Callback returns `success: true` but the requested write does NOT persist. Confirmed by immediate read-back returning unchanged data. **More severe than Class A** — operator thinks the action succeeded; data wasn't written. Cascading bad assumptions / data loss / wasted operator action.
+
+**Fix shape:** trace the callback's write path. Likely cause: `where()` clause that doesn't match (wrong column / wrong record-resolution / type coercion), or vendor service method returning success-shape without commit. Per-callback investigation; not a generic pattern fix like Class A.
+
+**Likely scope:** any `update-*` / `set-*` mutating ability. Sweep continuation will surface comprehensive scope.
+
 ## Per-chat findings
 
 ### Chat 1 — Claude · FluentCRM (in progress)
@@ -46,7 +54,24 @@ _(not started)_
 ### Chat 3 — Claude · Fluent Forms + Bookings
 _(not started)_
 
-### Chat 4 — GPT 5.5 · FluentCart + FluentCommunity
+### Chat 4 — GPT 5.5 · FluentCart + FluentCommunity (in progress)
+
+**Status:** 37 new FluentCart abilities executed; paused at first product-bug per "STOP and report" protocol. Re-instructed to continue cataloguing through remaining ~71 Cart abilities + 53 Community abilities.
+
+**Findings so far (Cart batch, 37 abilities executed):**
+
+| # | Ability slug | Class | Failure | Source |
+|---|---|---|---|---|
+| 7 | `fluent-cart/update-product-pricing` | **C** | Returns `success: true` but `min_price` / `max_price` NOT persisted. Confirmed by immediate read-back via `get-product-pricing` + `fetch-products-by-ids` — both still report 0. | Chat 4 Cart batch |
+
+**Audit (partial — Cart side, marker `[SPRINT-V2-TEST-CART]`):**
+- ✅ Searchable products / customers / community surfaces clean of marker residue
+- ✅ In-run cleanup completed: product 140, customers 9 + 10, customer address 14, order items 40 + 42
+- ⚠️ **Cart orders 29 and 30 cancelled + stripped of marker-bearing data, but NOT deleted** — Cart's v2 surface has no `delete-order` ability in scope. Orphan-but-anonymized.
+
+**Scope observation (not a bug):** Cart v2 lacks `delete-order` ability — testclient §3 in-run cleanup pairing is partial for order-creating tests. Cancellation + data-stripping is the best available cleanup path. Acceptable per Cart Phase B research scope (no delete-order ability cited). Worth noting in operator docs.
+
+### Chat 5 — GPT 5.5 · FluentPlayer
 _(not started)_
 
 ### Chat 5 — GPT 5.5 · FluentPlayer
