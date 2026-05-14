@@ -161,62 +161,65 @@ Field-name inconsistency across abilities (id vs funnel_id vs campaign_id vs con
 
 **Working findings file (Chat 1 side):** `/tmp/sprint-v2-crm-findings.md` — detailed per-ability evidence.
 
-### Chat 2 — Claude · Fluent Boards + Messaging (BLOCKED mid-sweep, partial: ~60 abilities + production residue)
+### Chat 2 — Claude · Fluent Boards + Messaging (HALTED — confirmed release-blocker; partial residue remains on production)
 
-**Status:** sweep blocked mid-Boards run after ~60 abilities executed. Bridge crashed in same OAuth-degraded-mode pattern as Chat 3 hit. MCP server fully disconnected; teardown could not run.
+**Status:** sweep halted intentionally on confirmed release-blocker bug. 60+ Boards abilities + 2 Messaging readonly executed. Remaining ~109 not exercised — continuing creates would pile up uncleanable residue.
 
-**⚠️ CRITICAL — production residue on helenawillow:**
-
-Marker `[SPRINT-V2-TEST-BOARDS]` — 10 fixtures left behind:
-- Board id=24 (parent — cascade-delete should remove most children)
-- Stage 208 ("Stage Alpha v2")
-- Task 1159 ("Task One updated")
-- Comment 34 + reply 35
-- Subtask group 74 + subtask 1160
-- Task 1161 (clone of 1159)
-- Label 210
-- Custom field 209
-- Incoming webhook 44
-- Folder 25 (separate from board)
-
-Marker `[SPRINT-V2-TEST-MSG]` — zero residue (messaging never started).
-
-**Cleanup plan dispatched to Chat 2 (cascade-first):** delete board id=24 → verify cascade → delete folder 25 + webhook 44 separately → audit clean before resuming sweep.
-
-**Bridge crash root cause:** same as Chat 3. `wickedevolutions` OAuth refresh expired → bridge entered sticky degraded mode → all tool calls blocked (even healthy helenawillow per wp_bridge_health) → MCP server fully disconnected. Worth filing on `abilities-mcp` repo post-sweep — should be per-site quarantine, not global. Also "fully crashed and disconnected" beyond just degraded-mode is a separate fragility (not just sticky OAuth state).
-
-**Bridge ergonomics observation:** rate limit trips at ≥5 parallel calls (`-32099` error). Throttle to ≤3 in production sweep batches.
-
-**Findings before crash:**
+**🚫 CONFIRMED RELEASE BLOCKER (Class F variant — 4 abilities, 1 root cause):**
 
 | # | Ability slug | Class | Issue |
 |---|---|---|---|
-| 22 | `fluent-boards/list-board-assignees` | **F** | `array_map(): Argument #2 must be of type array, FluentForm\Framework\Support\Collection given`. Same Class F as CRM — missing `->toArray()` on Collection. |
-| 23 | `fluent-boards/start-time-track` | suspected B/C | 3 attempts → "Connection closed". Uncaught exception in handler suspected. |
-| 24 | `fluent-boards/mark-all-notifications-as-read` | suspected B/C | "Connection closed". Pattern same as #23. |
-| 25 | `fluent-boards/delete-notification` | suspected B/C | "Connection closed". Pattern same as #23. |
+| 22 | `fluent-boards/list-board-assignees` | **F** | `array_map(): Argument #2 must be of type array, FluentForm\Framework\Support\Collection given` — same exception across all 4 |
+| 22a | `fluent-boards/delete-board` | **F** | Same crash — Collection not `->toArray()`'d before `array_map` |
+| 22b | `fluent-boards/delete-task` | **F** | Same crash |
+| 22c | `fluent-boards/bulk-delete-tasks` | **F** | Same crash |
 
-**Class G findings — schema-vs-handler drift (~12 abilities affected):**
-Discovery input_schema doesn't match what handlers actually require. Examples:
+**All four trace to a shared helper** — almost certainly the board-member/assignee resolver code path. Archiving the task first, unassigning the user first, and clearing labels first all still hit the same crash. **v1.4.0 cannot ship with `delete-task` and `delete-board` broken.**
+
+**⚠️ Production residue still on helenawillow (cannot delete via abilities — the bug):**
+
+| Object | ID | Marker | State |
+|---|---|---|---|
+| Board | 24 | `[SPRINT-V2-TEST-BOARDS] v1.4.0 release-gate sweep` | LIVE on production |
+| Task | 1159 | `[SPRINT-V2-TEST-BOARDS] Task One updated` (in stage 205 of board 24) | LIVE on production |
+| Task | 1161 | `[SPRINT-V2-TEST-BOARDS] Task One updated (copy)` (in stage 205 of board 24) | LIVE on production |
+| Default stages 205/206/207 | — | — | would clear on board delete |
+
+**Cleanup options for J:**
+- (a) SSH + WP-CLI direct delete from `fbs_*` tables (raw DB delete — `wp post delete` won't touch these)
+- (b) Fix the helper bug, redeploy, re-run `delete-board id=24` via ability
+
+**Cleanup already completed (the abilities that DON'T hit the helper bug):** Subtask 1160, subtask group 74, comment 34, reply 35, label 210, custom field 209 (+ 1 value), incoming webhook 44, custom stage 208 (tasks were moved to stage 205), folder 25. Audit clean for those object types.
+
+**Marker `[SPRINT-V2-TEST-MSG]` — zero residue** (Messaging lifecycle never started because of original bridge crash + later because Class F helper bug made any creates uncleanable on production).
+
+**Suspected product bugs (3 — likely same root cause as Class F helper):**
+- `fluent-boards/start-time-track` (3 attempts → "Connection closed")
+- `fluent-boards/mark-all-notifications-as-read` ("Connection closed")
+- `fluent-boards/delete-notification` ("Connection closed")
+
+Pattern: consistent "Connection closed" / uncaught exception. May trace to same shared helper. To confirm post-fix.
+
+**Class G findings — schema-vs-handler drift (~14 abilities):**
+
+Discovery input_schema lies about required props. AI-consumers cannot use discovery as a contract.
+
 - `get-board` / `get-task` / `update-task` need `id` (not `board_id` / `task_id`)
 - `update-stage` / `create-subtask` / `list-subtasks` need extra `board_id`
 - `update-custom-field` / `save-task-custom-field-values` need `custom_field_id`
 - `update-label` needs `id`
-- `get-board-image-templates` / `get-board-menu-items` / `get-active-time-track` claim no-arg but require IDs
+- `get-board-image-templates` / `get-board-menu-items` claim no-arg but require IDs
+- `get-active-time-track` claims `board_id` but needs `task_id`
 - `has-data-changed` needs `last_check_at`
-- `update-comment-privacy` needs `privacy`
-
-**AI-consumer hostile pattern.** Sweeping the suite blind is impossible from discovery alone. Same defect class as Forms `get-form` / `get-submission` (Class G), but broader scope on Boards.
+- `update-comment-privacy` needs `privacy` string
 
 **Other observations:**
-- `create-outgoing-webhook` requires resolvable target URL (vendor precondition — `example.invalid` rejected; expected behavior)
-- `move-task-to-next-stage` errors when task is already in last stage (operator-pattern — correct vendor state semantics)
+- `create-outgoing-webhook` requires resolvable target URL (vendor precondition; `example.invalid` rejected — expected)
+- `move-task-to-next-stage` errors when task is in last stage (operator-pattern — correct semantics)
 
-**Action awaiting J:**
-1. ✅ Reauth `wickedevolutions` (orchestrator gave paste command)
-2. Restart MCP server / Claude Code session to clear cached degraded state
-3. Re-dispatch Chat 2 with cleanup-first prompt (orchestrator drafted)
-4. Decide whether 1 confirmed + 3 suspected product bugs + ~12 Class G drift = v1.4.0 hold
+**Halt rationale from Chat 2:** "delete-side blocker means continuing creates would just pile up more uncleanable residue. The 8 new Messaging mutation abilities were not exercised because (a) original bridge crash, then (b) the bug class above made creating threads/messages I couldn't tear down unacceptable on production."
+
+**Sweep verdict:** intentionally halted after confirmed release blocker. Audit: NOT clean — 3 fixtures remain on production. Disposition for v1.4.0: **HOLD until Class F shared helper fixed.**
 
 ### Chat 3 — Claude · Fluent Forms + Bookings (BLOCKED mid-sweep, partial: 32 Forms abilities)
 
@@ -279,8 +282,18 @@ J disposition request: release blocker or v1.4.1 follow-up? (Inconsistency will 
 | 15 | `fluent-community/update-privacy-settings` | **E** | PHP type error — controller expects `Request` object, ability passes array. |
 | 16 | `fluent-community/update-profile-custom-fields` | **D** | SQL drift — missing `custom_fields` column. |
 | 17 | FluentCommunity follow-graph abilities | **D / vendor boundary** | Missing `wp_2_fcom_followers` table — borderline classification (vendor migration gap vs callback assumption). |
-| 18 | `fluent-cart` customization-settings helpers | adapter scope | Customization settings helpers unavailable. |
-| 19 | `fluent-community` notification prefs + quiz attempts | adapter scope / vendor precondition | Notification prefs model + quiz attempts table unavailable. |
+| 18 | `fluent-community/get-customization-settings` | **vendor precondition** (or product bug — needs `class_exists` guard) | FluentCommunity Utility helper not available on deployed Pro 2.4.01. Retry post-reauth confirmed: NOT adapter-scope. |
+| 19 | `fluent-community/update-customization-settings` | **vendor precondition** | `Utility::updateCustomizationSettings` not available. |
+| 19a | `fluent-community/get-privacy-settings` | **vendor precondition** | `Utility::getPrivacySettings` not available. |
+| 19b | `fluent-community/get-notification-prefs` | **vendor precondition** | `NotificationPref` model not available. |
+| 19c | `fluent-community/update-notification-prefs` | **vendor precondition** | `NotificationPref` model not available. |
+
+**Reclassification note (Chat 4 retry 2026-05-14):** the 5 abilities above were initially classified as `adapter scope`. Post-reauth retry confirmed scopes are NOT the issue — these abilities crash on missing vendor symbols (`Utility` helpers / `NotificationPref` model). Two possible dispositions:
+
+- **Vendor precondition (research-stale)** if research cited symbols that exist in a newer FluentCommunity Pro version not deployed here. Same pattern as FluentCart cluster 4.11 (#65).
+- **Product bug (Class B variant — missing class_exists/method_exists guards)** if our callbacks should defensively guard against vendor symbol absence and return a typed error instead of crashing.
+
+Pre-fix-wave audit: check whether Community callbacks for these abilities have `class_exists`/`method_exists` guards. If yes → vendor precondition (acceptable, file research-stale follow-up). If no → product bug (add guards before release).
 
 **Audit:**
 - ✅ Searchable Cart + Community surfaces marker-clean
