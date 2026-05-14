@@ -71,11 +71,25 @@ _(not started)_
 
 **Scope observation (not a bug):** Cart v2 lacks `delete-order` ability — testclient §3 in-run cleanup pairing is partial for order-creating tests. Cancellation + data-stripping is the best available cleanup path. Acceptable per Cart Phase B research scope (no delete-order ability cited). Worth noting in operator docs.
 
-### Chat 5 — GPT 5.5 · FluentPlayer
-_(not started)_
+### Chat 5 — GPT 5.5 · FluentPlayer (COMPLETE — adapter-scope-blocked)
 
-### Chat 5 — GPT 5.5 · FluentPlayer
-_(not started)_
+**Status:** sweep complete. 103 of 103 Player abilities executed; **all 103 classified as `adapter scope`** — release-gate evidence of authorization blockage, NOT a FluentPlayer product failure.
+
+| Bucket | Count |
+|---|---|
+| adapter scope | 103 (read 55 + write 32 + delete 16) |
+| product bug | 0 observed |
+| vendor precondition / permission gate / client limitation / operator-pattern | 0 observed |
+
+**Root cause:** adapter's OAuth client lacks `abilities:fluent-player:{read,write,delete}` scopes. Discovery succeeded for all 103 abilities on helenawillow; every execution returned `Required scope: abilities:fluent-player:{read|write|delete}`.
+
+**Audit:** clean — no creates reached the product layer, no fixtures created, zero `[SPRINT-V2-TEST-PLAYER]` residue.
+
+**Tracked under:** [`abilities-mcp-adapter` #116](https://github.com/Wicked-Evolutions/abilities-mcp-adapter/issues/116) (Principle 9 ScopeRegistry coverage gap, filed pre-sweep as a known release follow-up).
+
+**Authoritative Player code verification:** PR #57 Phase B live verification via direct `WP_Ability::execute()` (Boards-precedent transport deviation). 41 successful executions + intentional typed errors + 12 testclient-skipped + 2 vendor-scalar successes = 63 reps across all 17 sub-clusters. Build identity sha256 `1cdc2406…`. Reviewer-ratified at round-7-redux.
+
+**Release decision required:** does adapter-scope-blocked cold-AI Mode-C sweep evidence + PR #57's wp-eval direct-execute evidence together satisfy the release-gate test bar for Player, OR does release block until adapter scope coverage lands?
 
 ## Fix-wave plan (triggered when all 5 chats report complete)
 
