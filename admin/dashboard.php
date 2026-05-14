@@ -33,7 +33,7 @@ class Fluent_Abilities_Dashboard {
 		'cart'      => 'fluent-cart',
 		'affiliate' => 'fluent-affiliate',
 		'player'    => 'fluent-player',
-		'cross'     => 'fluent',
+		'fluent'    => 'fluent',
 	);
 
 	/**
