@@ -3,7 +3,7 @@
  * Plugin Name: Abilities for Fluent Plugins
  * Plugin URI:  https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins
  * Description: WordPress Abilities API integration for the Fluent plugin ecosystem — CRM, Community, Forms, Support, Boards, Booking, SMTP, Auth, Snippets, Messaging, Cart, and Affiliate. Conditional module loading: only registers abilities for active Fluent products. This is an independent plugin and is not affiliated with or endorsed by WPManageNinja.
- * Version: 1.1.3
+ * Version: 1.4.0
  * Author: Wicked Evolutions
  * Author URI: https://wickedevolutions.com
  * License: GPL-2.0-or-later
@@ -17,7 +17,7 @@ defined( 'ABSPATH' ) || exit;
 
 // Plugin constants (guarded — WordPress updater can re-include this file).
 if ( ! defined( 'FLUENT_ABILITIES_VERSION' ) ) {
-	define( 'FLUENT_ABILITIES_VERSION', '1.1.3' );
+	define( 'FLUENT_ABILITIES_VERSION', '1.4.0' );
 }
 if ( ! defined( 'FLUENT_ABILITIES_PATH' ) ) {
 	define( 'FLUENT_ABILITIES_PATH', plugin_dir_path( __FILE__ ) );
