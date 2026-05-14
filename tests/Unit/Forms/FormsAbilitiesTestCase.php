@@ -77,7 +77,14 @@ abstract class FormsAbilitiesTestCase extends TestCase {
 		if ( ! is_callable( $cb ) ) {
 			return null;
 		}
-		return (bool) $cb();
+		$result = $cb();
+		// src/Core/Registrar::denial_for_anonymous_cli() returns a WP_Error when WP_CLI is
+		// defined (e.g. by a sibling SecurityCliFallbackTest / CRM reports / Boards phase2
+		// test earlier in the run). Treat that envelope as a denial.
+		if ( is_wp_error( $result ) ) {
+			return false;
+		}
+		return (bool) $result;
 	}
 
 	/**
