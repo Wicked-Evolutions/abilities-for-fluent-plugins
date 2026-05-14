@@ -27,7 +27,23 @@ Callback returns `success: true` but the requested write does NOT persist. Confi
 
 **Fix shape:** trace the callback's write path. Likely cause: `where()` clause that doesn't match (wrong column / wrong record-resolution / type coercion), or vendor service method returning success-shape without commit. Per-callback investigation; not a generic pattern fix like Class A.
 
-**Likely scope:** any `update-*` / `set-*` mutating ability. Sweep continuation will surface comprehensive scope.
+**Likely scope:** any `update-*` / `create-*` / `set-*` mutating ability. Sweep continuation will surface comprehensive scope.
+
+### Class D — SQL drift (callback queries missing/wrong columns)
+
+Callback's SQL query uses column names that don't exist in the vendor table (or in the deployed schema variant). Result is either a SQL error or a query that silently returns empty/wrong data.
+
+**Fix shape:** per-callback verification of column names against vendor source for the deployed plugin version. Same bug class as KD-1/KD-2 (v1.1.3 CPT/schema drifts) but in new v2 code paths.
+
+**Likely scope:** any callback that constructs raw SQL or builds Eloquent queries with explicit column references against vendor models.
+
+### Class E — Request signature mismatch
+
+Callback invokes a vendor controller method that expects a `Request` object as parameter, but the callback passes a plain array. Result is a PHP type error at the vendor boundary.
+
+**Fix shape:** wrap inputs in the proper `\FluentX\...\Request` instance before invoking the controller method. Similar pattern to the Player Request-constructor bug class that PR #57's `fluent_abilities_player_invoke_controller()` helper resolved — may benefit from an equivalent helper for the affected plugin.
+
+**Likely scope:** any callback that bypasses a Request-wrapping helper and directly invokes vendor controller methods.
 
 ## Per-chat findings
 
@@ -54,22 +70,45 @@ _(not started)_
 ### Chat 3 — Claude · Fluent Forms + Bookings
 _(not started)_
 
-### Chat 4 — GPT 5.5 · FluentCart + FluentCommunity (in progress)
+### Chat 4 — GPT 5.5 · FluentCart + FluentCommunity (COMPLETE — 161/161)
 
-**Status:** 37 new FluentCart abilities executed; paused at first product-bug per "STOP and report" protocol. Re-instructed to continue cataloguing through remaining ~71 Cart abilities + 53 Community abilities.
+**Status:** sweep complete. 161 / 161 abilities executed (108 Cart + 53 Community).
 
-**Findings so far (Cart batch, 37 abilities executed):**
+**Classifications:**
 
-| # | Ability slug | Class | Failure | Source |
-|---|---|---|---|---|
-| 7 | `fluent-cart/update-product-pricing` | **C** | Returns `success: true` but `min_price` / `max_price` NOT persisted. Confirmed by immediate read-back via `get-product-pricing` + `fetch-products-by-ids` — both still report 0. | Chat 4 Cart batch |
+| Bucket | Count |
+|---|---|
+| ✅ pass | 120 |
+| vendor precondition / operator-pattern (mixed) | 24 |
+| adapter scope / client surface | 4 |
+| **product bug** | **13** |
+| permission gate | 0 |
 
-**Audit (partial — Cart side, marker `[SPRINT-V2-TEST-CART]`):**
-- ✅ Searchable products / customers / community surfaces clean of marker residue
-- ✅ In-run cleanup completed: product 140, customers 9 + 10, customer address 14, order items 40 + 42
-- ⚠️ **Cart orders 29 and 30 cancelled + stripped of marker-bearing data, but NOT deleted** — Cart's v2 surface has no `delete-order` ability in scope. Orphan-but-anonymized.
+**Product bugs (13 total):**
 
-**Scope observation (not a bug):** Cart v2 lacks `delete-order` ability — testclient §3 in-run cleanup pairing is partial for order-creating tests. Cancellation + data-stripping is the best available cleanup path. Acceptable per Cart Phase B research scope (no delete-order ability cited). Worth noting in operator docs.
+| # | Ability slug | Class | Failure |
+|---|---|---|---|
+| 7 | `fluent-cart/update-product-pricing` | **C** | Returns `success: true` but `min_price` / `max_price` NOT persisted. Read-back confirms unchanged. |
+| 8 | `fluent-cart/update-variant-inventory` | **D** | SQL drift — missing `stock_quantity` column reference. |
+| 9 | `fluent-cart/search-variants-by-name` | **D** | SQL drift — query missing `title` column reference. |
+| 10 | `fluent-cart/create-shipping-zone` | **C/D** | Returns success but read-back shows blank title/regions; `update-shipping-zone` then fails on missing title. |
+| 11 | `fluent-cart/create-shipping-method` | **C** | Returns success but `list-shipping-methods` shows none. |
+| 12 | `fluent-cart/create-shipping-class` | **C** | Returns success but read-back has blank title/slug; no delete surface. |
+| 13 | `fluent-community/create-course` | **C** | Returns success but creates a `type=community` space instead of course — course APIs cannot find it. |
+| 14 | `fluent-community/bulk-add-space-members` | **C** | Marked `idempotent: true` but creates duplicate membership row on second call. |
+| 15 | `fluent-community/update-privacy-settings` | **E** | PHP type error — controller expects `Request` object, ability passes array. |
+| 16 | `fluent-community/update-profile-custom-fields` | **D** | SQL drift — missing `custom_fields` column. |
+| 17 | FluentCommunity follow-graph abilities | **D / vendor boundary** | Missing `wp_2_fcom_followers` table — borderline classification (vendor migration gap vs callback assumption). |
+| 18 | `fluent-cart` customization-settings helpers | adapter scope | Customization settings helpers unavailable. |
+| 19 | `fluent-community` notification prefs + quiz attempts | adapter scope / vendor precondition | Notification prefs model + quiz attempts table unavailable. |
+
+**Audit:**
+- ✅ Searchable Cart + Community surfaces marker-clean
+- ✅ No `[SPRINT-V2-TEST-CART]` / `[SPRINT-V2-TEST-COMM]` fixture records remain
+- ✅ Cart products / customers / coupons / attributes / tax / shipping zones / media downloads cleaned
+- ✅ Community spaces / feeds / comments / media / topics / groups cleaned
+- ⚠️ Cart order shells cancelled + stripped where no `delete-order` ability exists (testclient §3 in-run cleanup pairing partial — same scope observation as earlier; not a bug)
+- ⚠️ Settings marker keys read back as `null` (not marker-bearing values) — confirms Class C silent-persistence pattern across multiple settings update abilities
 
 ### Chat 5 — GPT 5.5 · FluentPlayer (COMPLETE — adapter-scope-blocked)
 
