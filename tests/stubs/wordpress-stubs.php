@@ -19,6 +19,20 @@ if ( ! defined( 'FLUENT_ABILITIES_VERSION' ) ) {
 	define( 'FLUENT_ABILITIES_VERSION', 'test' );
 }
 
+// WP_REST_Response class (minimal stub — only enough surface for the player
+// invoke_controller normalization path to introspect get_data() in tests).
+if ( ! class_exists( 'WP_REST_Response' ) ) {
+	class WP_REST_Response {
+		protected $data;
+		public function __construct( $data = null, $status = 200 ) {
+			$this->data = $data;
+		}
+		public function get_data() {
+			return $this->data;
+		}
+	}
+}
+
 // WP_Error class.
 if ( ! class_exists( 'WP_Error' ) ) {
 	class WP_Error {
@@ -155,6 +169,37 @@ if ( ! function_exists( 'delete_user_meta' ) ) {
 if ( ! function_exists( 'absint' ) ) {
 	function absint( $maybeint ) {
 		return abs( (int) $maybeint );
+	}
+}
+if ( ! function_exists( 'sanitize_key' ) ) {
+	function sanitize_key( $key ) {
+		$key = strtolower( (string) $key );
+		return preg_replace( '/[^a-z0-9_\-]/', '', $key );
+	}
+}
+if ( ! function_exists( 'sanitize_file_name' ) ) {
+	function sanitize_file_name( $filename ) {
+		return preg_replace( '/[^A-Za-z0-9._\-]/', '', (string) $filename );
+	}
+}
+if ( ! function_exists( 'esc_url_raw' ) ) {
+	function esc_url_raw( $url ) {
+		return filter_var( $url, FILTER_SANITIZE_URL );
+	}
+}
+if ( ! function_exists( 'current_time' ) ) {
+	function current_time( $type = 'mysql' ) {
+		return 'mysql' === $type ? gmdate( 'Y-m-d H:i:s' ) : time();
+	}
+}
+if ( ! function_exists( 'size_format' ) ) {
+	function size_format( $bytes, $decimals = 0 ) {
+		return number_format( (float) $bytes, $decimals ) . ' B';
+	}
+}
+if ( ! function_exists( 'wp_json_encode' ) ) {
+	function wp_json_encode( $data, $options = 0, $depth = 512 ) {
+		return json_encode( $data, $options, $depth );
 	}
 }
 
