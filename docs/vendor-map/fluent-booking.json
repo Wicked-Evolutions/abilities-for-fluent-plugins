@@ -1,0 +1,34 @@
+{
+  "_doc": "FluentBooking vendor-map per PRINCIPLES-VENDOR.md V11. One row per touched ability. Populated incrementally as fix packages land.",
+  "vendor": "fluent-booking",
+  "abilities": [
+    {
+      "ability": "fluent-booking/create-event",
+      "vendor": "fluent-booking",
+      "vendor_version_checked": "1.7.x",
+      "authority": "vendor_public_model",
+      "canonical_handler": "FluentBooking\\App\\Models\\CalendarSlot::create",
+      "direct_storage": false,
+      "destructive": false,
+      "principles": [ "V3", "V10" ],
+      "v3_priority": 2,
+      "package": 2,
+      "pattern": "P-K",
+      "notes": "Package 2 V10 fix (F-BOOK-01). Vendor AvailabilityService::getDefaultSchedule() can call reset() on a null schedule list when the calendar user has no configured availability, raising a PHP TypeError that previously bubbled as a fatal. Registrar now wraps the getDefaultSchedule call in try/catch and returns WP_Error('vendor_precondition_failed', …). CalendarSlot::create remains the canonical write path."
+    },
+    {
+      "ability": "fluent-booking/get-available-slots",
+      "vendor": "fluent-booking",
+      "vendor_version_checked": "1.7.x",
+      "authority": "vendor_public_service",
+      "canonical_handler": "FluentBooking\\App\\Services\\TimeSlotService::getDates",
+      "direct_storage": false,
+      "destructive": false,
+      "principles": [ "V1", "V3", "V10" ],
+      "v3_priority": 2,
+      "package": 2,
+      "pattern": "P-K signature-mismatch",
+      "notes": "Package 2 V10 signature-alignment fix (F-BOOK-02). Vendor TimeSlotService constructor is __construct(Calendar $calendar, CalendarSlot $calendarSlot) per installed source app/Services/TimeSlotService.php:18 — the prior registrar passed (CalendarSlot, string $timezone) which produced a PHP TypeError on every call. Registrar now looks up the parent Calendar via CalendarSlot::calendar_id and passes both objects to the constructor; the slot lookup uses the public getDates($fromDate, $toDate, $duration, $isDoingBooking, $timeZone) method (the prior call to a non-existent getAvailableSlots($start, $end) is replaced)."
+    }
+  ]
+}

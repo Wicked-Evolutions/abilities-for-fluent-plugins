@@ -983,7 +983,9 @@ add_action( 'wp_abilities_api_init', function() {
 				->where( 'board_id', $board_id )
 				->select( 'id' )
 				->get();
-			$task_id_list = array_map( function( $t ) { return (int) $t->id; }, $task_ids );
+			// V5: vendor `->get()` returns a FluentBoards\Framework\Support\Collection,
+			// not a plain array — array_map() would raise a PHP TypeError (P-A pattern).
+			$task_id_list = array_map( function( $t ) { return (int) $t->id; }, fluent_abilities_to_array( $task_ids ) );
 
 			// Cascade: task-level relations (assignees, labels, watchers, custom fields).
 			if ( ! empty( $task_id_list ) ) {
@@ -1046,7 +1048,8 @@ add_action( 'wp_abilities_api_init', function() {
 				->where( 'parent_id', $task_id )
 				->select( 'id' )
 				->get();
-			$sub_id_list = array_map( function( $t ) { return (int) $t->id; }, $subtask_ids );
+			// V5: coerce vendor Collection to array before array_map (P-A pattern).
+			$sub_id_list = array_map( function( $t ) { return (int) $t->id; }, fluent_abilities_to_array( $subtask_ids ) );
 
 			$all_task_ids = array_merge( array( $task_id ), $sub_id_list );
 

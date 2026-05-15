@@ -151,7 +151,8 @@ $reg->read( 'fluent-boards/list-crm-associated-boards', array(
 	'callback' => function( $input ) {
 		$contact_id = (int) $input['contact_id'];
 		$rows       = wpFluent()->table( 'fbs_metas' )->where( 'object_type', 'crm_board_link' )->where( 'value', (string) $contact_id )->get();
-		$ids        = array_map( function( $r ) { return (int) $r->object_id; }, $rows );
+		// V5: coerce vendor Collection to array before array_map (P-A pattern).
+		$ids        = array_map( function( $r ) { return (int) $r->object_id; }, fluent_abilities_to_array( $rows ) );
 		if ( empty( $ids ) ) {
 			return array( 'boards' => array(), 'total' => 0 );
 		}

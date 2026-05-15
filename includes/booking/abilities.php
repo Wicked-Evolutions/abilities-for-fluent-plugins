@@ -529,7 +529,18 @@ add_action( 'wp_abilities_api_init', function() {
 			$slug   = \FluentBooking\App\Services\Helper::generateSlotSlug( $duration . 'min', $calendar );
 			$status = sanitize_text_field( $input['status'] ?? 'active' );
 
-			$availability = \FluentBooking\App\Services\AvailabilityService::getDefaultSchedule( $calendar->user_id );
+			// V10: AvailabilityService::getDefaultSchedule() can call reset() on a null
+			// schedule list when the calendar user has no configured availability
+			// (P-K pattern, F-BOOK-01). Wrap to convert the PHP TypeError into a
+			// typed WP_Error rather than letting the fatal propagate.
+			try {
+				$availability = \FluentBooking\App\Services\AvailabilityService::getDefaultSchedule( $calendar->user_id );
+			} catch ( \Throwable $e ) {
+				return new WP_Error(
+					'vendor_precondition_failed',
+					'FluentBooking default-schedule lookup failed for calendar user ' . (int) $calendar->user_id . ': ' . $e->getMessage()
+				);
+			}
 
 			$slot_data = array(
 				'title'             => $title,

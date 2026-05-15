@@ -280,7 +280,7 @@ function fluent_abilities_crm_register_extended_subscribers() {
 
 	$reg->write( 'fluent-crm/sync-subscribers-segments', array(
 		'label'         => 'Sync CRM Subscribers Tags + Lists Atomically',
-		'description'   => 'Atomic add/remove of tags and lists across subscribers. Source: SubscriberController::syncSegments (POST /subscribers/sync-segments). Capability: fcrm_manage_contacts.',
+		'description'   => 'Atomic add/remove of tags and lists across subscribers. Source: SubscriberController::syncSegments (POST /subscribers/sync-segments). Capability: fcrm_manage_contacts. V10: vendor controller may TypeError on validator/request shape when called via internal REST dispatch; registrar returns WP_Error instead of letting the fatal propagate.',
 		'category'      => 'fluent-crm',
 		'input_schema'  => array(
 			'type'       => 'object',
@@ -295,7 +295,12 @@ function fluent_abilities_crm_register_extended_subscribers() {
 		),
 		'output_schema' => fluent_abilities_schema_success_output(),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/subscribers/sync-segments', $input );
+			// V10: convert vendor-side TypeError into a typed WP_Error (P-K pattern).
+			try {
+				return $proxy( 'POST', '/fluent-crm/v2/subscribers/sync-segments', $input );
+			} catch ( \Throwable $e ) {
+				return new WP_Error( 'vendor_precondition_failed', 'FluentCRM sync-subscribers-segments failed: ' . $e->getMessage() );
+			}
 		},
 	) );
 

@@ -286,13 +286,20 @@ if ( ! class_exists( 'WP_REST_Request' ) ) {
 
 if ( ! function_exists( 'rest_do_request' ) ) {
 	function rest_do_request( $request ) {
-		global $_test_rest_log, $_test_rest_response;
+		global $_test_rest_log, $_test_rest_response, $_test_rest_throw;
 		$entry = array(
 			'method' => $request->get_method(),
 			'route'  => $request->get_route(),
 			'params' => $request->get_params(),
 		);
 		$_test_rest_log[] = $entry;
+		// Package 2 P-K testing: when $_test_rest_throw is set, simulate the
+		// vendor-side PHP TypeError that the registrar's try/catch is meant to
+		// intercept. The value of $_test_rest_throw is the exception message.
+		if ( ! empty( $_test_rest_throw ) ) {
+			$message     = is_string( $_test_rest_throw ) ? $_test_rest_throw : 'Vendor TypeError simulated by test';
+			throw new \TypeError( $message );
+		}
 		$data = $_test_rest_response ?? array();
 		return new WP_REST_Response( $data, 200, false );
 	}

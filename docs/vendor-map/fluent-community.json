@@ -1,0 +1,23 @@
+{
+  "_doc": "FluentCommunity vendor-map per PRINCIPLES-VENDOR.md V11. One row per touched ability. Populated incrementally as fix packages land.",
+  "vendor": "fluent-community",
+  "abilities": [
+    {
+      "ability": "fluent-community/update-privacy-settings",
+      "vendor": "fluent-community",
+      "vendor_version_checked": "2.5.x",
+      "authority": "vendor_public_helper",
+      "method": null,
+      "endpoint": null,
+      "canonical_handler": "FluentCommunity\\App\\Functions\\Utility::updatePrivacySettings",
+      "rest_handler_seen_first": "FluentCommunity\\App\\Http\\Controllers\\SettingController::updatePrivacySettings",
+      "direct_storage": false,
+      "destructive": false,
+      "principles": [ "V1", "V3", "V7", "V10" ],
+      "v3_priority": 2,
+      "package": 2,
+      "pattern": "P-K signature-mismatch",
+      "notes": "Package 2 V10 signature-alignment fix (F-COM-04). Vendor SettingController::updatePrivacySettings(Request $request) expects a vendor Framework Request, not an array — registrar previously passed an array and produced a PHP TypeError. Registrar now routes through the vendor public helper Utility::updatePrivacySettings($settings) (V3 priority 2 — the same call the controller invokes internally, which applies the vendor Arr::only allowlist + vendor storage/cache invariants). When the vendor helper is absent, returns WP_Error('vendor_helper_unavailable', …) — no raw update_option() fallback (would bypass V7 input whitelist and V3 vendor storage semantics; reviewer-flagged on P2 PR #83)."
+    }
+  ]
+}

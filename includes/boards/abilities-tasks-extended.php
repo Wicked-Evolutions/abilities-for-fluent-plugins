@@ -256,7 +256,8 @@ $reg->delete( 'fluent-boards/bulk-delete-tasks', array(
 			return fluent_abilities_error( 'ability_invalid_input', 'task_ids must be a non-empty array.' );
 		}
 		$existing = wpFluent()->table( 'fbs_tasks' )->where( 'board_id', $board_id )->whereIn( 'id', $ids )->get();
-		$valid    = array_map( function( $t ) { return (int) $t->id; }, $existing );
+		// V5: coerce vendor Collection to array before array_map (P-A pattern).
+		$valid    = array_map( function( $t ) { return (int) $t->id; }, fluent_abilities_to_array( $existing ) );
 		if ( empty( $valid ) ) {
 			return array( 'success' => true, 'board_id' => $board_id, 'deleted' => 0 );
 		}
