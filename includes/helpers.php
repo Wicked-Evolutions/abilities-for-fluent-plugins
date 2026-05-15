@@ -74,6 +74,40 @@ function fluent_abilities_error( $code, $message ) {
 }
 
 /**
+ * Coerce a vendor Collection (or any framework-internal container) to a plain
+ * PHP array, so the result is safe to pass to array_map(), array_filter(), etc.
+ *
+ * Vendor query builders (wpFluent, FluentCRM, FluentBoards) return Collection
+ * objects — implementing Countable + IteratorAggregate but NOT array. Passing
+ * such a Collection to PHP's array_map() raises a PHP TypeError. This is the
+ * V5 framework-boundary coercion the v1.4.0 cold-start re-test found in
+ * 11 FluentBoards sites (Pattern P-A).
+ *
+ * Idempotent on arrays. Null is normalized to empty array.
+ *
+ * @param mixed $value Collection, array, Traversable, or null.
+ * @return array Plain array; empty array for null. Keys preserved.
+ */
+function fluent_abilities_to_array( $value ) {
+	if ( is_array( $value ) ) {
+		return $value;
+	}
+	if ( null === $value ) {
+		return array();
+	}
+	if ( is_object( $value ) && method_exists( $value, 'toArray' ) ) {
+		return $value->toArray();
+	}
+	if ( is_object( $value ) && method_exists( $value, 'all' ) ) {
+		return $value->all();
+	}
+	if ( $value instanceof Traversable ) {
+		return iterator_to_array( $value );
+	}
+	return (array) $value;
+}
+
+/**
  * Safely convert an Eloquent model attribute to a plain array/scalar.
  *
  * Eloquent cast attributes (settings, meta) may contain nested Collections,

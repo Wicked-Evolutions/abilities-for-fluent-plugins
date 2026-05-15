@@ -1145,7 +1145,7 @@ function fluent_abilities_register_community_v2() {
 	// ── 4.6.8 update-privacy-settings ───────────────────────────────────────
 	$reg->write( 'fluent-community/update-privacy-settings', array(
 		'label'       => 'Update Privacy Settings',
-		'description' => 'Update privacy settings. Prefers SettingController::updatePrivacySettings() if available; otherwise direct option update at fluent_community_privacy_settings.',
+		'description' => 'Update privacy settings. V10 signature alignment (P-K): SettingController::updatePrivacySettings(Request $request) per installed vendor source app/Http/Controllers/SettingController.php expects a vendor Request object, not an array — the prior call passed an array and produced a PHP TypeError (F-COM-04). Registrar now routes through the vendor public helper Utility::updatePrivacySettings($settings) (the same call SettingController invokes internally), with a direct-option fallback when vendor symbols are absent.',
 		'category'    => 'fluent-community',
 		'level'       => 'admin',
 		'input_schema' => array(
@@ -1159,13 +1159,22 @@ function fluent_abilities_register_community_v2() {
 		'callback' => function( $input ) {
 			$incoming = isset( $input['settings'] ) && is_array( $input['settings'] ) ? $input['settings'] : array();
 
-			if ( class_exists( '\\FluentCommunity\\App\\Http\\Controllers\\SettingController' )
-				&& method_exists( '\\FluentCommunity\\App\\Http\\Controllers\\SettingController', 'updatePrivacySettings' ) ) {
-				$ctrl = new \FluentCommunity\App\Http\Controllers\SettingController();
-				$ctrl->updatePrivacySettings( $incoming );
-				return array( 'success' => true );
+			// V3 priority 2 (vendor public helper). The controller's request-shape
+			// dependency is bypassed; we call the same Utility helper the
+			// controller itself invokes internally to persist privacy settings.
+			if ( class_exists( '\\FluentCommunity\\App\\Functions\\Utility' )
+				&& method_exists( '\\FluentCommunity\\App\\Functions\\Utility', 'updatePrivacySettings' ) ) {
+				try {
+					\FluentCommunity\App\Functions\Utility::updatePrivacySettings( $incoming );
+					return array( 'success' => true );
+				} catch ( \Throwable $e ) {
+					return new WP_Error( 'vendor_precondition_failed', 'FluentCommunity Utility::updatePrivacySettings failed: ' . $e->getMessage() );
+				}
 			}
 
+			// V10 fallback: when the vendor helper is absent, persist directly to
+			// the documented option. Last-resort path; the typed-error guard above
+			// is the primary fix.
 			update_option( 'fluent_community_privacy_settings', $incoming );
 			return array( 'success' => true );
 		},

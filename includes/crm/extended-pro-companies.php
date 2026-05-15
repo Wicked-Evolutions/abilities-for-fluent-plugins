@@ -271,7 +271,7 @@ function fluent_abilities_crm_register_extended_pro_companies() {
 	// 5.23.12 — create-company-note
 	$reg->write( 'fluent-crm/create-company-note', array(
 		'label'         => 'Create CRM Company Note (Pro)',
-		'description'   => 'Add a note to a company. Source: CompanyController::createNote (POST /companies/{id}/notes).',
+		'description'   => 'Add a note to a company. Source: CompanyController::createNote (POST /companies/{id}/notes). V10: vendor controller may TypeError when FluentCampaign Pro is inactive or the validator request shape mismatches; registrar returns WP_Error instead.',
 		'category'      => 'fluent-crm',
 		'input_schema'  => array(
 			'type'       => 'object',
@@ -287,7 +287,12 @@ function fluent_abilities_crm_register_extended_pro_companies() {
 		'callback'      => function ( $input ) use ( $proxy ) {
 			$id = (int) ( $input['id'] ?? 0 );
 			unset( $input['id'] );
-			return $proxy( 'POST', '/fluent-crm/v2/companies/' . $id . '/notes', $input );
+			// V10: convert vendor-side TypeError into a typed WP_Error (P-K pattern).
+			try {
+				return $proxy( 'POST', '/fluent-crm/v2/companies/' . $id . '/notes', $input );
+			} catch ( \Throwable $e ) {
+				return new WP_Error( 'vendor_precondition_failed', 'FluentCRM create-company-note failed: ' . $e->getMessage() );
+			}
 		},
 	) );
 

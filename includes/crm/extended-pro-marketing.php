@@ -574,12 +574,17 @@ function fluent_abilities_crm_register_extended_pro_marketing() {
 
 	$reg->read( 'fluent-crm/list-dynamic-segment-custom-fields', array(
 		'label'         => 'List CRM Dynamic Segment Buildable Custom Fields (Pro)',
-		'description'   => 'Custom fields usable in segment conditions. Source: DynamicSegmentController::customFields (GET /dynamic-segments/custom-fields).',
+		'description'   => 'Custom fields usable in segment conditions. Source: DynamicSegmentController::customFields (GET /dynamic-segments/custom-fields). V10: vendor controller may TypeError when FluentCampaign Pro is inactive or segment registry empty; registrar returns WP_Error instead.',
 		'category'      => 'fluent-crm',
 		'input_schema'  => array( 'type' => 'object', 'properties' => array() ),
 		'output_schema' => fluent_abilities_schema_collection_output( 'fields', $obj ),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/dynamic-segments/custom-fields' );
+			// V10: convert vendor-side TypeError into a typed WP_Error (P-K pattern).
+			try {
+				return $proxy( 'GET', '/fluent-crm/v2/dynamic-segments/custom-fields' );
+			} catch ( \Throwable $e ) {
+				return new WP_Error( 'vendor_precondition_failed', 'FluentCRM dynamic-segment custom-fields lookup failed: ' . $e->getMessage() );
+			}
 		},
 	) );
 
@@ -679,12 +684,17 @@ function fluent_abilities_crm_register_extended_pro_marketing() {
 
 	$reg->read( 'fluent-crm/list-campaigns-pro-products', array(
 		'label'         => 'List CRM Campaign-Pro Commerce Products (Pro)',
-		'description'   => 'Commerce products for campaign-pro picker. Source: CampaignsProController::products (GET /campaigns-pro/products).',
+		'description'   => 'Commerce products for campaign-pro picker. Source: CampaignsProController::products (GET /campaigns-pro/products). V10: vendor controller may TypeError when FluentCampaign Pro is inactive or no commerce provider is wired; registrar returns WP_Error instead.',
 		'category'      => 'fluent-crm',
 		'input_schema'  => array( 'type' => 'object', 'properties' => array() ),
 		'output_schema' => fluent_abilities_schema_collection_output( 'products', $obj ),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/campaigns-pro/products' );
+			// V10: convert vendor-side TypeError into a typed WP_Error (P-K pattern).
+			try {
+				return $proxy( 'GET', '/fluent-crm/v2/campaigns-pro/products' );
+			} catch ( \Throwable $e ) {
+				return new WP_Error( 'vendor_precondition_failed', 'FluentCRM campaigns-pro products lookup failed: ' . $e->getMessage() );
+			}
 		},
 	) );
 

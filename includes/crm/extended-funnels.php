@@ -356,12 +356,17 @@ function fluent_abilities_crm_register_extended_funnels() {
 
 	$reg->read( 'fluent-crm/list-funnel-templates', array(
 		'label'         => 'List CRM Funnel Templates',
-		'description'   => 'Bundled funnel templates from plugin distribution. Source: FunnelController::getTemplates (GET /funnels/templates).',
+		'description'   => 'Bundled funnel templates from plugin distribution. Source: FunnelController::getTemplates (GET /funnels/templates). V10: vendor controller may TypeError on absent Pro/template-bundle state; registrar wraps the call and returns WP_Error instead of letting the fatal propagate.',
 		'category'      => 'fluent-crm',
 		'input_schema'  => array( 'type' => 'object', 'properties' => array() ),
 		'output_schema' => fluent_abilities_schema_collection_output( 'templates', $obj ),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/funnels/templates' );
+			// V10: convert vendor-side TypeError into a typed WP_Error (P-K pattern).
+			try {
+				return $proxy( 'GET', '/fluent-crm/v2/funnels/templates' );
+			} catch ( \Throwable $e ) {
+				return new WP_Error( 'vendor_precondition_failed', 'FluentCRM funnel templates lookup failed: ' . $e->getMessage() );
+			}
 		},
 	) );
 
