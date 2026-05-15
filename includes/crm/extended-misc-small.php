@@ -155,7 +155,7 @@ function fluent_abilities_crm_register_extended_misc_small() {
 
 	$reg->write( 'fluent-crm/create-webhook', array(
 		'label'         => 'Create CRM Webhook',
-		'description'   => 'Create a new FluentCRM webhook endpoint. Returns the generated receiver URL. Source: WebhookController::create (POST /webhooks). Pattern-A flat: vendor reads $request->all() per source app/Http/Controllers/WebhookController.php:67 and validates {name, status} both required. Default contact status when omitted: subscribed.',
+		'description'   => 'Create a new FluentCRM webhook endpoint. Returns the generated receiver URL. V7: callback whitelists top-level input to schema-declared keys, then calls the vendor public model FluentCrm\\App\\Models\\Webhook::store() (same write path WebhookController::create uses internally). The REST-controller path is intentionally bypassed because vendor Request::all() (vendor framework/src/WPFluent/Http/Request/Request.php inputs() at array_merge($this->request, $json)) re-reads php://input and merges the raw transport body OVER any WP_REST_Request::set_param values, defeating a whitelist applied at rest_do_request. Routing through the model preserves the documented vendor operation (V3 priority 2) while keeping the V7 whitelist binding. Source: WebhookController::create (POST /webhooks) + Webhook::store (app/Models/Webhook.php:67-76).',
 		'category'      => 'fluent-crm',
 		'input_schema'  => array(
 			'type'       => 'object',
@@ -179,8 +179,43 @@ function fluent_abilities_crm_register_extended_misc_small() {
 				'message' => array( 'type' => 'string' ),
 			),
 		),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/webhooks', $input );
+		'callback'      => function ( $input ) {
+			// V7: whitelist top-level keys to those declared in input_schema, then
+			// pass the cleaned payload directly to the vendor public model. The
+			// transport envelope (method/params/jsonrpc/id/toolUseId/_links/_embedded)
+			// is never reachable by vendor code because we do not route through the
+			// REST controller (whose Request::all() re-reads php://input and would
+			// override anything we'd set via WP_REST_Request::set_param).
+			$allowed = array( 'name', 'status', 'lists', 'tags', 'companies', 'provider', 'extra' );
+			$payload = array();
+			foreach ( $allowed as $k ) {
+				if ( array_key_exists( $k, $input ) ) {
+					$payload[ $k ] = $input[ $k ];
+				}
+			}
+			// V10 typed-error guard: if vendor module is absent at runtime, return
+			// WP_Error rather than fataling on a missing class.
+			if ( ! class_exists( '\\FluentCrm\\App\\Models\\Webhook' ) ) {
+				return new WP_Error(
+					'fluent_crm_unavailable',
+					'FluentCrm\\App\\Models\\Webhook is not available. FluentCRM must be active for this ability.'
+				);
+			}
+			// Mirror WebhookController::create validation: name + status required.
+			foreach ( array( 'name', 'status' ) as $required ) {
+				if ( empty( $payload[ $required ] ) ) {
+					return new WP_Error(
+						'fluent_crm_webhook_missing_field',
+						sprintf( 'fluent-crm/create-webhook: required field `%s` is missing or empty.', $required )
+					);
+				}
+			}
+			$webhook = ( new \FluentCrm\App\Models\Webhook() )->store( $payload );
+			return array(
+				'id'      => isset( $webhook->id ) ? (int) $webhook->id : 0,
+				'webhook' => isset( $webhook->value ) ? $webhook->value : null,
+				'message' => __( 'Successfully created the WebHook', 'fluent-crm' ),
+			);
 		},
 	) );
 
