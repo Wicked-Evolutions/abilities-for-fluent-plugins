@@ -1,0 +1,44 @@
+{
+  "_doc": "FluentCRM vendor-map per PRINCIPLES-VENDOR.md V11. One row per touched ability. Populated incrementally as fix packages land — additional fluent-crm slugs join this file in later packages. Drift detector, not a perfect proof.",
+  "vendor": "fluent-crm",
+  "abilities": [
+    {
+      "ability": "fluent-crm/update-contact-custom-fields",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "2.9.61",
+      "authority": "rest_endpoint",
+      "method": "PUT",
+      "endpoint": "/fluent-crm/v2/custom-fields/contacts",
+      "canonical_handler": "FluentCrm\\App\\Http\\Controllers\\CustomContactFieldsController::saveGlobalFields",
+      "registrar_description_note": "Registrar description names this 'CustomFieldsController::updateContactFields'; the actual installed-source controller is CustomContactFieldsController (path: app/Http/Controllers/CustomContactFieldsController.php). Description-only drift, not fixed in Package 1 — out of scope.",
+      "direct_storage": false,
+      "destructive": true,
+      "destructive_semantics": "Full-replace: provided `fields` array overwrites the entire definition set; empty array clears all definitions globally. Handler-side guard requires `confirm_full_replace: true` when `fields` is empty.",
+      "read_back": {
+        "ability": "fluent-crm/get-contact-custom-fields",
+        "field": "fields"
+      },
+      "principles": [ "V1", "V3", "V7", "V8" ],
+      "notes": "Fix landed in Package 1 of the v1.4.0 fix sprint. Phase 2 stop-condition event (2026-05-15): empty {fields: []} call wiped 8 production custom-field definitions on helenawillow before the V8 guard existed. The vendor controller (CustomContactFieldsController::saveGlobalFields) only reads `fields` from $this->request — the php://input transport-envelope leak that affects create-webhook does NOT apply here because the leak keys are not consumed by the saveGlobalFields handler. Live read-back verified on helenawillow 2026-05-15: empty-array call without `confirm_full_replace` returns typed WP_Error and the seeded testclient field remains intact; the same call with `confirm_full_replace: true` proceeds and clears the set."
+    },
+    {
+      "ability": "fluent-crm/create-webhook",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "2.9.61",
+      "authority": "vendor_public_model",
+      "method": "POST",
+      "endpoint": "/fluent-crm/v2/webhooks",
+      "canonical_handler": "FluentCrm\\App\\Models\\Webhook::store",
+      "rest_handler_seen_first": "FluentCrm\\App\\Http\\Controllers\\WebhookController::create",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": {
+        "ability": "fluent-crm/list-webhooks",
+        "field": "id"
+      },
+      "principles": [ "V1", "V3", "V7", "V10" ],
+      "v3_priority": 2,
+      "notes": "Fix landed in Package 1 of the v1.4.0 fix sprint. Registrar bypasses the REST controller and calls the vendor public model Webhook::store() directly (V3 priority 2 — same write path the controller uses internally). Reason: FluentCRM's Request::all() (vendor framework/src/WPFluent/Http/Request/Request.php inputs() at array_merge($this->request, $json)) re-reads php://input and merges over WP_REST_Request::set_param values, defeating any whitelist applied via rest_do_request. Routing through the model keeps the documented vendor operation while making the V7 input whitelist binding. V10: typed WP_Error returned when vendor class is absent. Live read-back verified on helenawillow 2026-05-15: persisted webhook value contains only {name, status, provider, url}; transport envelope (method/params/jsonrpc/id/toolUseId/_links/_embedded) does not appear."
+    }
+  ]
+}
