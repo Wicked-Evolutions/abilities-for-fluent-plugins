@@ -221,7 +221,7 @@ function fluent_abilities_crm_register_extended_misc_small() {
 
 	$reg->write( 'fluent-crm/update-webhook', array(
 		'label'         => 'Update CRM Webhook',
-		'description'   => 'Update an existing webhook endpoint. Source: WebhookController::update (PUT /webhooks/{id}).',
+		'description'   => 'Update an existing webhook endpoint. V7: callback whitelists top-level input to schema-declared keys, then calls the vendor public model FluentCrm\\App\\Models\\Webhook::saveChanges() (same write path WebhookController::update uses internally). The REST-controller path is intentionally bypassed because vendor WebhookController::update calls $webhook->saveChanges($request->all()) and the vendor Request::all() (framework/src/WPFluent/Http/Request/Request.php — re-reads php://input) merges the raw transport body OVER any WP_REST_Request::set_param values, defeating a whitelist applied at rest_do_request; saveChanges() then array_merges that whole payload into the stored webhook `value` (app/Models/Webhook.php:88). Same leak + same fix shape as fluent-crm/create-webhook (Package 1, P-I family). Source: WebhookController::update (PUT /webhooks/{id}) + Webhook::saveChanges.',
 		'category'      => 'fluent-crm',
 		'input_schema'  => array(
 			'type'       => 'object',
@@ -236,10 +236,46 @@ function fluent_abilities_crm_register_extended_misc_small() {
 			),
 		),
 		'output_schema' => fluent_abilities_schema_success_output(),
-		'callback'      => function ( $input ) use ( $proxy ) {
+		'callback'      => function ( $input ) {
 			$id = (int) ( $input['id'] ?? 0 );
-			unset( $input['id'] );
-			return $proxy( 'PUT', '/fluent-crm/v2/webhooks/' . $id, $input );
+			if ( ! $id ) {
+				return new WP_Error(
+					'fluent_crm_webhook_missing_field',
+					'fluent-crm/update-webhook: required field `id` is missing or empty.'
+				);
+			}
+			// V7: whitelist top-level keys to those declared in input_schema,
+			// then pass the cleaned payload directly to the vendor public model
+			// (V3 priority 2). The transport envelope
+			// (method/params/jsonrpc/id/toolUseId/_links/_embedded) is never
+			// reachable by vendor code because we do not route through the REST
+			// controller (whose Request::all() re-reads php://input and
+			// saveChanges() then array_merges the whole thing into value).
+			$allowed = array( 'name', 'lists', 'tags', 'companies', 'extra' );
+			$payload = array();
+			foreach ( $allowed as $k ) {
+				if ( array_key_exists( $k, $input ) ) {
+					$payload[ $k ] = $input[ $k ];
+				}
+			}
+			// V10 typed-error guard: absent vendor class → WP_Error, not fatal.
+			if ( ! class_exists( '\\FluentCrm\\App\\Models\\Webhook' ) ) {
+				return new WP_Error(
+					'fluent_crm_unavailable',
+					'FluentCrm\\App\\Models\\Webhook is not available. FluentCRM must be active for this ability.'
+				);
+			}
+			$webhook = ( new \FluentCrm\App\Models\Webhook() )->find( $id );
+			if ( ! $webhook ) {
+				return new WP_Error(
+					'fluent_crm_webhook_not_found',
+					sprintf( 'Webhook %d not found.', $id )
+				);
+			}
+			// Mirror WebhookController::update — saveChanges() applies the
+			// vendor's own tags/lists/companies defaults + value array_merge.
+			$webhook->saveChanges( $payload );
+			return array( 'success' => true );
 		},
 	) );
 

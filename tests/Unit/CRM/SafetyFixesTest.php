@@ -242,4 +242,126 @@ class FluentCRMSafetyFixesTest extends TestCase {
 		$this->assertSame( 'fluent_crm_webhook_missing_field', $result->get_error_code() );
 		$this->assertNull( FluentCRMTestWebhookStub::$captured_payload, 'no persistence may occur when required field is missing' );
 	}
+
+	// =========================================================================
+	// V7 — fluent-crm/update-webhook (Package 3.5, P-I family)
+	//
+	// Same leak shape as create-webhook: WebhookController::update calls
+	// $webhook->saveChanges($request->all()) and Webhook::saveChanges()
+	// array_merges the whole payload into the stored `value`. The callback now
+	// whitelists to schema-declared keys and routes through the vendor public
+	// model (V3 priority 2), bypassing rest_do_request.
+	// =========================================================================
+
+	/**
+	 * Runs in a separate process so the FluentCrm\App\Models\Webhook
+	 * class_alias registered by the create-webhook stub tests (same process,
+	 * earlier in declaration order) does not leak in and defeat the
+	 * absent-vendor precondition.
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_update_webhook_returns_wp_error_when_vendor_class_absent() {
+		require_once dirname( __DIR__, 3 ) . '/includes/crm/extended-misc-small.php';
+		global $_wp_registered_abilities;
+		$_wp_registered_abilities = array();
+		fluent_abilities_crm_register_extended_misc_small();
+
+		$this->assertFalse( class_exists( '\\FluentCrm\\App\\Models\\Webhook', false ), 'precondition: vendor class must not exist' );
+		$abilities = wp_get_abilities();
+		$cb        = $abilities['fluent-crm/update-webhook']['execute_callback'];
+		$result    = $cb( array( 'id' => 5, 'name' => 'x' ) );
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'fluent_crm_unavailable', $result->get_error_code() );
+	}
+
+	public function test_update_webhook_rejects_missing_id() {
+		require_once __DIR__ . '/fixtures/webhook-model-stub.php';
+		FluentCRMTestWebhookStub::$captured_payload = null;
+
+		$abilities = wp_get_abilities();
+		$cb        = $abilities['fluent-crm/update-webhook']['execute_callback'];
+		$result    = $cb( array( 'name' => 'no id here' ) );
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'fluent_crm_webhook_missing_field', $result->get_error_code() );
+		$this->assertNull( FluentCRMTestWebhookStub::$captured_payload, 'no persistence when id missing' );
+	}
+
+	public function test_update_webhook_returns_wp_error_when_not_found() {
+		require_once __DIR__ . '/fixtures/webhook-model-stub.php';
+		FluentCRMTestWebhookStub::$captured_payload = null;
+		FluentCRMTestWebhookStub::$find_returns     = false;
+
+		$abilities = wp_get_abilities();
+		$cb        = $abilities['fluent-crm/update-webhook']['execute_callback'];
+		$result    = $cb( array( 'id' => 999, 'name' => 'x' ) );
+		$this->assertInstanceOf( WP_Error::class, $result );
+		$this->assertSame( 'fluent_crm_webhook_not_found', $result->get_error_code() );
+		$this->assertNull( FluentCRMTestWebhookStub::$captured_payload, 'no persistence when webhook not found' );
+
+		FluentCRMTestWebhookStub::$find_returns = true; // reset for other tests.
+	}
+
+	public function test_update_webhook_whitelists_envelope_keys() {
+		require_once __DIR__ . '/fixtures/webhook-model-stub.php';
+		FluentCRMTestWebhookStub::$captured_payload = null;
+		FluentCRMTestWebhookStub::$find_returns     = true;
+
+		$abilities = wp_get_abilities();
+		$cb        = $abilities['fluent-crm/update-webhook']['execute_callback'];
+		$result    = $cb( array(
+			'id'        => 12,
+			'name'      => 'Updated webhook',
+			'lists'     => array( 3 ),
+			'tags'      => array(),
+			'companies' => array(),
+			'extra'     => array( 'note' => 'hi' ),
+			// Adapter / MCP transport envelope — must be stripped.
+			'method'    => 'tools/call',
+			'params'    => array( 'name' => 'x' ),
+			'jsonrpc'   => '2.0',
+			'toolUseId' => 'tu-2',
+			'_links'    => array( 'self' => 'http://example' ),
+			'_embedded' => array( 'foo' => 'bar' ),
+		) );
+
+		$this->assertNotInstanceOf( WP_Error::class, $result );
+		$this->assertTrue( $result['success'] );
+
+		$persisted_keys = array_keys( FluentCRMTestWebhookStub::$captured_payload );
+		sort( $persisted_keys );
+		$this->assertSame(
+			array( 'companies', 'extra', 'lists', 'name', 'tags' ),
+			$persisted_keys,
+			'V7: only schema-declared keys may reach Webhook::saveChanges()'
+		);
+		foreach ( array( 'id', 'method', 'params', 'jsonrpc', 'toolUseId', '_links', '_embedded' ) as $leaked_key ) {
+			$this->assertArrayNotHasKey(
+				$leaked_key,
+				FluentCRMTestWebhookStub::$captured_payload,
+				"V7: {$leaked_key} must not reach saveChanges()"
+			);
+		}
+	}
+
+	public function test_update_webhook_does_not_use_proxy() {
+		// Source guard: the callback must NOT route through rest_do_request
+		// (the proxy) — that path cannot enforce V7 (vendor Request::all()
+		// re-reads php://input).
+		$src = file_get_contents( dirname( __DIR__, 3 ) . '/includes/crm/extended-misc-small.php' );
+		$pos = strpos( $src, "'fluent-crm/update-webhook'" );
+		$this->assertNotFalse( $pos );
+		$block = substr( $src, $pos, 3600 );
+		$this->assertStringNotContainsString(
+			"\$proxy( 'PUT', '/fluent-crm/v2/webhooks/'",
+			$block,
+			'update-webhook must not route the write through the rest_do_request proxy (V7 cannot be enforced there)'
+		);
+		$this->assertStringContainsString(
+			'->saveChanges( $payload )',
+			$block,
+			'update-webhook must route through the vendor public model with the whitelisted payload (V3 priority 2)'
+		);
+	}
 }
