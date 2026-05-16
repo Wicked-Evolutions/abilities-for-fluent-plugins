@@ -63,7 +63,8 @@
       ],
       "package": "4a",
       "pattern": "P-H non-nullable field null (user_id)",
-      "notes": "Package 4a special. output_schema user_id widened integer -> ['integer','null'] (guest/unlinked customers have null user_id; vendor-verified). No callback change. Live-verify on wicked-community (FluentCart-live) deferred with P-J infra opcache item."
+      "notes": "Package 4a special (V5 P-H, output-schema). Vendor source: FluentCart customer read returns user_id as null (guest/unlinked) OR a value; output_schema declared integer (non-nullable). Fix: widen user_id -> ['integer','null']. Schema-only, product-level (vendor-contract), site-agnostic; no single/multisite branching. DEFECT REPRODUCED LIVE PRE-DEPLOY via probe on wicked-community (incidental test surface), 2026-05-16: get-customer id=2 -> 'output[user_id] is not of type integer' (confirms the defect on a real vendor install). POST-FIX LIVE-CONFIRM PENDING — substantiated deferral: the wicked-community MCP probe has NO cleared/identified filesystem deploy target (its docroot /public_html/community is an empty placeholder; the wickedevolutions.com main install is production and outside the standing test clearance). This is a TEST-ENVIRONMENT topology/clearance gap on the incidental probe surface, NOT a product issue and NOT the helenawillow per-worker-opcache rationale. No empty-case adjacent live confirm exists for this slug. Mandatory carry-forward before sprint-acceptance close: needs a cleared FluentCart probe deploy target.",
+      "status": "PENDING (post-fix live-confirm; substantiated — see notes)"
     },
     {
       "ability": "fluent-cart/get-coupon",
@@ -79,7 +80,8 @@
       ],
       "package": "4a",
       "pattern": "P-H type drift (conditions object vs string|null)",
-      "notes": "Package 4a special. output_schema conditions widened ['string','null'] -> ['object','array','string','null'] (vendor returns conditions as structured object; vendor-verified). No callback change. Live-verify on wicked-community deferred with P-J infra opcache item."
+      "notes": "Package 4a special (V5 P-H, output-schema). Vendor source: FluentCart coupon read returns conditions as a structured object; output_schema declared ['string','null']. Fix: widen conditions -> ['object','array','string','null']. Schema-only, product-level (vendor-contract), site-agnostic. DEFECT REPRODUCED LIVE PRE-DEPLOY via probe on wicked-community (incidental test surface), 2026-05-16: get-coupon id=3 -> 'output[conditions] is not of type string,null' (confirms the defect on a real vendor install). POST-FIX LIVE-CONFIRM PENDING — substantiated deferral: wicked-community MCP probe has no cleared/identified filesystem deploy target (docroot /public_html/community is an empty placeholder; wickedevolutions.com main install is production, outside standing clearance). Test-environment topology/clearance gap on the incidental probe surface, NOT a product issue, NOT the helenawillow opcache rationale. No empty-case adjacent live confirm. Mandatory carry-forward before sprint-acceptance close.",
+      "status": "PENDING (post-fix live-confirm; substantiated — see notes)"
     }
   ]
 }
