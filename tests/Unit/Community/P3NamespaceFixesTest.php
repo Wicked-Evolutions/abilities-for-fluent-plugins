@@ -116,7 +116,7 @@ class P3NamespaceFixesTest extends TestCase {
 
 		$pos = strpos( $src, "'fluent-community/update-customization-settings'" );
 		$this->assertNotFalse( $pos, 'update-customization-settings registration must exist' );
-		$block = substr( $src, $pos, 2600 );
+		$block = substr( $src, $pos, 3400 );
 
 		$this->assertStringContainsString(
 			'Utility::getCustomizationSettings()',
@@ -132,6 +132,25 @@ class P3NamespaceFixesTest extends TestCase {
 			'updateCustomizationSettings( $merged )',
 			$block,
 			'the merged (not partial) array must be forwarded to the vendor full-replace method'
+		);
+
+		// V10/V11(d): the merge depends on BOTH vendor methods. The guard must
+		// check getCustomizationSettings too, and the read-current call must be
+		// inside the try so an absent/throwing helper returns a typed WP_Error
+		// rather than a PHP fatal before the guarded write.
+		$this->assertStringContainsString(
+			"method_exists( '\\\\FluentCommunity\\\\App\\\\Functions\\\\Utility', 'getCustomizationSettings' )",
+			$block,
+			'guard must also assert getCustomizationSettings (read-current dependency) before vendor use'
+		);
+		$try_pos = strpos( $block, 'try {' );
+		$get_pos = strpos( $block, 'Utility::getCustomizationSettings()' );
+		$this->assertNotFalse( $try_pos );
+		$this->assertNotFalse( $get_pos );
+		$this->assertGreaterThan(
+			$try_pos,
+			$get_pos,
+			'getCustomizationSettings() read-current must be inside the try block (typed-error, not fatal)'
 		);
 	}
 

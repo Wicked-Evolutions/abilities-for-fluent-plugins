@@ -1100,20 +1100,18 @@ function fluent_abilities_register_community_v2() {
 		),
 		'output_schema' => fluent_abilities_schema_success_output(),
 		'callback' => function( $input ) {
+			// The merge fix depends on BOTH vendor methods: getCustomizationSettings
+			// (read-current) and updateCustomizationSettings (full-replace write).
+			// Guard both before touching the vendor so an absent class/method
+			// returns a typed WP_Error rather than a PHP fatal (V10/V11(d)).
 			if ( ! class_exists( '\\FluentCommunity\\App\\Functions\\Utility' )
-				|| ! method_exists( '\\FluentCommunity\\App\\Functions\\Utility', 'updateCustomizationSettings' ) ) {
+				|| ! method_exists( '\\FluentCommunity\\App\\Functions\\Utility', 'updateCustomizationSettings' )
+				|| ! method_exists( '\\FluentCommunity\\App\\Functions\\Utility', 'getCustomizationSettings' ) ) {
 				return new WP_Error(
 					'vendor_helper_unavailable',
-					'FluentCommunity\\App\\Functions\\Utility::updateCustomizationSettings is not available. FluentCommunity must be active for this ability.'
+					'FluentCommunity\\App\\Functions\\Utility::{get,update}CustomizationSettings is not available. FluentCommunity must be active for this ability.'
 				);
 			}
-
-			// Vendor updateCustomizationSettings() is a FULL REPLACE
-			// (Arr::only + updateOption) — any key absent from the payload is
-			// dropped and reads back as the vendor default. Merge the sanitized
-			// incoming keys over the current persisted settings so a partial
-			// update changes only the keys the caller supplied.
-			$current = (array) \FluentCommunity\App\Functions\Utility::getCustomizationSettings();
 
 			$incoming    = isset( $input['settings'] ) && is_array( $input['settings'] ) ? $input['settings'] : array();
 			$yes_no_keys = array( 'dark_mode', 'fixed_page_header', 'show_powered_by', 'show_post_modal', 'feed_link_on_sidebar', 'fixed_sidebar', 'icon_on_header_menu', 'disable_feed_layout', 'collapse_sidebar_groups' );
@@ -1130,13 +1128,18 @@ function fluent_abilities_register_community_v2() {
 				}
 			}
 
-			$merged = array_merge( $current, $sanitized );
-
 			try {
+				// Vendor updateCustomizationSettings() is a FULL REPLACE
+				// (Arr::only + updateOption) — any key absent from the payload is
+				// dropped and reads back as the vendor default. The read-current
+				// dependency is inside the try so a vendor Throwable on either the
+				// read or the write returns a typed WP_Error (V10/V11(d)).
+				$current = (array) \FluentCommunity\App\Functions\Utility::getCustomizationSettings();
+				$merged  = array_merge( $current, $sanitized );
 				\FluentCommunity\App\Functions\Utility::updateCustomizationSettings( $merged );
 				return array( 'success' => true );
 			} catch ( \Throwable $e ) {
-				return new WP_Error( 'vendor_precondition_failed', 'FluentCommunity Utility::updateCustomizationSettings failed: ' . $e->getMessage() );
+				return new WP_Error( 'vendor_precondition_failed', 'FluentCommunity Utility customization-settings read/merge/write failed: ' . $e->getMessage() );
 			}
 		},
 	) );
