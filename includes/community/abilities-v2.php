@@ -1088,7 +1088,7 @@ function fluent_abilities_register_community_v2() {
 	// ── 4.6.6 update-customization-settings ─────────────────────────────────
 	$reg->write( 'fluent-community/update-customization-settings', array(
 		'label'       => 'Update Customization Settings',
-		'description' => 'Update UI/theming customization settings. Source: FluentCommunity\\App\\Functions\\Utility::updateCustomizationSettings(). See get-customization-settings for valid keys. Sanitizes yes/no enum values and affiliate_id integer before forwarding.',
+		'description' => 'Update UI/theming customization settings. Source: FluentCommunity\\App\\Functions\\Utility::updateCustomizationSettings(). See get-customization-settings for valid keys. Partial updates are safe: only the keys you supply change; unspecified keys are preserved. Sanitizes yes/no enum values and affiliate_id integer before forwarding.',
 		'category'    => 'fluent-community',
 		'level'       => 'admin',
 		'input_schema' => array(
@@ -1108,6 +1108,13 @@ function fluent_abilities_register_community_v2() {
 				);
 			}
 
+			// Vendor updateCustomizationSettings() is a FULL REPLACE
+			// (Arr::only + updateOption) — any key absent from the payload is
+			// dropped and reads back as the vendor default. Merge the sanitized
+			// incoming keys over the current persisted settings so a partial
+			// update changes only the keys the caller supplied.
+			$current = (array) \FluentCommunity\App\Functions\Utility::getCustomizationSettings();
+
 			$incoming    = isset( $input['settings'] ) && is_array( $input['settings'] ) ? $input['settings'] : array();
 			$yes_no_keys = array( 'dark_mode', 'fixed_page_header', 'show_powered_by', 'show_post_modal', 'feed_link_on_sidebar', 'fixed_sidebar', 'icon_on_header_menu', 'disable_feed_layout', 'collapse_sidebar_groups' );
 
@@ -1117,14 +1124,16 @@ function fluent_abilities_register_community_v2() {
 				if ( in_array( $k, $yes_no_keys, true ) ) {
 					$sanitized[ $k ] = ( $v === 'yes' || $v === true || $v === 1 ) ? 'yes' : 'no';
 				} elseif ( $k === 'affiliate_id' ) {
-					$sanitized[ $k ] = (int) $v;
+					$sanitized[ $k ] = ( '' === $v || null === $v ) ? '' : (int) $v;
 				} else {
 					$sanitized[ $k ] = $v;
 				}
 			}
 
+			$merged = array_merge( $current, $sanitized );
+
 			try {
-				\FluentCommunity\App\Functions\Utility::updateCustomizationSettings( $sanitized );
+				\FluentCommunity\App\Functions\Utility::updateCustomizationSettings( $merged );
 				return array( 'success' => true );
 			} catch ( \Throwable $e ) {
 				return new WP_Error( 'vendor_precondition_failed', 'FluentCommunity Utility::updateCustomizationSettings failed: ' . $e->getMessage() );

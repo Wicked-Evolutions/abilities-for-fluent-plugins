@@ -83,6 +83,58 @@ class P3NamespaceFixesTest extends TestCase {
 		);
 	}
 
+	// ── Source-level: F-COM-01 cascade reads use canonical Course model ──────
+
+	public function test_course_cascade_reads_do_not_use_space_type_course() {
+		// The Space model's BaseSpace::boot global scope forces type='community',
+		// so Space::where('type','course') is always empty. All course reads
+		// must go through the canonical Course model.
+		$file = dirname( __DIR__, 3 ) . '/includes/community/abilities.php';
+		$src  = file_get_contents( $file );
+
+		$this->assertStringNotContainsString(
+			"\\FluentCommunity\\App\\Models\\Space::where( 'type', 'course' )",
+			$src,
+			'No course read may use Space::where(type,course) — the Space global scope forces type=community (F-COM-01 cascade)'
+		);
+
+		$this->assertStringContainsString(
+			"\\FluentCommunity\\Modules\\Course\\Model\\Course::where( 'type', 'course' )",
+			$src,
+			'Course reads must use canonical Course model (F-COM-01 cascade fix)'
+		);
+	}
+
+	// ── Source-level: update-customization-settings is non-destructive ───────
+
+	public function test_update_customization_settings_merges_over_current() {
+		// Vendor Utility::updateCustomizationSettings() is a full replace
+		// (Arr::only + updateOption). The registrar must read current settings
+		// and merge incoming over them so a partial update is non-destructive.
+		$file = dirname( __DIR__, 3 ) . '/includes/community/abilities-v2.php';
+		$src  = file_get_contents( $file );
+
+		$pos = strpos( $src, "'fluent-community/update-customization-settings'" );
+		$this->assertNotFalse( $pos, 'update-customization-settings registration must exist' );
+		$block = substr( $src, $pos, 2600 );
+
+		$this->assertStringContainsString(
+			'Utility::getCustomizationSettings()',
+			$block,
+			'update-customization-settings must read current settings before writing (merge, not full replace)'
+		);
+		$this->assertStringContainsString(
+			'array_merge( $current, $sanitized )',
+			$block,
+			'update-customization-settings must merge sanitized incoming over current persisted settings'
+		);
+		$this->assertStringContainsString(
+			'updateCustomizationSettings( $merged )',
+			$block,
+			'the merged (not partial) array must be forwarded to the vendor full-replace method'
+		);
+	}
+
 	// ── Absent-vendor guard: get-customization-settings ──────────────────────
 	/**
 	 * @runInSeparateProcess

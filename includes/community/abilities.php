@@ -653,7 +653,7 @@ add_action( 'wp_abilities_api_init', function() {
 			'created_at'   => array( 'type' => 'string' ),
 		) ),
 		'callback' => function( $input ) {
-			$courses = \FluentCommunity\App\Models\Space::where( 'type', 'course' )
+			$courses = \FluentCommunity\Modules\Course\Model\Course::where( 'type', 'course' )
 				->orderBy( 'title', 'ASC' )
 				->get();
 
@@ -700,7 +700,7 @@ add_action( 'wp_abilities_api_init', function() {
 			'created_at'   => array( 'type' => 'string' ),
 		) ),
 		'callback' => function( $input ) {
-			$course = \FluentCommunity\App\Models\Space::where( 'type', 'course' )->find( (int) $input['id'] );
+			$course = \FluentCommunity\Modules\Course\Model\Course::where( 'type', 'course' )->find( (int) $input['id'] );
 			if ( ! $course ) {
 				return fluent_abilities_error( 'not_found', 'Course not found' );
 			}
@@ -747,7 +747,7 @@ add_action( 'wp_abilities_api_init', function() {
 			'created_at'   => array( 'type' => 'string' ),
 		) ),
 		'callback' => function( $input ) {
-			$course = \FluentCommunity\App\Models\Space::where( 'type', 'course' )
+			$course = \FluentCommunity\Modules\Course\Model\Course::where( 'type', 'course' )
 				->where( 'slug', sanitize_text_field( $input['slug'] ) )
 				->first();
 			if ( ! $course ) {
@@ -790,7 +790,7 @@ add_action( 'wp_abilities_api_init', function() {
 		) ),
 		'capability' => 'manage_options',
 		'callback'   => function( $input ) {
-			$query = \FluentCommunity\App\Models\Space::where( 'type', 'course' )
+			$query = \FluentCommunity\Modules\Course\Model\Course::where( 'type', 'course' )
 				->orderBy( 'title', 'ASC' );
 
 			if ( ! empty( $input['status'] ) ) {
@@ -838,7 +838,7 @@ add_action( 'wp_abilities_api_init', function() {
 		) ),
 		'callback' => function( $input ) {
 			// Privacy check: verify course is accessible.
-			$course = \FluentCommunity\App\Models\Space::where( 'type', 'course' )->find( (int) $input['course_id'] );
+			$course = \FluentCommunity\Modules\Course\Model\Course::where( 'type', 'course' )->find( (int) $input['course_id'] );
 			if ( ! $course ) {
 				return fluent_abilities_error( 'not_found', 'Course not found' );
 			}
@@ -908,7 +908,7 @@ add_action( 'wp_abilities_api_init', function() {
 			// Privacy check: verify the lesson's course is accessible.
 			$course_id = $lesson->space_id ?? $lesson->course_id ?? null;
 			if ( $course_id ) {
-				$course = \FluentCommunity\App\Models\Space::find( $course_id );
+				$course = \FluentCommunity\Modules\Course\Model\Course::find( $course_id );
 				if ( ! $course || ! fluent_abilities_space_accessible( $course ) ) {
 					return fluent_abilities_error( 'rest_forbidden', 'You do not have access to this lesson' );
 				}
@@ -949,7 +949,7 @@ add_action( 'wp_abilities_api_init', function() {
 		) ),
 		'level'    => 'admin',
 		'callback' => function( $input ) {
-			$course = \FluentCommunity\App\Models\Space::where( 'type', 'course' )->find( (int) $input['course_id'] );
+			$course = \FluentCommunity\Modules\Course\Model\Course::where( 'type', 'course' )->find( (int) $input['course_id'] );
 			if ( ! $course ) {
 				return fluent_abilities_error( 'not_found', 'Course not found' );
 			}
@@ -1045,7 +1045,7 @@ add_action( 'wp_abilities_api_init', function() {
 			'progress_percentage' => array( 'type' => 'number' ),
 		) ),
 		'callback' => function( $input ) {
-			$course = \FluentCommunity\App\Models\Space::where( 'type', 'course' )->find( (int) $input['course_id'] );
+			$course = \FluentCommunity\Modules\Course\Model\Course::where( 'type', 'course' )->find( (int) $input['course_id'] );
 			if ( ! $course ) {
 				return fluent_abilities_error( 'not_found', 'Course not found' );
 			}
@@ -2307,7 +2307,7 @@ add_action( 'wp_abilities_api_init', function() {
 			'course_id' => array( 'type' => 'integer' ),
 		) ),
 		'callback' => function( $input ) {
-			$course = \FluentCommunity\App\Models\Space::where( 'type', 'course' )->find( (int) $input['course_id'] );
+			$course = \FluentCommunity\Modules\Course\Model\Course::where( 'type', 'course' )->find( (int) $input['course_id'] );
 			if ( ! $course ) {
 				return fluent_abilities_error( 'not_found', 'Course not found' );
 			}
