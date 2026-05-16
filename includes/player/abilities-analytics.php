@@ -224,7 +224,7 @@ function fluent_abilities_player_register_analytics_abilities() {
 
 	$reg->read( 'fluent-player/analytics-video-stats', array(
 		'label'         => 'Analytics — single video stats',
-		'description'   => 'Per-video analytics totals.',
+		'description'   => 'Per-video analytics totals. Input: pass the media ID as `media_id` (an integer) — the field is `media_id`, NOT `id`.',
 		'category'      => 'fluent-player',
 		'input_schema'  => $media_id_schema,
 		'output_schema' => fluent_abilities_schema_item_output( array(

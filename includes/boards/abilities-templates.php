@@ -46,7 +46,7 @@ $reg->read( 'fluent-boards/list-templates', array(
 // =========================================================================
 $reg->read( 'fluent-boards/get-template-detail', array(
 	'label'       => 'Get Template Detail (Pro)',
-	'description' => 'Get the full structure of a template (stages, tasks, labels, custom fields).',
+	'description' => 'Get the full structure of a template (stages, tasks, labels, custom fields). Note: within `stages`, the vendor returns `id` and `position` as strings (e.g. "220", "1.00"), unlike sibling board abilities which return them as integers (vendor type drift).',
 	'category'    => 'fluent-boards',
 	'input_schema' => array(
 		'type'       => 'object',

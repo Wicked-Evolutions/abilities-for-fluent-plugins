@@ -19,7 +19,7 @@ defined( 'ABSPATH' ) || exit;
 // =========================================================================
 $reg->read( 'fluent-boards/list-tasks-by-stage', array(
 	'label'       => 'List Tasks By Stage',
-	'description' => 'List active tasks on a board filtered to a single stage. Excludes archived tasks by default.',
+	'description' => 'List active tasks on a board filtered to a single stage. Excludes archived tasks by default. Note: `position` is returned by the vendor as a numeric string (e.g. "0.00").',
 	'category'    => 'fluent-boards',
 	'input_schema' => array(
 		'type'       => 'object',
@@ -33,7 +33,7 @@ $reg->read( 'fluent-boards/list-tasks-by-stage', array(
 		'id'        => array( 'type' => 'integer' ),
 		'title'     => array( 'type' => array( 'string', 'null' ) ),
 		'priority'  => array( 'type' => array( 'string', 'null' ) ),
-		'position'  => array( 'type' => array( 'number', 'null' ) ),
+		'position'  => array( 'type' => array( 'number', 'string', 'null' ) ),
 		'due_at'    => array( 'type' => array( 'string', 'null' ) ),
 		'status'    => array( 'type' => array( 'string', 'null' ) ),
 	) ),
@@ -112,7 +112,7 @@ $reg->read( 'fluent-boards/list-archived-tasks', array(
 // =========================================================================
 $reg->write( 'fluent-boards/archive-task', array(
 	'label'       => 'Archive Task',
-	'description' => 'Set archived_at on a task. Reversible via restore-task.',
+	'description' => 'Set archived_at on a task. Reversible via restore-task. Note: the task identifier parameter is `id` (sibling task abilities use `task_id` for the same value).',
 	'category'    => 'fluent-boards',
 	'input_schema' => array(
 		'type'       => 'object',

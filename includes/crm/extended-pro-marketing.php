@@ -424,7 +424,7 @@ function fluent_abilities_crm_register_extended_pro_marketing() {
 
 	$reg->write( 'fluent-crm/update-recurring-campaign-labels', array(
 		'label'         => 'Update CRM Recurring Campaign Labels (Pro)',
-		'description'   => 'Update label IDs on a recurring campaign. Source: RecurringCampaignController::updateLabels (PUT /recurring-campaigns/{campaign_id}/update-labels).',
+		'description'   => 'Update label IDs on a recurring campaign. Note: the label field is named `labels` (an integer array of label/term IDs), not `label_ids`; the handler reads `labels` directly. Source: RecurringCampaignController::updateLabels (PUT /recurring-campaigns/{campaign_id}/update-labels).',
 		'category'      => 'fluent-crm',
 		'input_schema'  => array(
 			'type'       => 'object',

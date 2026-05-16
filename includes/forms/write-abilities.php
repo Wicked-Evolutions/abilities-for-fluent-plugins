@@ -152,7 +152,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-forms/update-form', array(
 		'label'       => 'Update Form',
-		'description' => 'Update an existing Fluent Form. Any subset of title, status, type, form_fields, appearance_settings, conditions may be supplied.',
+		'description' => 'Update an existing Fluent Form. Any subset of title, status, type, form_fields, appearance_settings, conditions may be supplied. Note: the identifier parameter is `form_id` (not `id`).',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'form_id' ),
@@ -1183,7 +1183,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->delete( 'fluent-forms/delete-submission-note', array(
 		'label'       => 'Delete Submission Note',
-		'description' => 'Delete a single note (by note_id) belonging to a Fluent Forms submission.',
+		'description' => 'Delete a single note (by note_id) belonging to a Fluent Forms submission. Note: requires a composite key — both `submission_id` (the parent submission/response row) and `note_id` (the note meta row) are required.',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'submission_id', 'note_id' ),
@@ -2076,7 +2076,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->read( 'fluent-forms/get-form-integration', array(
 		'label'       => 'Get Form Integration',
-		'description' => 'Get a single integration feed config by its row id.',
+		'description' => 'Get a single integration feed config by its row id. Note: the feed identifier parameter is `integration_id` (the form_meta row ID of the feed), and `form_id` is also required.',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'form_id', 'integration_id' ),
@@ -2314,7 +2314,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->read( 'fluent-forms/get-integration-list-ids', array(
 		'label'       => 'Get Integration List IDs',
-		'description' => 'Return the available remote list ids for an integration (mailing list, audience, board, etc.). Output shape is integration-specific.',
+		'description' => 'Return the available remote list ids for an integration (mailing list, audience, board, etc.). Output shape is integration-specific. Note: both `form_id` and `integration_name` (the integration slug string) are required.',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'form_id', 'integration_name' ),
@@ -2440,7 +2440,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-forms/toggle-integration-status', array(
 		'label'       => 'Toggle Integration Status',
-		'description' => 'Enable or disable an integration globally. status is yes or no.',
+		'description' => 'Enable or disable an integration globally. Note: requires `integration_name` (the integration slug string) and `status`, where `status` is the string "yes" or "no" (a string enum, not a boolean).',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'integration_name', 'status' ),
@@ -3045,7 +3045,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->read( 'fluent-forms/global-search', array(
 		'label'       => 'Global Search',
-		'description' => 'Search across Fluent Forms titles and submission responses. scope controls which result types are returned (forms / submissions / all).',
+		'description' => 'Search across Fluent Forms titles and submission responses. scope controls which result types are returned (forms / submissions / all). Note: the query parameter is `search` (not `q`).',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'search' ),

@@ -260,7 +260,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-cart/update-eu-vat-config', array(
 		'label'       => 'Update EU VAT Configuration',
-		'description' => 'Update EU VAT module configuration (rate matrix + OSS-shipping override). Mirrors POST /tax/configuration/settings/eu-vat.',
+		'description' => 'Update EU VAT module configuration (rate matrix + OSS-shipping override). Note: the entire payload must be nested under a single top-level `config` object (e.g. {"config": {"enabled": true, "oss_shipping": ..., "rates": {...}}}) — these keys must NOT be sent flattened at the root. The handler reads $input["config"] wholesale and writes it to the fluent_cart_eu_vat_config option (and config.rates to fluent_cart_eu_vat_rates). Mirrors POST /tax/configuration/settings/eu-vat.',
 		'input_schema' => array(
 			'type'     => 'object',
 			'required' => array( 'config' ),

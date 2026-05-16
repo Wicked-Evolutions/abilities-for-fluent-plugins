@@ -134,7 +134,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-cart/update-variant-inventory', array(
 		'label'       => 'Update Variant Inventory',
-		'description' => 'Update variant-level stock_quantity and stock_status. Mirrors PUT /products/{postId}/update-inventory/{variantId}.',
+		'description' => 'Update variant-level stock_quantity and stock_status. Note: the identifying field for this ability is `variant_id` (resolved via \FluentCart\App\Models\ProductVariation::find = the {variantId} route segment). Other product abilities in this plugin use `variation_id` for the same underlying entity — this ability deliberately expects `variant_id`; do not substitute `variation_id` here. Mirrors PUT /products/{postId}/update-inventory/{variantId}.',
 		'input_schema' => array(
 			'type'     => 'object',
 			'required' => array( 'variant_id' ),
@@ -292,7 +292,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-cart/bulk-update-products', array(
 		'label'       => 'Bulk Update Products',
-		'description' => 'Partial update across many product IDs. Mirrors POST /products/bulk-update.',
+		'description' => 'Partial update across many product IDs. Shape: `ids` is an array of integer product post IDs, `changes` is an object of fields to apply to every matched product. Note: the installed handler currently applies only `changes.status` (written to the product post_status); other keys placed in `changes` are accepted by the schema but not written by this handler. Mirrors POST /products/bulk-update via \FluentCart\App\Models\Product::whereIn(ID)->save.',
 		'input_schema' => array(
 			'type'     => 'object',
 			'required' => array( 'ids', 'changes' ),

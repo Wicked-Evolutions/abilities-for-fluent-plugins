@@ -641,7 +641,7 @@ function fluent_abilities_register_community_v2() {
 	// ── 4.4.1 add-reaction ──────────────────────────────────────────────────
 	$reg->write( 'fluent-community/add-reaction', array(
 		'label'       => 'Add Reaction',
-		'description' => 'Add a reaction (default type=like) to a feed post, comment, or lesson_completed marker.',
+		'description' => 'Add a reaction (default type=like) to a feed post, comment, or lesson_completed marker. Note: the target is polymorphic — required parameters are `object_id` (the target row ID) and `object_type` (one of feed|comment|lesson_completed).',
 		'category'    => 'fluent-community',
 		'input_schema' => array(
 			'type'       => 'object',
@@ -700,7 +700,7 @@ function fluent_abilities_register_community_v2() {
 	// ── 4.4.2 remove-reaction ───────────────────────────────────────────────
 	$reg->delete( 'fluent-community/remove-reaction', array(
 		'label'       => 'Remove Reaction',
-		'description' => 'Remove the current user\'s reaction from a feed post, comment, or lesson_completed marker.',
+		'description' => 'Remove the current user\'s reaction from a feed post, comment, or lesson_completed marker. Note: the target is polymorphic — required parameters are `object_id` (the target row ID) and `object_type` (one of feed|comment|lesson_completed).',
 		'category'    => 'fluent-community',
 		'input_schema' => array(
 			'type'       => 'object',
@@ -745,7 +745,7 @@ function fluent_abilities_register_community_v2() {
 	// ── 4.4.3 list-reactions ────────────────────────────────────────────────
 	$reg->read( 'fluent-community/list-reactions', array(
 		'label'       => 'List Reactions',
-		'description' => 'List reactions on a target object (feed/comment/lesson_completed), optionally filtered by reaction type.',
+		'description' => 'List reactions on a target object (feed/comment/lesson_completed), optionally filtered by reaction type. Note: the target is polymorphic — required parameters are `object_id` (the target row ID) and `object_type` (one of feed|comment|lesson_completed).',
 		'category'    => 'fluent-community',
 		'input_schema' => array(
 			'type'       => 'object',
@@ -1234,7 +1234,7 @@ function fluent_abilities_register_community_v2() {
 	// ── 4.6.10 update-crm-tagging-config ────────────────────────────────────
 	$reg->write( 'fluent-community/update-crm-tagging-config', array(
 		'label'       => 'Update CRM Tagging Config',
-		'description' => "Update option '_fcom_crm_tagging'. Pro+CRM. See get-crm-tagging-config for keys.",
+		'description' => "Update option '_fcom_crm_tagging'. Pro+CRM. Note: all config keys must be nested inside a top-level `settings` object (e.g. {\"settings\":{\"is_enabled\":\"yes\"}}) — they are not passed as top-level parameters. See get-crm-tagging-config for keys.",
 		'category'    => 'fluent-community',
 		'level'       => 'admin',
 		'input_schema' => array(
@@ -1611,7 +1611,7 @@ function fluent_abilities_register_community_v2() {
 	// ── 4.9.1 check-is-following ────────────────────────────────────────────
 	$reg->read( 'fluent-community/check-is-following', array(
 		'label'       => 'Check Is Following',
-		'description' => 'Return whether follower_id is following followed_id. Pro module required.',
+		'description' => 'Return whether follower_id is following followed_id. Pro module required. Note: requires a composite pair — both `follower_id` and `followed_id` (user IDs) are required.',
 		'category'    => 'fluent-community',
 		'input_schema' => array(
 			'type'       => 'object',
@@ -1661,7 +1661,7 @@ function fluent_abilities_register_community_v2() {
 	// ── 4.10.1 emit-event ───────────────────────────────────────────────────
 	$reg->write( 'fluent-community/emit-event', array(
 		'label'       => 'Emit Cross-Plugin Event',
-		'description' => 'Fire a do_action() hook with a payload. Event name must be in the FluentCommunity allow-list or use the custom/* prefix. Allow-listed events: fluent_community/space/joined, /space/updated, /course/enrolled, /feed/created, /feed/react_added, /feed/react_removed, /comment_added, /portal_render_for_user, /remove_medias_by_url, /install_messaging_plugin, /install_fluent_player_plugin.',
+		'description' => 'Fire a do_action() hook with a payload. Note: the parameter is `event` (not `event_name`); its value must either exactly match an allow-listed event below or begin with the literal `custom/` prefix. Allow-listed events: fluent_community/space/joined, /space/updated, /course/enrolled, /feed/created, /feed/react_added, /feed/react_removed, /comment_added, /portal_render_for_user, /remove_medias_by_url, /install_messaging_plugin, /install_fluent_player_plugin.',
 		'category'    => 'fluent-community',
 		'level'       => 'admin',
 		'input_schema' => array(
@@ -1993,7 +1993,7 @@ function fluent_abilities_register_community_v2() {
 	// ── 4.13.1 cast-survey-vote ─────────────────────────────────────────────
 	$reg->write( 'fluent-community/cast-survey-vote', array(
 		'label'       => 'Cast Survey Vote',
-		'description' => 'Cast a vote on a Feed where content_type=survey. Vote indexes correspond to survey_config.options[].',
+		'description' => 'Cast a vote on a Feed where content_type=survey. Note: required parameters are `feed_id` and `vote_indexes` — an array of integer option indexes (zero-based positions into survey_config.options[]), NOT an `option_slug` string.',
 		'category'    => 'fluent-community',
 		'input_schema' => array(
 			'type'       => 'object',
@@ -2334,7 +2334,7 @@ function fluent_abilities_register_community_v2() {
 	// ── 4.15.1 search-members-mention ───────────────────────────────────────
 	$reg->read( 'fluent-community/search-members-mention', array(
 		'label'       => 'Search Members (Mention)',
-		'description' => 'Autocomplete-style member search by display_name OR username. Excludes the current user, limited to 10 results, optionally scoped to a space. Requires authenticated user.',
+		'description' => 'Autocomplete-style member search by display_name OR username. Excludes the current user, limited to 10 results, optionally scoped to a space. Requires authenticated user. Note: the search string parameter is `mention` (not `query`).',
 		'category'    => 'fluent-community',
 		'input_schema' => array(
 			'type'       => 'object',

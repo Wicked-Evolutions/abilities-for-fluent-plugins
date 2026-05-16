@@ -133,7 +133,7 @@ function fluent_abilities_player_register_media_abilities() {
 
 	$reg->read( 'fluent-player/get-media', array(
 		'label'        => 'Get media',
-		'description'  => 'Get a single media item by ID with enriched view_url, tags, and post_content.',
+		'description'  => 'Get a single media item by ID with enriched view_url, tags, and post_content. Input: pass the media ID as `id` (an integer).',
 		'category'     => 'fluent-player',
 		'input_schema' => array(
 			'type'       => 'object',
@@ -205,7 +205,7 @@ function fluent_abilities_player_register_media_abilities() {
 
 	$reg->read( 'fluent-player/search-media', array(
 		'label'        => 'Search media',
-		'description'  => 'Search media by query / ID list / status with offset+limit paging.',
+		'description'  => 'Search media by query / ID list / status with offset+limit paging. Input: the free-text search keyword field is named `q` (a string) — there is no `query`/`search`/`keyword` field; the handler reads `q` verbatim.',
 		'category'     => 'fluent-player',
 		'input_schema' => array(
 			'type'       => 'object',
@@ -583,7 +583,7 @@ function fluent_abilities_player_register_media_abilities() {
 
 	$reg->read( 'fluent-player/get-media-metadata', array(
 		'label'        => 'Get media metadata (oEmbed/YouTube)',
-		'description'  => 'Fetch oEmbed-style metadata for a URL (used by editor previews).',
+		'description'  => 'Fetch oEmbed-style metadata for a URL (used by editor previews). Input: this is a URL oEmbed inspector — pass the source URL as `url` (a required string); it does NOT look media up by `id`/`media_id`, there is no media-by-id mode.',
 		'category'     => 'fluent-player',
 		'input_schema' => array(
 			'type'       => 'object',
@@ -703,7 +703,7 @@ function fluent_abilities_player_register_media_abilities() {
 
 		$reg->write( 'fluent-player/create-media-tag', array(
 			'label'        => 'Create media tag',
-			'description'  => 'Create a new media tag by name.',
+			'description'  => 'Create a new media tag by name. Input: the tag name field is `tag_name` (a required string) — NOT `name`.',
 			'category'     => 'fluent-player',
 			'input_schema' => array(
 				'type'       => 'object',

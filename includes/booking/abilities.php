@@ -1366,7 +1366,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-booking/update-booking-status', array(
 		'label'       => 'Update Booking Status',
-		'description' => 'Update the status of a booking. Uses the Booking model to ensure all hooks fire. Valid statuses: scheduled, completed, cancelled, rejected, no_show.',
+		'description' => 'Update the status of a booking. Uses the Booking model to ensure all hooks fire. Valid statuses: scheduled, completed, cancelled, rejected, no_show. Input: pass the booking ID as `id` (an integer) — the field is `id`, NOT `booking_id` — plus `status` (one of the valid statuses) and optional `reason`.',
 		'category'    => 'fluent-booking',
 		'input_schema' => array(
 			'type'       => 'object',

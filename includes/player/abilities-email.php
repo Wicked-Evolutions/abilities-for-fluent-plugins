@@ -272,7 +272,7 @@ function fluent_abilities_player_register_email_abilities() {
 
 	$reg->read( 'fluent-player/list-integrations', array(
 		'label'         => 'List integrations',
-		'description'   => 'List FluentPlayer integration registry (YouTube/Bunny Stream/Bunny Storage/Mux) with enabled + configured status.',
+		'description'   => 'List FluentPlayer integration registry (YouTube/Bunny Stream/Bunny Storage/Mux) with enabled + configured status. Output note: each integration item carries no stable record ID — use the `slug` field to reference an integration in follow-up calls.',
 		'category'      => 'fluent-player',
 		'output_schema' => fluent_abilities_schema_collection_output( 'integrations', array(
 			'name'       => array( 'type' => 'string' ),
@@ -428,7 +428,7 @@ function fluent_abilities_player_register_email_abilities() {
 	// SECURITY NOTE: response includes stored provider API keys — flag for mcp.public=false + redaction in v1.2 meta-override.
 	$reg->read( 'fluent-player/list-email-providers', array(
 		'label'         => 'List email providers',
-		'description'   => 'List registered email providers with configuration status (returns API keys for configured providers).',
+		'description'   => 'List registered email providers with configuration status (returns API keys for configured providers). Output note: each provider item carries no stable record ID — use the `slug` field to reference a provider in follow-up calls.',
 		'category'      => 'fluent-player',
 		'output_schema' => fluent_abilities_schema_collection_output( 'providers', array(
 			'slug'       => array( 'type' => 'string' ),
@@ -506,7 +506,7 @@ function fluent_abilities_player_register_email_abilities() {
 			'type'       => 'object',
 			'required'   => array( 'provider', 'resource' ),
 			'properties' => array(
-				'provider' => array( 'type' => 'string' ),
+				'provider' => array( 'type' => 'string', 'description' => 'Email provider slug (the registered provider identifier, e.g. the `slug` returned by list-email-providers).' ),
 				'resource' => array( 'type' => 'string', 'description' => 'lists | tags | forms' ),
 			),
 		),

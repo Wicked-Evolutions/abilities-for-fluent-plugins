@@ -167,7 +167,7 @@ function fluent_abilities_crm_register_extended_funnels() {
 
 	$reg->write( 'fluent-crm/update-funnel-title', array(
 		'label'         => 'Update CRM Funnel Title',
-		'description'   => 'Update funnel title. Source: FunnelController::updateTitle (PUT /funnels/funnel/{id}/title).',
+		'description'   => 'Update funnel title. Note: the identifying field is `id` (the funnel ID, not `funnel_id` or `campaign_id`). Source: FunnelController::updateTitle (PUT /funnels/funnel/{id}/title).',
 		'category'      => 'fluent-crm',
 		'input_schema'  => $id_required( array(
 			'title' => array( 'type' => 'string' ),
@@ -493,7 +493,7 @@ function fluent_abilities_crm_register_extended_funnels() {
 
 	$reg->write( 'fluent-crm/do-bulk-action-funnels', array(
 		'label'         => 'Bulk Action On CRM Funnels',
-		'description'   => 'Bulk operation across funnels. Capability cascades per action: delete_funnels → fcrm_delete_funnels; others → fcrm_write_funnels. Source: FunnelController::handleBulkAction (POST /funnels/do-bulk-action).',
+		'description'   => 'Bulk operation across funnels. Capability cascades per action: delete_funnels → fcrm_delete_funnels; others → fcrm_write_funnels. Note: the handler accepts exactly these `action_name` values — `change_funnel_status` (also requires a `status` string in `action_data`), `delete_funnels`, and `apply_labels` (also requires a `labels` integer array in `action_data`); any other value is a no-op. Source: FunnelController::handleBulkAction (POST /funnels/do-bulk-action).',
 		'category'      => 'fluent-crm',
 		'input_schema'  => array(
 			'type'       => 'object',
