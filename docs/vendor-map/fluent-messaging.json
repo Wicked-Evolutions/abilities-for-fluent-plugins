@@ -10,10 +10,35 @@
       "canonical_handler": "wpFluent()->table('fcom_chat_messages')->insertGetId",
       "direct_storage": true,
       "destructive": false,
-      "principles": [ "V9", "V10" ],
+      "principles": [
+        "V9",
+        "V10"
+      ],
       "package": 3,
       "pattern": "P-N",
-      "notes": "Package 3 V9 returned-id fix (F-COM-05). Prior registrar used wpFluent insert() which returns boolean; the returned message_id was always cast from true to 1. insertGetId() returns the auto-increment primary key of the inserted row. No vendor model wraps fcom_chat_messages directly at this level; direct wpFluent insert is the appropriate path. This package corrects only the id-return shape."
+      "notes": "Package 3 V9 returned-id fix (F-COM-05). Prior registrar used wpFluent insert() which returns boolean; the returned message_id was always cast from true to 1. insertGetId() returns the auto-increment primary key of the inserted row. No vendor model wraps fcom_chat_messages directly at this level; direct wpFluent insert is the appropriate path. This package corrects only the id-return shape.",
+      "doc": "installed vendor source: wpFluent()->table('fcom_chat_messages')->insertGetId",
+      "rationale": "Raw wpFluent insertGetId() is the appropriate write path: no vendor model wraps fcom_chat_messages at this level; insertGetId() returns the auto-increment primary key (the id list-messages sees), correcting the prior boolean->1 V9 returned-id defect.",
+      "read_back": {
+        "ability": "fluent-messaging/list-messages",
+        "field": "id"
+      }
+    },
+    {
+      "ability": "fluent-messaging/get-thread",
+      "vendor": "fluent-messaging",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
     }
   ]
 }

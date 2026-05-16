@@ -15,10 +15,144 @@
         "ability": "fluent-forms/get-form",
         "field": "title"
       },
-      "principles": [ "V1", "V3", "V5", "V9", "V10" ],
+      "principles": [
+        "V1",
+        "V3",
+        "V5",
+        "V9",
+        "V10"
+      ],
       "package": "3c",
       "pattern": "F-FORMS-01 input-echo + template-seed title/status loss",
       "notes": "Package 3c V3/V9 fix (P3c, Variant A — orchestrator-dispositioned, reviewer-verified against vendor source). Callback-body only; no input_schema/output_schema/annotation change (this is a new v2.0.0 ability, not v1.1.3 Stable-locked: includes/forms/write-abilities.php first added in commit 7891620). DEFECT (F-FORMS-01): the pre-fix callback always routed through FormService::store() and fabricated its return from the INPUT ($title / $attributes['status']). Vendor source proves store() is template-seeded: resolvePredefinedForm() returns the predefined-template structure and carries over only `type` from caller attributes; Form::prepare() then reads title/status/form_fields from the resolved template (defaults title 'My New Form', status 'published') and array_filter() drops empties; store() then unconditionally appends ' (#'.$id.')' to the title. With no `predefined` key, framework Arr::get($map, null) returns the whole template map (no exception) -> persisted 'My New Form (#N)' / published / form_fields:null while the ability returned the operator's input verbatim (V3 read-back violation; V9 returned-id/round-trip mismatch on title/status). FIX: bare create now routes through the vendor public Form model the way FormService uses it internally (Form::prepare([...]) -> model create + save) but WITHOUT the ' (#id)' rename, so declared title/status/form_fields persist verbatim; the template/predefined path keeps FormService::store() (its rename + default meta are vendor-native there). The return is now a read-back of the persisted vendor Form (Form::find), scalar-cast (V5 framework-object boundary: form_id int, title/status string — no Eloquent/Collection state). V10 typed errors: plugin_missing (Form class absent), vendor_precondition_failed (Form::prepare missing on build / read-back fails / FormService::store unavailable on template path), ability_execution_failed (vendor throw or no persisted id). method_exists() is intentionally NOT used to gate create()/find() (WPFluent ORM resolves them via __call/__callStatic; a vendor failure surfaces through try/catch as a typed error). LIVE READ-BACK VERIFIED (2026-05-16, helenawillow, p3c build deployed via SSH then restored to 0fbd3b1 — pre 122210/md5 21d45c34, post-restore 122210/md5 21d45c34; mcp-adapter-execute-ability path, no wp eval/DB, testclient discipline, 0 fixture residue): bare create title='P3C-testclient-bare-1' status='unpublished' -> get-form id=18 persisted title='P3C-testclient-bare-1' (NO ' (#18)'), status='unpublished' == returned; bare create title='P3C-testclient-bare-2' status='published' with form_fields -> get-form id=19 persisted form_fields == provided builder JSON verbatim, title/status == returned; typed-error path: empty title -> typed 'title is required'. Both forms deleted; get-form 18/19 -> 'Form not found' (0 residue). REVIEW ROUND 2 (PR #88): (1) created_by ownership — vendor source proves Form::prepare() builds 'created_by' => get_current_user_id() then array_filter(); FormService::store() sets created_by ONLY via that same Form::prepare() call (no separate assignment), so Variant A's Form::prepare()->create()->save() sets ownership by the IDENTICAL vendor mechanism as the realistic pre-fix path (FormService::store, class_exists always true on FluentForms-active sites) — no ownership regression is structurally possible; the pre-fix explicit $form->created_by in the manual else-branch was the FormService-ABSENT fallback only, off the realistic path. No MCP read ability projects fluentform_forms.created_by (get-form runs SELECT * but returns a fixed field set excluding created_by, and get-form is v1.1.3 Stable-locked — its schema/callback cannot be extended here), so persisted owner is established by vendor source + behavioral parity, not by a reader field. create()+save() mirrors FormService::store() internals (store() itself does $this->model->create($data) then $form->save()). (2) Template path RETURN did change (now flows the shared read-back: persisted '<template> (#id)' title, redirect_url => null) — the earlier 'unchanged' wording is corrected; the WRITE mechanism (FormService::store) is unchanged. LIVE (2026-05-16, helenawillow, mcp-adapter path, testclient, 0 residue): bare title='P3C-tc-owner-bare' status='unpublished' -> get-form id=20 persisted == returned; template_id=1 with title input 'P3C-tc-template' -> create-form RETURN and get-form id=21 BOTH 'My New Form (#21)' / 'published' (vendor-native predefined-seed + ' (#id)' rename via FormService::store; the return is now a truthful read-back, NOT the pre-fix input echo of 'P3C-tc-template'). Forms 20/21 deleted -> 'Form not found'. p3c build deployed via SSH, restored to 0fbd3b1 (122210 B / md5 21d45c341a649b65000353bb4c42db99)."
+    },
+    {
+      "ability": "fluent-forms/update-form",
+      "vendor": "fluent-forms",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-forms/delete-submission-note",
+      "vendor": "fluent-forms",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-forms/get-form-integration",
+      "vendor": "fluent-forms",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-forms/get-integration-list-ids",
+      "vendor": "fluent-forms",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-forms/toggle-integration-status",
+      "vendor": "fluent-forms",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-forms/export-entries",
+      "vendor": "fluent-forms",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-forms/global-search",
+      "vendor": "fluent-forms",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-forms/get-submission",
+      "vendor": "fluent-forms",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
     }
   ]
 }
