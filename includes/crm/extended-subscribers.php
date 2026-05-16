@@ -318,7 +318,7 @@ function fluent_abilities_crm_register_extended_subscribers() {
 
 	$reg->write( 'fluent-crm/do-bulk-action-contacts', array(
 		'label'         => 'Bulk Action On CRM Contacts',
-		'description'   => 'Apply bulk action across subscribers (add_tags/remove_tags/add_lists/remove_lists/change_status/delete_contacts/add_to_automation/add_to_email_sequence). Source: SubscriberController::handleBulkActions (POST /subscribers/do-bulk-action). Capability cascades per action: delete_contacts → fcrm_manage_contacts_delete; add_to_email_sequence → fcrm_manage_emails; add_to_automation → fcrm_write_funnels.',
+		'description'   => 'Apply bulk action across subscribers. Note: the installed handler accepts exactly these `action_name` values — add_to_tags, remove_from_tags, add_to_lists, remove_from_lists, delete_contacts, change_contact_status, add_to_automation, add_to_email_sequence, send_double_optin, add_to_company, remove_from_company, change_contact_type, update_custom_fields. The short forms add_tags/remove_tags/add_lists/remove_lists/change_status are NOT recognized (use the longer add_to_*/remove_from_*/change_contact_status forms); an unrecognized value returns a clean "Selected Action is not valid" error and performs nothing. Source: SubscriberController::handleBulkActions (POST /subscribers/do-bulk-action). Capability cascades per action: delete_contacts → fcrm_manage_contacts_delete; add_to_email_sequence → fcrm_manage_emails; add_to_automation → fcrm_write_funnels.',
 		'category'      => 'fluent-crm',
 		'input_schema'  => array(
 			'type'       => 'object',
@@ -326,7 +326,7 @@ function fluent_abilities_crm_register_extended_subscribers() {
 			'properties' => array(
 				'action_name'    => array(
 					'type'        => 'string',
-					'description' => 'add_tags, remove_tags, add_lists, remove_lists, change_status, delete_contacts, add_to_automation, add_to_email_sequence',
+					'description' => 'Handler-accepted values: add_to_tags, remove_from_tags, add_to_lists, remove_from_lists, delete_contacts, change_contact_status, add_to_automation, add_to_email_sequence, send_double_optin, add_to_company, remove_from_company, change_contact_type, update_custom_fields. (The short forms add_tags/remove_tags/add_lists/remove_lists/change_status are not recognized by the installed handler.)',
 				),
 				'subscriber_ids' => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
 				'action_data'    => $obj,
@@ -378,7 +378,7 @@ function fluent_abilities_crm_register_extended_subscribers() {
 
 	$reg->read( 'fluent-crm/export-subscribers', array(
 		'label'         => 'Export CRM Subscribers',
-		'description'   => 'Export subscribers as CSV or JSON. Long-running operation; returns download URL or inline payload. Source: SubscriberController::exportSubscribers (GET|POST /subscribers-export). Capability: fcrm_read_contacts.',
+		'description'   => 'Export subscribers as CSV or JSON. Long-running operation; returns download URL or inline payload. Note: the column-selection list is named `fields` here, but the vendor export handler reads the selected columns from a `columns` key — when narrowing exported columns, send the column slugs under `fields` (this wrapper forwards them) understanding the vendor maps them to its `columns` parameter. Source: SubscriberController::exportSubscribers (GET|POST /subscribers-export). Capability: fcrm_read_contacts.',
 		'category'      => 'fluent-crm',
 		'input_schema'  => array(
 			'type'       => 'object',

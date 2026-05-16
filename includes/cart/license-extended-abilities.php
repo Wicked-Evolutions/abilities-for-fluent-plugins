@@ -145,7 +145,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-cart/extend-license-validity', array(
 		'label'       => 'Extend License Validity',
-		'description' => 'Set expiration_date for a license. Accepts a YYYY-MM-DD date or the literal \'lifetime\'. Mirrors LicenseController::extendValidity.',
+		'description' => 'Set expiration_date for a license. The handler-expected field is a single `expiration_date` string (an absolute YYYY-MM-DD date, or the literal "lifetime" which stores NULL = never expires); it is NOT a relative `extension_value`+`extension_unit` pair. Mirrors \FluentCartPro\App\Modules\Licensing\Models\License::find/save (LicenseController::extendValidity).',
 		'input_schema' => array(
 			'type'     => 'object',
 			'required' => array( 'id', 'expiration_date' ),

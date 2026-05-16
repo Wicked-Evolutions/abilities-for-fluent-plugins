@@ -976,6 +976,40 @@
       "pattern": "SEPARABLE-DEFECT (dead proxy route) — NOT P-H; bounced to reviewer, not self-elected",
       "notes": "Package 4b — STOP/bounce per Addendum 15 (c) split trigger. This is NOT a P-H response-shape drift: the proxied REST route does not exist (vendor route table verified), so the ability 404s regardless of schema. Repointing the route (e.g. to reports/campaigns-list) is a V3 route-correctness change of a different class than the 4b normalize/union pass and a different slug's contract — NOT self-elected. Excluded from 4b code; flagged to reviewer for disposition (repoint vs deprecate). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why)",
       "status": "PENDING — separable defect, bounced to reviewer (no code in 4b)"
+    },
+    {
+      "ability": "fluent-crm/set-global-email-style",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM installed on helenawillow probe (incidental; source read live 2026-05-16)",
+      "authority": "vendor handler",
+      "canonical_handler": "see notes",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "RECLASSIFY — executable behavior (P-L-shape), not editorial",
+      "notes": "Package 5 STOP/escalate: vendor TemplateController::setGlobalStyle reads `config`; ability schema/forwards `style`. Schema-valid {style:{...}} -> handler saves empty config, returns success (input discarded, misleading success). Behavior bug, not naming. Escalated to write-correctness owner (Package-3/P-L); orchestrator routes. No P5 code. see docs/P5-SCHEMA-CLARITY.md",
+      "status": "PENDING — reclassified to behavior owner, escalated (no P5 code)"
+    },
+    {
+      "ability": "fluent-crm/list-subscribers-prev-next-ids",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM installed on helenawillow probe (incidental; source read live 2026-05-16)",
+      "authority": "vendor handler",
+      "canonical_handler": "see notes",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "RECLASSIFY — contract/behavior, not editorial",
+      "notes": "Package 5 STOP/escalate: vendor SubscriberController::getPrevNextIds requires filter_type+current_id, never reads `id` (the only schema-required field) -> rejects 100% of schema-valid input. `required` array factually unusable (beyond description clarity). Escalated; orchestrator routes. No P5 code. see docs/P5-SCHEMA-CLARITY.md",
+      "status": "PENDING — reclassified to behavior owner, escalated (no P5 code)"
     }
   ]
 }

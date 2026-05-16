@@ -218,7 +218,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-community/update-space', array(
 		'label'       => 'Update Community Space',
-		'description' => 'Update an existing community space.',
+		'description' => 'Update an existing community space. Note: the identifier parameter is `space_id` (not `id`).',
 		'category'    => 'fluent-community',
 		'input_schema' => array(
 			'type'       => 'object',
@@ -501,7 +501,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-community/create-comment', array(
 		'label'       => 'Create Feed Comment',
-		'description' => 'Add a comment to a feed/post.',
+		'description' => 'Add a comment to a feed/post. Note: top-level parameters are `feed_id` (the target feed/post ID) and `message` (the comment body); both are required.',
 		'category'    => 'fluent-community',
 		'annotations' => array( 'idempotent' => false ),
 		'input_schema' => array(
@@ -876,7 +876,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->read( 'fluent-community/get-lesson', array(
 		'label'       => 'Get Lesson Content',
-		'description' => 'Get full lesson content by ID.',
+		'description' => 'Get full lesson content by ID. Note: the parameter is `id` (the lesson ID), not `lesson_id`.',
 		'category'    => 'fluent-community',
 		'input_schema' => array(
 			'type'       => 'object',
@@ -1643,7 +1643,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-community/follow-user', array(
 		'label'       => 'Follow User',
-		'description' => 'Follow a community member (requires FluentCommunity Pro).',
+		'description' => 'Follow a community member (requires FluentCommunity Pro). Note: the parameter is `target_user_id` (the user to follow), not `user_id`; the follower is always the current authenticated user.',
 		'category'    => 'fluent-community',
 		'input_schema' => array(
 			'type'       => 'object',
@@ -1693,7 +1693,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-community/unfollow-user', array(
 		'label'       => 'Unfollow User',
-		'description' => 'Unfollow a community member (requires FluentCommunity Pro).',
+		'description' => 'Unfollow a community member (requires FluentCommunity Pro). Note: the parameter is `target_user_id` (the user to unfollow), not `user_id`; the follower is always the current authenticated user.',
 		'category'    => 'fluent-community',
 		'input_schema' => array(
 			'type'       => 'object',
@@ -2254,7 +2254,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->delete( 'fluent-community/delete-space', array(
 		'label'       => 'Delete Space',
-		'description' => 'Delete a FluentCommunity space and all its content.',
+		'description' => 'Delete a FluentCommunity space and all its content. Note: the identifier parameter is `space_id` (not `id`).',
 		'category'    => 'fluent-community',
 		'capability'  => 'manage_options',
 		'input_schema' => array(
@@ -2439,7 +2439,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-community/update-course', array(
 		'label'       => 'Update Course',
-		'description' => 'Update a course title, description, or privacy. Source: FluentCommunity\\Modules\\Course\\Model\\Course::find().',
+		'description' => 'Update a course title, description, or privacy. Note: the identifier parameter is `course_id` (the course/space ID), not `id`. Source: FluentCommunity\\Modules\\Course\\Model\\Course::find().',
 		'category'    => 'fluent-community',
 		'capability'  => 'manage_options',
 		'input_schema' => array(

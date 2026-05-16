@@ -337,7 +337,7 @@ function fluent_abilities_player_register_playlists_abilities() {
 
 	$reg->read( 'fluent-player/get-youtube-captions', array(
 		'label'         => 'Get YouTube captions',
-		'description'   => 'List YouTube captions for a YouTube-provider media item (third-party YouTube Data API).',
+		'description'   => 'List YouTube captions for a YouTube-provider media item (third-party YouTube Data API). Input: pass the media ID as `media_id` (a required integer).',
 		'category'      => 'fluent-player',
 		'input_schema'  => array(
 			'type'       => 'object',

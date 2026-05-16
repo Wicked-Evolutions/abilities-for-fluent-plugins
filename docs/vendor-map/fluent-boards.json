@@ -13,7 +13,9 @@
       "direct_storage": true,
       "direct_storage_rationale": "Vendor exposes no public delete-board service or REST handler; FluentBoards admin UI builds the same cascade in JS. Pre-existing Phase B decision; Package 2 only addresses the V5 Collection coercion at the array_map sites in the cascade.",
       "destructive": true,
-      "principles": [ "V5" ],
+      "principles": [
+        "V5"
+      ],
       "package": 2,
       "pattern": "P-A",
       "notes": "Package 2 V5 fix: array_map on the wpFluent Collection result raised PHP TypeError. Registrar now coerces via fluent_abilities_to_array() before array_map (1 of 11 P-A sites)."
@@ -26,7 +28,9 @@
       "direct_storage": true,
       "direct_storage_rationale": "Same as delete-board — direct table cascade; no documented vendor service for task deletion in the installed source.",
       "destructive": true,
-      "principles": [ "V5" ],
+      "principles": [
+        "V5"
+      ],
       "package": 2,
       "pattern": "P-A",
       "notes": "Package 2 V5 fix: subtask-id Collection coerced via fluent_abilities_to_array() before array_map (2 of 11 P-A sites)."
@@ -39,7 +43,9 @@
       "direct_storage": true,
       "direct_storage_rationale": "Direct table cascade; same family as delete-task.",
       "destructive": true,
-      "principles": [ "V5" ],
+      "principles": [
+        "V5"
+      ],
       "package": 2,
       "pattern": "P-A",
       "notes": "Package 2 V5 fix: existing-task Collection coerced before array_map (3 of 11 P-A sites)."
@@ -52,7 +58,9 @@
       "direct_storage": true,
       "direct_storage_rationale": "Read-side aggregate built from wpFluent table joins; no vendor REST list-top-tasks-for-boards equivalent.",
       "destructive": false,
-      "principles": [ "V5" ],
+      "principles": [
+        "V5"
+      ],
       "package": 2,
       "pattern": "P-A",
       "notes": "Package 2 V5 fix: relation-rows Collection coerced before array_map (4 of 11 P-A sites)."
@@ -65,7 +73,9 @@
       "direct_storage": true,
       "direct_storage_rationale": "Read aggregate over fbs_tasks + fbs_relations.",
       "destructive": false,
-      "principles": [ "V5" ],
+      "principles": [
+        "V5"
+      ],
       "package": 2,
       "pattern": "P-A",
       "notes": "Package 2 V5 fix: task-id Collection coerced before array_map (5 of 11 P-A sites)."
@@ -78,7 +88,9 @@
       "direct_storage": true,
       "direct_storage_rationale": "Read aggregate over fbs_relations + fbs_boards.",
       "destructive": false,
-      "principles": [ "V5" ],
+      "principles": [
+        "V5"
+      ],
       "package": 2,
       "pattern": "P-A",
       "notes": "Package 2 V5 fix: relations Collection coerced before array_map (6 of 11 P-A sites)."
@@ -91,7 +103,9 @@
       "direct_storage": true,
       "direct_storage_rationale": "Read aggregate over fbs_relations + fbs_tasks.",
       "destructive": false,
-      "principles": [ "V5" ],
+      "principles": [
+        "V5"
+      ],
       "package": 2,
       "pattern": "P-A",
       "notes": "Package 2 V5 fix: relations Collection coerced before array_map (7 of 11 P-A sites)."
@@ -104,7 +118,9 @@
       "direct_storage": true,
       "direct_storage_rationale": "Read aggregate over fbs_relations (shared-board co-occurrence).",
       "destructive": false,
-      "principles": [ "V5" ],
+      "principles": [
+        "V5"
+      ],
       "package": 2,
       "pattern": "P-A",
       "notes": "Package 2 V5 fix: relations Collection coerced before array_map (8 of 11 P-A sites)."
@@ -117,7 +133,9 @@
       "direct_storage": true,
       "direct_storage_rationale": "Read aggregate over fbs_metas (org_manager) + fbs_relations.",
       "destructive": false,
-      "principles": [ "V5" ],
+      "principles": [
+        "V5"
+      ],
       "package": 2,
       "pattern": "P-A",
       "notes": "Package 2 V5 fix: manager-boards Collection coerced before array_map (9 of 11 P-A sites)."
@@ -130,7 +148,9 @@
       "direct_storage": true,
       "direct_storage_rationale": "Read aggregate over fbs_metas (crm_board_link).",
       "destructive": false,
-      "principles": [ "V5" ],
+      "principles": [
+        "V5"
+      ],
       "package": 2,
       "pattern": "P-A",
       "notes": "Package 2 V5 fix: meta-rows Collection coerced before array_map (10 of 11 P-A sites)."
@@ -143,10 +163,120 @@
       "direct_storage": true,
       "direct_storage_rationale": "Direct table delete on fbs_relations + cascade through task-level assignments.",
       "destructive": true,
-      "principles": [ "V5" ],
+      "principles": [
+        "V5"
+      ],
       "package": 2,
       "pattern": "P-A",
       "notes": "Package 2 V5 fix: task-ids Collection coerced before array_map (11 of 11 P-A sites)."
+    },
+    {
+      "ability": "fluent-boards/list-tasks-by-stage",
+      "vendor": "fluent-boards",
+      "vendor_version_checked": "FluentBoards installed on helenawillow probe (incidental test surface; source read live 2026-05-16)",
+      "authority": "vendor handler",
+      "canonical_handler": "see notes",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4/V5 schema-clarity, no write",
+      "principles": [
+        "V4",
+        "V5"
+      ],
+      "package": "5",
+      "pattern": "P-D output type drift (factually-corrective)",
+      "notes": "Package 5 V4/V5: output_schema `position` widened ['number','null']->['number','string','null'] (vendor returns numeric string '0.00'; prevents false rejection; no behavior change). see docs/P5-SCHEMA-CLARITY.md",
+      "status": "VERIFIED-corrective (schema-only widen; probe incidental)"
+    },
+    {
+      "ability": "fluent-boards/upload-board-background-image",
+      "vendor": "fluent-boards",
+      "vendor_version_checked": "FluentBoards installed on helenawillow probe (incidental test surface; source read live 2026-05-16)",
+      "authority": "vendor handler",
+      "canonical_handler": "see notes",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4/V5 schema-clarity, no write",
+      "principles": [
+        "V4",
+        "V5"
+      ],
+      "package": "5",
+      "pattern": "P-B at-least-one constraint (anyOf) — factually-corrective vs installed handler",
+      "notes": "Package 5 reviewer-directed correction. Installed handler precedence if($attachment_id) elseif($url) — BOTH accepted (attachment_id wins), only NEITHER rejected. Added input_schema `anyOf:[{required:[attachment_id]},{required:[<url>]}]` (NOT oneOf — oneOf would false-reject the handler-valid both-case, Principle-4 violation). Factually-corrective Principle-10: breaks no working call (neither already failed at handler), false-rejects no handler-valid input, handler untouched. Live-verified representative upload-board-background-image on helenawillow probe (incidental): both-supplied -> reached handler (schema accepted); neither-supplied -> typed schema anyOf rejection pre-handler. Probe restored to parent 44f3991, 0 residue. see docs/P5-SCHEMA-CLARITY.md",
+      "status": "RESOLVED in PR #91 (reviewer-directed; anyOf not oneOf; representative live-verified)"
+    },
+    {
+      "ability": "fluent-boards/add-task-cover-image",
+      "vendor": "fluent-boards",
+      "vendor_version_checked": "FluentBoards installed on helenawillow probe (incidental test surface; source read live 2026-05-16)",
+      "authority": "vendor handler",
+      "canonical_handler": "see notes",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4/V5 schema-clarity, no write",
+      "principles": [
+        "V4",
+        "V5"
+      ],
+      "package": "5",
+      "pattern": "P-B at-least-one constraint (anyOf) — factually-corrective vs installed handler",
+      "notes": "Package 5 reviewer-directed correction. Installed handler precedence if($attachment_id) elseif($url) — BOTH accepted (attachment_id wins), only NEITHER rejected. Added input_schema `anyOf:[{required:[attachment_id]},{required:[<url>]}]` (NOT oneOf — oneOf would false-reject the handler-valid both-case, Principle-4 violation). Factually-corrective Principle-10: breaks no working call (neither already failed at handler), false-rejects no handler-valid input, handler untouched. Live-verified representative upload-board-background-image on helenawillow probe (incidental): both-supplied -> reached handler (schema accepted); neither-supplied -> typed schema anyOf rejection pre-handler. Probe restored to parent 44f3991, 0 residue. see docs/P5-SCHEMA-CLARITY.md",
+      "status": "RESOLVED in PR #91 (reviewer-directed; anyOf not oneOf; representative live-verified)"
+    },
+    {
+      "ability": "fluent-boards/upload-comment-image",
+      "vendor": "fluent-boards",
+      "vendor_version_checked": "FluentBoards installed on helenawillow probe (incidental test surface; source read live 2026-05-16)",
+      "authority": "vendor handler",
+      "canonical_handler": "see notes",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4/V5 schema-clarity, no write",
+      "principles": [
+        "V4",
+        "V5"
+      ],
+      "package": "5",
+      "pattern": "P-B at-least-one constraint (anyOf) — factually-corrective vs installed handler",
+      "notes": "Package 5 reviewer-directed correction. Installed handler precedence if($attachment_id) elseif($url) — BOTH accepted (attachment_id wins), only NEITHER rejected. Added input_schema `anyOf:[{required:[attachment_id]},{required:[<url>]}]` (NOT oneOf — oneOf would false-reject the handler-valid both-case, Principle-4 violation). Factually-corrective Principle-10: breaks no working call (neither already failed at handler), false-rejects no handler-valid input, handler untouched. Live-verified representative upload-board-background-image on helenawillow probe (incidental): both-supplied -> reached handler (schema accepted); neither-supplied -> typed schema anyOf rejection pre-handler. Probe restored to parent 44f3991, 0 residue. see docs/P5-SCHEMA-CLARITY.md",
+      "status": "RESOLVED in PR #91 (reviewer-directed; anyOf not oneOf; representative live-verified)"
+    },
+    {
+      "ability": "fluent-boards/add-task-attachment",
+      "vendor": "fluent-boards",
+      "vendor_version_checked": "FluentBoards installed on helenawillow probe (incidental test surface; source read live 2026-05-16)",
+      "authority": "vendor handler",
+      "canonical_handler": "see notes",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4/V5 schema-clarity, no write",
+      "principles": [
+        "V4",
+        "V5"
+      ],
+      "package": "5",
+      "pattern": "P-B at-least-one constraint (anyOf) — factually-corrective vs installed handler",
+      "notes": "Package 5 reviewer-directed correction. Installed handler precedence if($attachment_id) elseif($url) — BOTH accepted (attachment_id wins), only NEITHER rejected. Added input_schema `anyOf:[{required:[attachment_id]},{required:[<url>]}]` (NOT oneOf — oneOf would false-reject the handler-valid both-case, Principle-4 violation). Factually-corrective Principle-10: breaks no working call (neither already failed at handler), false-rejects no handler-valid input, handler untouched. Live-verified representative upload-board-background-image on helenawillow probe (incidental): both-supplied -> reached handler (schema accepted); neither-supplied -> typed schema anyOf rejection pre-handler. Probe restored to parent 44f3991, 0 residue. see docs/P5-SCHEMA-CLARITY.md",
+      "status": "RESOLVED in PR #91 (reviewer-directed; anyOf not oneOf; representative live-verified)"
+    },
+    {
+      "ability": "fluent-boards/upload-csv",
+      "vendor": "fluent-boards",
+      "vendor_version_checked": "FluentBoards installed on helenawillow probe (incidental test surface; source read live 2026-05-16)",
+      "authority": "vendor handler",
+      "canonical_handler": "see notes",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4/V5 schema-clarity, no write",
+      "principles": [
+        "V4",
+        "V5"
+      ],
+      "package": "5",
+      "pattern": "P-B at-least-one constraint (anyOf) — factually-corrective vs installed handler",
+      "notes": "Package 5 reviewer-directed correction. Installed handler precedence if($attachment_id) elseif($url) — BOTH accepted (attachment_id wins), only NEITHER rejected. Added input_schema `anyOf:[{required:[attachment_id]},{required:[<url>]}]` (NOT oneOf — oneOf would false-reject the handler-valid both-case, Principle-4 violation). Factually-corrective Principle-10: breaks no working call (neither already failed at handler), false-rejects no handler-valid input, handler untouched. Live-verified representative upload-board-background-image on helenawillow probe (incidental): both-supplied -> reached handler (schema accepted); neither-supplied -> typed schema anyOf rejection pre-handler. Probe restored to parent 44f3991, 0 residue. see docs/P5-SCHEMA-CLARITY.md",
+      "status": "RESOLVED in PR #91 (reviewer-directed; anyOf not oneOf; representative live-verified)"
     }
   ]
 }

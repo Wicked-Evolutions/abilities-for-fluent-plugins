@@ -1233,7 +1233,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->delete( 'fluent-boards/delete-stage', array(
 		'label'       => 'Delete Stage',
-		'description' => 'Delete a stage from a board. All tasks in this stage will be moved to the first remaining stage, or deleted if no other stages exist.',
+		'description' => 'Delete a stage from a board. All tasks in this stage will be moved to the first remaining stage, or deleted if no other stages exist. Note: the stage identifier parameter is `id` (the vendor-native stage ID); sibling stage abilities use `stage_id` for the same value — pass `id` here.',
 		'category'    => 'fluent-boards',
 		'input_schema' => array(
 			'type'       => 'object',
@@ -1410,7 +1410,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-boards/move-task', array(
 		'label'       => 'Move Task',
-		'description' => 'Move a task to a different stage and/or position within the same board, or to a different board entirely. Cross-board moves reset assignees, labels, and comments.',
+		'description' => 'Move a task to a different stage and/or position within the same board, or to a different board entirely. Cross-board moves reset assignees, labels, and comments. Note: the task identifier parameter is `task_id` (not `id`).',
 		'category'    => 'fluent-boards',
 		'input_schema' => array(
 			'type'       => 'object',

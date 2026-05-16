@@ -27,7 +27,7 @@ function fluent_booking_register_multi_host_abilities() {
 
 	$reg->read( 'fluent-booking/list-booking-hosts', array(
 		'label'       => 'List Booking Hosts',
-		'description' => 'List host pivots for a booking (collective / round-robin / team-event bookings have N hosts). Joins fcal_booking_hosts to wp_users for display_name / email.',
+		'description' => 'List host pivots for a booking (collective / round-robin / team-event bookings have N hosts). Joins fcal_booking_hosts to wp_users for display_name / email. Input: pass the booking ID as `booking_id` (an integer) at the top level — it is required.',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'booking_id' ),

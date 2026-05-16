@@ -310,7 +310,7 @@ $reg->write( 'fluent-boards/move-subtask-to-group', array(
 // =========================================================================
 $reg->write( 'fluent-boards/update-subtask-position', array(
 	'label'       => 'Update Subtask Position',
-	'description' => 'Update a subtask\'s position and optionally its containing group.',
+	'description' => 'Update a subtask\'s position and optionally its containing group. Note: the position parameter is `newPosition` (camelCase, vendor-native); some sibling abilities use snake_case `position` — pass `newPosition` here.',
 	'category'    => 'fluent-boards',
 	'input_schema' => array(
 		'type'       => 'object',
@@ -416,7 +416,7 @@ $reg->write( 'fluent-boards/move-subtask-to-board', array(
 // =========================================================================
 $reg->write( 'fluent-boards/convert-task-to-subtask', array(
 	'label'       => 'Convert Task To Subtask',
-	'description' => 'Convert a top-level task into a subtask of parent_id. Optionally place it in a subtask group and reassign assignee.',
+	'description' => 'Convert a top-level task into a subtask of parent_id. Optionally place it in a subtask group and reassign assignee. Note: the group parameter is `subtaskGroupId` (camelCase, vendor-native).',
 	'category'    => 'fluent-boards',
 	'input_schema' => array(
 		'type'       => 'object',

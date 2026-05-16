@@ -265,7 +265,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->read( 'fluent-booking/get-booking-activities', array(
 		'label'       => 'Get Booking Activities',
-		'description' => 'Get the activity/audit log for a booking. Returns notes, status changes, email logs, and system events.',
+		'description' => 'Get the activity/audit log for a booking. Returns notes, status changes, email logs, and system events. Input: pass the booking ID as `id` (an integer) — the field is `id`, NOT `booking_id`.',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'id' ),
@@ -319,7 +319,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-booking/add-booking-note', array(
 		'label'       => 'Add Internal Note to Booking',
-		'description' => 'Add an internal note to a booking\'s activity log. Returns the persisted activity_id of the new entry so callers can reference it in subsequent reads.',
+		'description' => 'Add an internal note to a booking\'s activity log. Returns the persisted activity_id of the new entry so callers can reference it in subsequent reads. Input: pass the booking ID as `id` (an integer, NOT `booking_id`) plus `note` (string).',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'id', 'note' ),
@@ -375,7 +375,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->read( 'fluent-booking/get-booking-meta', array(
 		'label'       => 'Get Booking Metadata',
-		'description' => 'Get all metadata (custom field data, additional guests, etc.) for a booking.',
+		'description' => 'Get all metadata (custom field data, additional guests, etc.) for a booking. Input: pass the booking ID as `id` (an integer) — the field is `id`, NOT `booking_id`.',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'id' ),

@@ -1395,7 +1395,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->read( 'fluent-forms/export-entries', array(
 		'label'       => 'Export Entries',
-		'description' => 'Generate an export file (csv / xls / json / pdf) for a form (Pro). Optional date_range, status filter, and submission_ids restrict the export. Returns a download_url with an expiry timestamp.',
+		'description' => 'Generate an export file (csv / xls / json / pdf) for a form (Pro). Optional `date_from`/`date_to` (date strings), `status` filter, and `submission_ids` restrict the export. Returns a download_url with an expiry timestamp. Note: `format` is required (one of csv|xls|json|pdf) — it is not defaulted; the request fails if omitted.',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'form_id', 'format' ),

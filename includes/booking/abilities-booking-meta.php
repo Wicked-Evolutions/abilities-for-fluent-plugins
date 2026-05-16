@@ -24,7 +24,7 @@ function fluent_booking_register_booking_meta_abilities() {
 
 	$reg->write( 'fluent-booking/set-booking-meta', array(
 		'label'       => 'Set Booking Meta',
-		'description' => 'Insert or update a meta key/value pair on a booking. Values are serialized via maybe_serialize. Matches existing fcal_booking_meta storage shape.',
+		'description' => 'Insert or update a meta key/value pair on a booking. Values are serialized via maybe_serialize. Matches existing fcal_booking_meta storage shape. Input: pass `booking_id` (integer) and `meta_key` (string), both required; the meta payload field is named `value` (any JSON-serializable type), NOT `meta_value`.',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'booking_id', 'meta_key' ),

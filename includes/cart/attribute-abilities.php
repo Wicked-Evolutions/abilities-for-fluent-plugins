@@ -287,7 +287,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-cart/reorder-attribute-term', array(
 		'label'       => 'Reorder Attribute Term',
-		'description' => 'Set the serial (ordering) of a term within its group. Mirrors POST /options/attr/group/{group_id}/term/{term_id}/serial.',
+		'description' => 'Set the serial (ordering) of a term within its group. Note: `id` is the attribute TERM id (the {term_id} in the route, resolved via AttributeTerm::find — NOT the group_id), and `serial` is the absolute integer ordinal position to assign to that term. Mirrors POST /options/attr/group/{group_id}/term/{term_id}/serial via \FluentCart\App\Models\AttributeTerm::find/save.',
 		'input_schema' => array(
 			'type'     => 'object',
 			'required' => array( 'id', 'serial' ),

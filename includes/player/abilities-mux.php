@@ -345,7 +345,7 @@ function fluent_abilities_player_register_mux_abilities() {
 
 	$reg->read( 'fluent-player/mux-get-live-stream', array(
 		'label'         => 'Mux — get live stream',
-		'description'   => 'Get a single Mux live stream by ID.',
+		'description'   => 'Get a single Mux live stream by ID. Input: pass the Mux stream ID as `stream_id` (a required string) — the field is `stream_id`, NOT `live_stream_id`.',
 		'category'      => 'fluent-player',
 		'input_schema'  => array(
 			'type'       => 'object',

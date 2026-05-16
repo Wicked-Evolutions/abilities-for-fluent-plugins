@@ -19,7 +19,7 @@ defined( 'ABSPATH' ) || exit;
 // =========================================================================
 $reg->read( 'fluent-boards/list-tasks-by-stage', array(
 	'label'       => 'List Tasks By Stage',
-	'description' => 'List active tasks on a board filtered to a single stage. Excludes archived tasks by default.',
+	'description' => 'List active tasks on a board filtered to a single stage. Excludes archived tasks by default. Note: `position` is returned by the vendor as a numeric string (e.g. "0.00").',
 	'category'    => 'fluent-boards',
 	'input_schema' => array(
 		'type'       => 'object',
@@ -33,7 +33,7 @@ $reg->read( 'fluent-boards/list-tasks-by-stage', array(
 		'id'        => array( 'type' => 'integer' ),
 		'title'     => array( 'type' => array( 'string', 'null' ) ),
 		'priority'  => array( 'type' => array( 'string', 'null' ) ),
-		'position'  => array( 'type' => array( 'number', 'null' ) ),
+		'position'  => array( 'type' => array( 'number', 'string', 'null' ) ),
 		'due_at'    => array( 'type' => array( 'string', 'null' ) ),
 		'status'    => array( 'type' => array( 'string', 'null' ) ),
 	) ),
@@ -112,7 +112,7 @@ $reg->read( 'fluent-boards/list-archived-tasks', array(
 // =========================================================================
 $reg->write( 'fluent-boards/archive-task', array(
 	'label'       => 'Archive Task',
-	'description' => 'Set archived_at on a task. Reversible via restore-task.',
+	'description' => 'Set archived_at on a task. Reversible via restore-task. Note: the task identifier parameter is `id` (sibling task abilities use `task_id` for the same value).',
 	'category'    => 'fluent-boards',
 	'input_schema' => array(
 		'type'       => 'object',
@@ -606,7 +606,7 @@ $reg->write( 'fluent-boards/update-task-status', array(
 // =========================================================================
 $reg->write( 'fluent-boards/add-task-cover-image', array(
 	'label'       => 'Add Task Cover Image',
-	'description' => 'Set a cover image on a task by attachment_id or remote image_url (sideloaded). Stored in task.settings.cover_image.',
+	'description' => 'Set a cover image on a task. Provide at least one of `attachment_id` or `image_url` (both may be supplied — `attachment_id` takes precedence; the handler rejects only when NEITHER resolves). Stored in task.settings.cover_image. Schema declares this via `anyOf` (P5 factually-corrective per installed-handler precedence chain, not exactly-one).',
 	'category'    => 'fluent-boards',
 	'input_schema' => array(
 		'type'       => 'object',
@@ -615,6 +615,13 @@ $reg->write( 'fluent-boards/add-task-cover-image', array(
 			'task_id'       => array( 'type' => 'integer' ),
 			'attachment_id' => array( 'type' => 'integer' ),
 			'image_url'     => array( 'type' => 'string' ),
+		),
+		// P5 factually-corrective (NOT oneOf): handler precedence
+		// if($attachment_id) elseif($image_url) — both accepted, only
+		// neither rejected. anyOf = "at least one".
+		'anyOf'      => array(
+			array( 'required' => array( 'attachment_id' ) ),
+			array( 'required' => array( 'image_url' ) ),
 		),
 	),
 	'output_schema' => fluent_abilities_schema_success_output( array(

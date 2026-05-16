@@ -22,7 +22,7 @@ function fluent_booking_register_slot_abilities() {
 
 	$reg->read( 'fluent-booking/get-available-slots', array(
 		'label'       => 'Get Available Slots',
-		'description' => 'List bookable time slots for an event over a date range. Dispatches by event type (round_robin / collective / multi-guest in Pro). Times are returned in the supplied IANA timezone.',
+		'description' => 'List bookable time slots for an event over a date range. Dispatches by event type (round_robin / collective / multi-guest in Pro). Times are returned in the supplied IANA timezone. Input: `timezone` is REQUIRED (an IANA identifier such as America/New_York) and is NOT defaulted — slot times cannot be computed without it; also pass `event_id` (integer), `start_date` and `end_date` (Y-m-d strings).',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'event_id', 'start_date', 'end_date', 'timezone' ),

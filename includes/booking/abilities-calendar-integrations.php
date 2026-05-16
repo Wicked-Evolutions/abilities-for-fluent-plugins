@@ -81,7 +81,7 @@ function fluent_booking_register_calendar_integrations_abilities() {
 
 	$reg->read( 'fluent-booking/get-calendar-integration', array(
 		'label'       => 'Get External Calendar Integration',
-		'description' => 'Return a single external-calendar integration row by ID (token fields redacted from output).',
+		'description' => 'Return a single external-calendar integration row by ID (token fields redacted from output). Input: pass the integration row ID as `integration_id` (an integer); there is no `id`/`provider` input — the row is looked up by `integration_id` only.',
 		'level'       => 'admin',
 		'input_schema' => array(
 			'type'       => 'object',
@@ -181,7 +181,7 @@ function fluent_booking_register_calendar_integrations_abilities() {
 
 	$reg->read( 'fluent-booking/list-remote-calendars', array(
 		'label'       => 'List Remote Calendars',
-		'description' => 'List provider-side calendars (the calendars on the connected Google/Outlook/Apple account). Returns stored snapshot when available; live refresh requires the provider service.',
+		'description' => 'List provider-side calendars (the calendars on the connected Google/Outlook/Apple account). Returns stored snapshot when available; live refresh requires the provider service. Input: identify the connection by the stored integration row ID as `integration_id` (an integer) — NOT a `provider` string; there is no `provider` input.',
 		'level'       => 'admin',
 		'input_schema' => array(
 			'type'       => 'object',
@@ -229,7 +229,7 @@ function fluent_booking_register_calendar_integrations_abilities() {
 
 	$reg->read( 'fluent-booking/list-calendar-conflicts', array(
 		'label'       => 'List External-Calendar Conflicts for a Window',
-		'description' => 'Return events on the user\'s connected remote calendars that overlap a given UTC time window.',
+		'description' => 'Return events on the user\'s connected remote calendars that overlap a given UTC time window. Input: pass `user_id` (integer), `start_time` and `end_time` (Y-m-d H:i:s UTC strings) — the window is keyed by `user_id` + `start_time`/`end_time`, NOT by `calendar_id` or `start_date`/`end_date`.',
 		'level'       => 'admin',
 		'input_schema' => array(
 			'type'       => 'object',

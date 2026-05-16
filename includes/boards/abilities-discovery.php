@@ -530,7 +530,7 @@ $reg->write( 'fluent-boards/set-board-background', array(
 // =========================================================================
 $reg->write( 'fluent-boards/upload-board-background-image', array(
 	'label'       => 'Upload Board Background Image',
-	'description' => 'Upload an image file and use it as a board background. Accepts a previously-uploaded WordPress attachment_id OR a remote image_url to import via media_sideload_image().',
+	'description' => 'Upload an image file and use it as a board background. Provide at least one of `attachment_id` or `image_url` (both may be supplied — `attachment_id` takes precedence and `image_url` is then ignored; the handler rejects only when NEITHER resolves). Schema declares this via `anyOf` (P5 factually-corrective per installed-handler source: precedence chain `if($attachment_id) elseif($image_url)`, not exactly-one).',
 	'category'    => 'fluent-boards',
 	'input_schema' => array(
 		'type'       => 'object',
@@ -539,6 +539,15 @@ $reg->write( 'fluent-boards/upload-board-background-image', array(
 			'board_id'      => array( 'type' => 'integer' ),
 			'attachment_id' => array( 'type' => 'integer', 'description' => 'Existing WordPress attachment to use.' ),
 			'image_url'     => array( 'type' => 'string', 'description' => 'Remote image URL (sideloaded into Media Library).' ),
+		),
+		// P5 factually-corrective (NOT oneOf): installed handler uses an
+		// if($attachment_id) elseif($image_url) precedence chain — BOTH
+		// supplied is accepted (attachment_id wins), only NEITHER is
+		// rejected. anyOf declares "at least one", matching the handler;
+		// oneOf would false-reject the handler-valid both-case (Principle 4).
+		'anyOf'      => array(
+			array( 'required' => array( 'attachment_id' ) ),
+			array( 'required' => array( 'image_url' ) ),
 		),
 	),
 	'output_schema' => fluent_abilities_schema_success_output( array(
