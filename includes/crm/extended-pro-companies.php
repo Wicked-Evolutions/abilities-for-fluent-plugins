@@ -264,7 +264,7 @@ function fluent_abilities_crm_register_extended_pro_companies() {
 			$id = (int) ( $input['id'] ?? 0 );
 			$q  = $input;
 			unset( $q['id'] );
-			return $proxy( 'GET', '/fluent-crm/v2/companies/' . $id . '/notes', $q );
+			return fluent_abilities_normalize_collection( $proxy( 'GET', '/fluent-crm/v2/companies/' . $id . '/notes', $q ), 'notes' );
 		},
 	) );
 

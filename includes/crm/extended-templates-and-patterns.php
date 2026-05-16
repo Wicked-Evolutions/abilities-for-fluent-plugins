@@ -60,7 +60,39 @@ function fluent_abilities_crm_register_extended_templates_and_patterns() {
 		),
 		'output_schema' => fluent_abilities_schema_item_output( $template_item ),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/templates/' . (int) ( $input['id'] ?? 0 ) );
+			$id = (int) ( $input['id'] ?? 0 );
+			// P4b — Addendum 15 (b) same-slug V3 route-correctness. Vendor
+			// TemplateController::template() (route GET /templates/{id}; the
+			// registrar "getTemplate" citation is V4 description drift)
+			// coerces a missing/non-positive id to 0, Template::find(0) is
+			// null, and the handler then SILENTLY returns a blank default
+			// placeholder with HTTP success — no 404. Guard the id first.
+			if ( $id < 1 ) {
+				return fluent_abilities_error( 'ability_invalid_input', 'id must be a positive template ID' );
+			}
+			$resp = $proxy( 'GET', '/fluent-crm/v2/templates/' . $id );
+			if ( is_wp_error( $resp ) ) {
+				return $resp;
+			}
+			// V3: the vendor route cannot signal not-found — on a miss it
+			// fabricates an empty placeholder (post_title/post_content/
+			// email_subject all ''), still HTTP success. A genuinely stored
+			// template always carries a title (create-template requires
+			// `title`). Treat the placeholder sentinel as a typed not-found
+			// so callers can distinguish it from a real stored template,
+			// instead of silently surfacing the vendor placeholder.
+			$tpl = ( is_array( $resp ) && isset( $resp['template'] ) && is_array( $resp['template'] ) ) ? $resp['template'] : null;
+			if ( null === $tpl ) {
+				return fluent_abilities_error( 'not_found', 'Template ' . $id . ' was not found.' );
+			}
+			$title   = (string) ( $tpl['post_title'] ?? '' );
+			$content = (string) ( $tpl['post_content'] ?? '' );
+			$subject = (string) ( $tpl['email_subject'] ?? '' );
+			if ( '' === $title && '' === $content && '' === $subject ) {
+				return fluent_abilities_error( 'not_found', 'Template ' . $id . ' was not found (vendor returned the default placeholder, not a stored template).' );
+			}
+			// V5: vendor payload is already plain arrays/scalars (sendSuccess) — pass through.
+			return $resp;
 		},
 	) );
 
@@ -246,7 +278,7 @@ function fluent_abilities_crm_register_extended_templates_and_patterns() {
 		),
 		'output_schema' => fluent_abilities_schema_list_output( 'patterns', $pattern_item ),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/email-patterns', $input );
+			return fluent_abilities_normalize_collection( $proxy( 'GET', '/fluent-crm/v2/email-patterns', $input ), 'patterns' );
 		},
 	) );
 

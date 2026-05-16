@@ -557,6 +557,425 @@
       "package": "4a",
       "pattern": "P-H item-shape union + empty-state normalize",
       "notes": "Package 4a special. options[] items union object|string|number|boolean (vendor returns option entries as objects OR scalars); callback wrapped fluent_abilities_normalize_collection(...,'fields') for empty/null set. Vendor-verified CustomFieldsController::getContactFields. LIVE-VERIFIED helenawillow 2026-05-16: fields:[] (empty set) returned without reject."
+    },
+    {
+      "ability": "fluent-crm/get-report-advanced-providers",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "ReportingController::getAdvancedReportProviders (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (providers (apply_filters passthrough; item shape is a vendor extension point))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe)."
+    },
+    {
+      "ability": "fluent-crm/get-report-contacts-by-tags",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "ReportingController::getContactsByTags (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (tags (paginator object))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe)."
+    },
+    {
+      "ability": "fluent-crm/get-report-contacts-by-lists",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "ReportingController::getContactsByLists (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (lists (paginator object))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe)."
+    },
+    {
+      "ability": "fluent-crm/get-report-recent-tags",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "ReportingController::getRecentTags (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (tags (Collection; normalize idempotent))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe)."
+    },
+    {
+      "ability": "fluent-crm/get-report-automations",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "ReportingController::getAutomationReports (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (automations (paginator; row-key divergence + dropped overview/top_automations siblings = documented V4/shape limitation))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe)."
+    },
+    {
+      "ability": "fluent-crm/list-report-emails",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "ReportingController::getEmails (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (emails (paginator; statuses/types non-declared sibling keys default null, left as-is))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe)."
+    },
+    {
+      "ability": "fluent-crm/search-contacts-fast",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "SubscriberController::searchContacts (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (contacts ((object) id-keyed map))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe)."
+    },
+    {
+      "ability": "fluent-crm/list-subscriber-tracking-events",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "SubscriberController::getTrackingEvents (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (events (paginator; sendError WP_Error passes through))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe)."
+    },
+    {
+      "ability": "fluent-crm/list-subscriber-automations",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "FunnelController::subscriberAutomations (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (automations (paginator))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe)."
+    },
+    {
+      "ability": "fluent-crm/get-funnel-all-activities",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "FunnelController::getAllActivities (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (activities (paginator, decorated rows))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe)."
+    },
+    {
+      "ability": "fluent-crm/list-campaigns-pro-post-taxonomies",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "DynamicPostDataController::getPostsTaxonomies (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (taxonomies (post-type-keyed map; []-when-empty))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe)."
+    },
+    {
+      "ability": "fluent-crm/list-recurring-campaign-emails",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "RecurringCampaignController::getEmails (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (emails (paginator; optional page-1 drafts key))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe)."
+    },
+    {
+      "ability": "fluent-crm/list-pro-managers",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "ManagerController::getManagers (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (managers ({data,total} wrapper -> data extracted; v1.4.0 non-object-item hypothesis disproven by vendor source))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe)."
+    },
+    {
+      "ability": "fluent-crm/list-email-patterns",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "EmailPatternController::index (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (patterns ({data,total} wrapper))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe)."
+    },
+    {
+      "ability": "fluent-crm/list-company-notes",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "CompanyController::getNotes (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (notes (paginator))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe)."
+    },
+    {
+      "ability": "fluent-crm/list-campaign-emails",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "CampaignController::campaignEmails (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (emails (paginator))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe)."
+    },
+    {
+      "ability": "fluent-crm/get-system-logs",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "SystemLogController::index (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (logs (paginator))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe)."
+    },
+    {
+      "ability": "fluent-crm/list-experiments-campaigns",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "SettingsController::getCampaigns (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (campaigns (Collection; unbounded ->get() flagged, not gated))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe)."
+    },
+    {
+      "ability": "fluent-crm/list-docs-addons",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "DocsController::getAddons (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (addons (fixed keyed-map))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe)."
+    },
+    {
+      "ability": "fluent-crm/list-fluent-forms-templates",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "FormsController::getTemplates (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (templates (filter-mutable keyed-map))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe)."
+    },
+    {
+      "ability": "fluent-crm/list-import-drivers",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "ImporterController::getDrivers (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (drivers (fixed keyed-map))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe)."
+    },
+    {
+      "ability": "fluent-crm/get-contact-purchase-history",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "PurchaseHistoryController::getOrders (route-verified; registrar Source citation has V4 drift)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H item-union (orders is object {orders:[],total} from apply_filters('fluent_crm/purchase_history_<provider>'))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=item-union — output_schema key widened to ['object','array'] additionalProperties true (vendor returns a structured object, NOT a row collection; array-coercion would corrupt). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live (helenawillow probe, incidental): pre-deploy reproduced 'output[<key>] not array'; post-deploy the vendor object is accepted (get-contact-info-widgets id=1 verified). Site-agnostic; multisite config-agnostic (flagged)."
+    },
+    {
+      "ability": "fluent-crm/get-contact-support-tickets",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "SubscriberController::getSupportTickets (route-verified; registrar Source citation has V4 drift)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H item-union (tickets is object {data:[],total,columns_config} from apply_filters('fluentcrm-get_support_tickets_<provider>'))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=item-union — output_schema key widened to ['object','array'] additionalProperties true (vendor returns a structured object, NOT a row collection; array-coercion would corrupt). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live (helenawillow probe, incidental): pre-deploy reproduced 'output[<key>] not array'; post-deploy the vendor object is accepted (get-contact-info-widgets id=1 verified). Site-agnostic; multisite config-agnostic (flagged)."
+    },
+    {
+      "ability": "fluent-crm/get-contact-info-widgets",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "SubscriberController::getInfoWidgets (route-verified; registrar Source citation has V4 drift)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H item-union (widgets is object {top_widgets:[],other_widgets:[],widgets_count}; alternate singular 'widget' on ?by_widget)",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=item-union — output_schema key widened to ['object','array'] additionalProperties true (vendor returns a structured object, NOT a row collection; array-coercion would corrupt). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live (helenawillow probe, incidental): pre-deploy reproduced 'output[<key>] not array'; post-deploy the vendor object is accepted (get-contact-info-widgets id=1 verified). Site-agnostic; multisite config-agnostic (flagged)."
+    },
+    {
+      "ability": "fluent-crm/get-template",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "TemplateController::template (route GET /templates/{id}; registrar cited 'getTemplate' = V4 drift; vendor Template::find() silent-null source)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "V3 read-back (live, 2026-05-16, helenawillow probe): create-template -> get-template{id=5111} returns the stored record (post_title present, NOT placeholder); get-template{id=999999} -> typed not_found (pre-fix: silent blank-placeholder HTTP 200). Fixture template 5111 deleted, 0 residue.",
+      "principles": [
+        "V3",
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "Addendum 15 (b) same-slug V3 route-correctness + V5",
+      "notes": "Package 4b, Addendum 15 (b). Callback-body only. V3: vendor template() coerces missing/non-positive id to 0, Template::find(0)=null, then SILENTLY returns a blank default placeholder with HTTP success (no 404) — the v1.4.0 'placeholder instead of stored template' defect. Fix: guard id<1 (typed ability_invalid_input); after proxy, detect the placeholder sentinel (post_title=='' && post_content=='' && email_subject=='') and return typed not_found instead of surfacing the placeholder. V5: payload already plain arrays (sendSuccess) pass-through. Vendor primitives cited: Template::find() (defect) vs Template::findOrFail()/GET /templates/all (existence-authoritative). Ledger provenance: Addendum 15 (b).",
+      "status": "VERIFIED (live, helenawillow probe — incidental surface)"
+    },
+    {
+      "ability": "fluent-crm/get-report-top-campaigns",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "ability proxies GET /fluent-crm/v2/reports/top-campaigns — NO such route in vendor app/Http/Routes/api.php (reports prefix); rest_do_request -> 404 WP_Error. Closest real route: reports/campaigns-list -> ReportingController::getCampaignsList",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V3"
+      ],
+      "package": "4b",
+      "pattern": "SEPARABLE-DEFECT (dead proxy route) — NOT P-H; bounced to reviewer, not self-elected",
+      "notes": "Package 4b — STOP/bounce per Addendum 15 (c) split trigger. This is NOT a P-H response-shape drift: the proxied REST route does not exist (vendor route table verified), so the ability 404s regardless of schema. Repointing the route (e.g. to reports/campaigns-list) is a V3 route-correctness change of a different class than the 4b normalize/union pass and a different slug's contract — NOT self-elected. Excluded from 4b code; flagged to reviewer for disposition (repoint vs deprecate). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why)",
+      "status": "PENDING — separable defect, bounced to reviewer (no code in 4b)"
     }
   ]
 }

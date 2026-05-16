@@ -256,7 +256,7 @@ function fluent_abilities_crm_register_extended_campaigns() {
 			$id = (int) ( $input['id'] ?? 0 );
 			$q  = $input;
 			unset( $q['id'] );
-			return $proxy( 'GET', '/fluent-crm/v2/campaigns/' . $id . '/emails', $q );
+			return fluent_abilities_normalize_collection( $proxy( 'GET', '/fluent-crm/v2/campaigns/' . $id . '/emails', $q ), 'emails' );
 		},
 	) );
 

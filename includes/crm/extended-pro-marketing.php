@@ -337,7 +337,7 @@ function fluent_abilities_crm_register_extended_pro_marketing() {
 		'input_schema'  => array( 'type' => 'object', 'required' => array( 'campaign_id' ), 'properties' => array( 'campaign_id' => array( 'type' => 'integer' ) ) ),
 		'output_schema' => fluent_abilities_schema_collection_output( 'emails', $obj ),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/recurring-campaigns/' . (int) ( $input['campaign_id'] ?? 0 ) . '/emails' );
+			return fluent_abilities_normalize_collection( $proxy( 'GET', '/fluent-crm/v2/recurring-campaigns/' . (int) ( $input['campaign_id'] ?? 0 ) . '/emails' ), 'emails' );
 		},
 	) );
 
@@ -678,7 +678,7 @@ function fluent_abilities_crm_register_extended_pro_marketing() {
 		'input_schema'  => array( 'type' => 'object', 'properties' => array() ),
 		'output_schema' => fluent_abilities_schema_collection_output( 'taxonomies', $obj ),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/campaigns-pro/posts/taxonomies' );
+			return fluent_abilities_normalize_collection( $proxy( 'GET', '/fluent-crm/v2/campaigns-pro/posts/taxonomies' ), 'taxonomies' );
 		},
 	) );
 
