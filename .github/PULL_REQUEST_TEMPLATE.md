@@ -1,3 +1,10 @@
+<!-- Product scope (canonical): site-agnostic product for arbitrary single-site
+AND multisite WordPress; our sites are an incidental test environment, never the
+fix scope; site-coupled behavior is a defect; multisite is first-class.
+See docs/PRODUCT-SCOPE.md. -->
+
+> 📄 Product scope: site-agnostic (single + multisite); probe sites are incidental test surfaces — see [`docs/PRODUCT-SCOPE.md`](../docs/PRODUCT-SCOPE.md).
+
 ## What this PR does
 
 <!-- Brief description of the changes -->
