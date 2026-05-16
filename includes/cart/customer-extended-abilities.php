@@ -236,7 +236,8 @@ add_action( 'wp_abilities_api_init', function() {
 		'input_schema' => array(
 			'type'     => 'object',
 			'properties' => array_merge( array(
-				'search' => array( 'type' => 'string', 'description' => 'Search user_email or display_name' ),
+				'search' => array( 'type' => 'string', 'description' => 'Search user_email, display_name or user_login' ),
+				'q'      => array( 'type' => 'string', 'description' => 'Alias of `search` (vendor-style query param); either may be supplied' ),
 			), fluent_abilities_pagination_schema() ),
 		),
 		'output_schema' => fluent_abilities_schema_list_output( 'users', array(
@@ -255,14 +256,28 @@ add_action( 'wp_abilities_api_init', function() {
 				'offset'  => $pagination['offset'],
 				'fields'  => array( 'ID', 'user_email', 'display_name' ),
 			);
+			// Accept the vendor-style `q` as an alias of `search`. F-CART-04:
+			// the tester passed `q` (vendor query convention) but the handler
+			// only read `search`, so the filter was silently ignored.
+			$search_term = '';
 			if ( ! empty( $input['search'] ) ) {
-				$args['search']         = '*' . sanitize_text_field( $input['search'] ) . '*';
-				$args['search_columns'] = array( 'user_email', 'display_name', 'user_login' );
+				$search_term = (string) $input['search'];
+			} elseif ( ! empty( $input['q'] ) ) {
+				$search_term = (string) $input['q'];
+			}
+			$count_args = array( 'exclude' => $linked_ids, 'fields' => 'ID', 'number' => -1 );
+			if ( '' !== $search_term ) {
+				$search_columns         = array( 'user_email', 'display_name', 'user_login' );
+				$args['search']         = '*' . sanitize_text_field( $search_term ) . '*';
+				$args['search_columns'] = $search_columns;
+				// Apply the same filter to the count so a filtered response
+				// reports the filtered total, not the unfiltered population.
+				$count_args['search']         = $args['search'];
+				$count_args['search_columns'] = $search_columns;
 			}
 			$users = get_users( $args );
 
-			$count_args = array( 'exclude' => $linked_ids, 'fields' => 'ID', 'number' => -1 );
-			$total      = count( get_users( $count_args ) );
+			$total = count( get_users( $count_args ) );
 
 			$items = array();
 			foreach ( $users as $u ) {
