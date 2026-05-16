@@ -1,0 +1,19 @@
+{
+  "_doc": "FluentMessaging vendor-map per PRINCIPLES-VENDOR.md V11. One row per touched ability. Populated incrementally as fix packages land.",
+  "vendor": "fluent-messaging",
+  "abilities": [
+    {
+      "ability": "fluent-messaging/send-message",
+      "vendor": "fluent-messaging",
+      "vendor_version_checked": "2.5.x",
+      "authority": "direct_storage",
+      "canonical_handler": "wpFluent()->table('fcom_chat_messages')->insertGetId",
+      "direct_storage": true,
+      "destructive": false,
+      "principles": [ "V9", "V10" ],
+      "package": 3,
+      "pattern": "P-N",
+      "notes": "Package 3 V9 returned-id fix (F-COM-05). Prior registrar used wpFluent insert() which returns boolean; the returned message_id was always cast from true to 1. insertGetId() returns the auto-increment primary key of the inserted row. No vendor model wraps fcom_chat_messages directly at this level; direct wpFluent insert is the appropriate path. This package corrects only the id-return shape."
+    }
+  ]
+}

@@ -319,7 +319,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-booking/add-booking-note', array(
 		'label'       => 'Add Internal Note to Booking',
-		'description' => 'Add an internal note to a booking\'s activity log. Useful for AI agents and hosts to annotate bookings.',
+		'description' => 'Add an internal note to a booking\'s activity log. Returns the persisted activity_id of the new entry so callers can reference it in subsequent reads.',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'id', 'note' ),
@@ -349,7 +349,8 @@ add_action( 'wp_abilities_api_init', function() {
 				'updated_at'  => current_time( 'mysql' ),
 			);
 
-			$activity_id = wpFluent()->table( 'fcal_booking_activity' )->insert( $activity_data );
+			// insertGetId() returns the auto-increment id; insert() returns boolean
+			$activity_id = wpFluent()->table( 'fcal_booking_activity' )->insertGetId( $activity_data );
 
 			do_action( 'fluent_booking/log_booking_note', $activity_data );
 

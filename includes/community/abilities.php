@@ -2389,7 +2389,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-community/create-course', array(
 		'label'       => 'Create Course',
-		'description' => 'Create a new course (a space of type "course") in FluentCommunity.',
+		'description' => 'Create a new course in FluentCommunity. Source: FluentCommunity\\Modules\\Course\\Model\\Course::create(). The Course model\'s static $type=\'course\' ensures the correct space type is persisted; do not pass type manually.',
 		'category'    => 'fluent-community',
 		'capability'  => 'manage_options',
 		'annotations' => array( 'idempotent' => false ),
@@ -2409,17 +2409,26 @@ add_action( 'wp_abilities_api_init', function() {
 			'slug'  => array( 'type' => 'string' ),
 		) ),
 		'callback' => function( $input ) {
+				if ( ! class_exists( '\\FluentCommunity\\Modules\\Course\\Model\\Course' ) ) {
+				return new WP_Error(
+					'vendor_helper_unavailable',
+					'FluentCommunity\\Modules\\Course\\Model\\Course is not available. The course module must be active for this ability.'
+				);
+			}
+
 			$slug = ! empty( $input['slug'] ) ? sanitize_title( $input['slug'] ) : sanitize_title( $input['title'] );
 
-			if ( \FluentCommunity\App\Models\Space::where( 'slug', $slug )->exists() ) {
+			// Slug uniqueness check uses Space (the shared fcom_spaces table) to
+			// catch conflicts with community/course/sidebar_link rows, since slug
+			// is unique across all space types.
+			if ( \FluentCommunity\App\Models\Space::withoutGlobalScopes()->where( 'slug', $slug )->exists() ) {
 				return fluent_abilities_error( 'ability_invalid_input', "A space with slug '{$slug}' already exists." );
 			}
 
-			$course = \FluentCommunity\App\Models\Space::create( array(
+			$course = \FluentCommunity\Modules\Course\Model\Course::create( array(
 				'title'       => sanitize_text_field( $input['title'] ),
 				'slug'        => $slug,
 				'description' => wp_kses_post( $input['description'] ?? '' ),
-				'type'        => 'course',
 				'privacy'     => sanitize_text_field( $input['privacy'] ?? 'public' ),
 				'created_by'  => get_current_user_id(),
 			) );
@@ -2430,7 +2439,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-community/update-course', array(
 		'label'       => 'Update Course',
-		'description' => 'Update a course title, description, or privacy.',
+		'description' => 'Update a course title, description, or privacy. Source: FluentCommunity\\Modules\\Course\\Model\\Course::find().',
 		'category'    => 'fluent-community',
 		'capability'  => 'manage_options',
 		'input_schema' => array(
@@ -2447,7 +2456,13 @@ add_action( 'wp_abilities_api_init', function() {
 			'id' => array( 'type' => 'integer' ),
 		) ),
 		'callback' => function( $input ) {
-			$course = \FluentCommunity\App\Models\Space::where( 'type', 'course' )->find( (int) $input['course_id'] );
+			if ( ! class_exists( '\\FluentCommunity\\Modules\\Course\\Model\\Course' ) ) {
+				return new WP_Error(
+					'vendor_helper_unavailable',
+					'FluentCommunity\\Modules\\Course\\Model\\Course is not available. The course module must be active for this ability.'
+				);
+			}
+			$course = \FluentCommunity\Modules\Course\Model\Course::find( (int) $input['course_id'] );
 			if ( ! $course ) {
 				return fluent_abilities_error( 'not_found', 'Course not found' );
 			}

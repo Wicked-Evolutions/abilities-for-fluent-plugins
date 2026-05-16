@@ -3,6 +3,19 @@
   "vendor": "fluent-booking",
   "abilities": [
     {
+      "ability": "fluent-booking/add-booking-note",
+      "vendor": "fluent-booking",
+      "vendor_version_checked": "1.7.x",
+      "authority": "direct_storage",
+      "canonical_handler": "wpFluent()->table('fcal_booking_activity')->insertGetId",
+      "direct_storage": true,
+      "destructive": false,
+      "principles": [ "V9", "V10" ],
+      "package": 3,
+      "pattern": "P-N",
+      "notes": "Package 3 V9 returned-id fix (F-BOOK-04). Prior registrar used wpFluent insert() which returns boolean; the returned activity_id was always cast from true to 1. insertGetId() returns the auto-increment primary key of the inserted row. No vendor model wraps fcal_booking_activity, so direct wpFluent insert is the appropriate V3 path; this package corrects only the id-return shape."
+    },
+    {
       "ability": "fluent-booking/create-event",
       "vendor": "fluent-booking",
       "vendor_version_checked": "1.7.x",
