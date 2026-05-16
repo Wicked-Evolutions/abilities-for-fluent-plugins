@@ -58,7 +58,11 @@ function fluent_abilities_crm_register_extended_subscribers() {
 			),
 		),
 		'output_schema' => fluent_abilities_schema_item_output( array(
-			'orders'        => array( 'type' => 'array', 'items' => $obj ),
+			// P4b item-union (vendor-source verified): PurchaseHistoryController::getOrders
+			// returns `orders` as a structured object {orders:[],total:int} from
+			// apply_filters('fluent_crm/purchase_history_<provider>', ...) — NOT a row
+			// array. Union object|array (provider filters may vary); do not array-coerce.
+			'orders'        => array( 'type' => array( 'object', 'array' ), 'additionalProperties' => true ),
 			'total'         => array( 'type' => 'integer' ),
 			'total_revenue' => array( 'type' => array( 'number', 'string' ) ),
 		) ),
@@ -99,7 +103,11 @@ function fluent_abilities_crm_register_extended_subscribers() {
 			'properties' => array( 'id' => array( 'type' => 'integer' ) ),
 		),
 		'output_schema' => fluent_abilities_schema_item_output( array(
-			'tickets' => array( 'type' => 'array', 'items' => $obj ),
+			// P4b item-union (vendor-source verified): SubscriberController::getSupportTickets
+			// returns `tickets` as a structured object {data:[],total:int,columns_config:{}}
+			// from apply_filters('fluentcrm-get_support_tickets_<provider>', ...) — NOT a
+			// row array. Union object|array; do not array-coerce.
+			'tickets' => array( 'type' => array( 'object', 'array' ), 'additionalProperties' => true ),
 			'total'   => array( 'type' => 'integer' ),
 		) ),
 		'callback'      => function ( $input ) use ( $proxy ) {
@@ -118,7 +126,11 @@ function fluent_abilities_crm_register_extended_subscribers() {
 			'properties' => array( 'id' => array( 'type' => 'integer' ) ),
 		),
 		'output_schema' => fluent_abilities_schema_item_output( array(
-			'widgets' => array( 'type' => 'array', 'items' => $obj ),
+			// P4b item-union (vendor-source verified): SubscriberController::getInfoWidgets
+			// returns `widgets` as a structured object {top_widgets:[],other_widgets:[],
+			// widgets_count:int}; an alternate `widget` (singular) object is returned when
+			// ?by_widget is set. Union object|array; do not array-coerce.
+			'widgets' => array( 'type' => array( 'object', 'array' ), 'additionalProperties' => true ),
 		) ),
 		'callback'      => function ( $input ) use ( $proxy ) {
 			$id = (int) ( $input['id'] ?? 0 );
@@ -208,7 +220,7 @@ function fluent_abilities_crm_register_extended_subscribers() {
 			$id = (int) ( $input['id'] ?? 0 );
 			$q  = $input;
 			unset( $q['id'] );
-			return $proxy( 'GET', '/fluent-crm/v2/subscribers/' . $id . '/tracking-events', $q );
+			return fluent_abilities_normalize_collection( $proxy( 'GET', '/fluent-crm/v2/subscribers/' . $id . '/tracking-events', $q ), 'events' );
 		},
 	) );
 
@@ -249,7 +261,7 @@ function fluent_abilities_crm_register_extended_subscribers() {
 			'status'    => array( 'type' => array( 'string', 'null' ) ),
 		) ),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/subscribers/search-contacts', $input );
+			return fluent_abilities_normalize_collection( $proxy( 'GET', '/fluent-crm/v2/subscribers/search-contacts', $input ), 'contacts' );
 		},
 	) );
 

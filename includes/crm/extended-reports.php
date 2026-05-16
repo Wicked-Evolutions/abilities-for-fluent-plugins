@@ -262,7 +262,7 @@ function fluent_abilities_crm_register_extended_reports() {
 			'created_at'    => array( 'type' => array( 'string', 'null' ) ),
 		) ),
 		'callback'      => function ( $input ) use ( $proxy_get ) {
-			return $proxy_get( '/fluent-crm/v2/reports/emails', $input );
+			return fluent_abilities_normalize_collection( $proxy_get( '/fluent-crm/v2/reports/emails', $input ), 'emails' );
 		},
 	) );
 
@@ -308,7 +308,7 @@ function fluent_abilities_crm_register_extended_reports() {
 			'count'    => array( 'type' => 'integer' ),
 		) ),
 		'callback'      => function ( $input ) use ( $proxy_get ) {
-			return $proxy_get( '/fluent-crm/v2/reports/advanced-providers', $input );
+			return fluent_abilities_normalize_collection( $proxy_get( '/fluent-crm/v2/reports/advanced-providers', $input ), 'providers' );
 		},
 	) );
 
@@ -358,7 +358,7 @@ function fluent_abilities_crm_register_extended_reports() {
 			'count' => array( 'type' => 'integer' ),
 		) ),
 		'callback'      => function ( $input ) use ( $proxy_get ) {
-			return $proxy_get( '/fluent-crm/v2/reports/contacts-by-tags', $input );
+			return fluent_abilities_normalize_collection( $proxy_get( '/fluent-crm/v2/reports/contacts-by-tags', $input ), 'tags' );
 		},
 	) );
 
@@ -379,7 +379,7 @@ function fluent_abilities_crm_register_extended_reports() {
 			'count' => array( 'type' => 'integer' ),
 		) ),
 		'callback'      => function ( $input ) use ( $proxy_get ) {
-			return $proxy_get( '/fluent-crm/v2/reports/contacts-by-lists', $input );
+			return fluent_abilities_normalize_collection( $proxy_get( '/fluent-crm/v2/reports/contacts-by-lists', $input ), 'lists' );
 		},
 	) );
 
@@ -426,7 +426,7 @@ function fluent_abilities_crm_register_extended_reports() {
 			'created_at' => array( 'type' => array( 'string', 'null' ) ),
 		) ),
 		'callback'      => function ( $input ) use ( $proxy_get ) {
-			return $proxy_get( '/fluent-crm/v2/reports/recent-tags', $input );
+			return fluent_abilities_normalize_collection( $proxy_get( '/fluent-crm/v2/reports/recent-tags', $input ), 'tags' );
 		},
 	) );
 
@@ -479,7 +479,7 @@ function fluent_abilities_crm_register_extended_reports() {
 			'completed_count'   => array( 'type' => 'integer' ),
 		) ),
 		'callback'      => function ( $input ) use ( $proxy_get ) {
-			return $proxy_get( '/fluent-crm/v2/reports/automations', $input );
+			return fluent_abilities_normalize_collection( $proxy_get( '/fluent-crm/v2/reports/automations', $input ), 'automations' );
 		},
 	) );
 

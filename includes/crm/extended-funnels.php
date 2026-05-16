@@ -346,7 +346,7 @@ function fluent_abilities_crm_register_extended_funnels() {
 		'output_schema' => fluent_abilities_schema_collection_output( 'automations', $obj ),
 		'callback'      => function ( $input ) use ( $proxy ) {
 			$sid = (int) ( $input['subscriber_id'] ?? 0 );
-			return $proxy( 'GET', '/fluent-crm/v2/funnels/subscriber/' . $sid . '/automations' );
+			return fluent_abilities_normalize_collection( $proxy( 'GET', '/fluent-crm/v2/funnels/subscriber/' . $sid . '/automations' ), 'automations' );
 		},
 	) );
 
@@ -421,7 +421,7 @@ function fluent_abilities_crm_register_extended_funnels() {
 		),
 		'output_schema' => fluent_abilities_schema_list_output( 'activities', $obj ),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/funnels/all-activities', $input );
+			return fluent_abilities_normalize_collection( $proxy( 'GET', '/fluent-crm/v2/funnels/all-activities', $input ), 'activities' );
 		},
 	) );
 

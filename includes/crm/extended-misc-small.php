@@ -353,7 +353,7 @@ function fluent_abilities_crm_register_extended_misc_small() {
 			'title' => array( 'type' => 'string' ),
 		) ),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/forms/templates' );
+			return fluent_abilities_normalize_collection( $proxy( 'GET', '/fluent-crm/v2/forms/templates' ), 'templates' );
 		},
 	) );
 
@@ -453,7 +453,7 @@ function fluent_abilities_crm_register_extended_misc_small() {
 			'url'   => array( 'type' => array( 'string', 'null' ) ),
 		) ),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/docs/addons' );
+			return fluent_abilities_normalize_collection( $proxy( 'GET', '/fluent-crm/v2/docs/addons' ), 'addons' );
 		},
 	) );
 

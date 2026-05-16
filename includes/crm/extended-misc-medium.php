@@ -364,7 +364,7 @@ function fluent_abilities_crm_register_extended_misc_medium() {
 			'label' => array( 'type' => 'string' ),
 		) ),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/import/drivers' );
+			return fluent_abilities_normalize_collection( $proxy( 'GET', '/fluent-crm/v2/import/drivers' ), 'drivers' );
 		},
 	) );
 
