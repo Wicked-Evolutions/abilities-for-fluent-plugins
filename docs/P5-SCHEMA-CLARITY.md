@@ -63,7 +63,10 @@ The dispatch reclassification rule: a focused reproduction proving executable
 behavior is wrong (handler rejects vendor-valid input / schema accepts an input
 the handler crashes-or-noops on / oneOf forbids a shape the handler accepts) →
 **STOP, escalate to the package owning that principle; do NOT self-elect or
-fold a behavior fix into P5.** Three findings hit this; none patched here.
+fold a behavior fix into P5.** Three findings hit this: #1 and #2 are
+escalated-out (orchestrator-routed, no dev action); **#3 (Boards P-B ×5) was
+reviewer-directed to be folded into THIS PR corrected against installed-source
+truth — RESOLVED below (anyOf, NOT oneOf).**
 
 1. **`fluent-crm/set-global-email-style`** — vendor
    `TemplateController::setGlobalStyle` reads the `config` key; the ability
@@ -82,21 +85,44 @@ fold a behavior fix into P5.** Three findings hit this; none patched here.
    unusable — beyond a description clarification (the `required` array is wrong).
    → **Escalate (contract/behavior); orchestrator routes.** No P5 edit applied.
 
-3. **`fluent-boards` P-B ×5** — `upload-board-background-image`,
-   `add-task-cover-image`, `upload-comment-image`, `add-task-attachment`,
-   `upload-csv`. The dispatch prescribed adding `oneOf` ("exactly one of
-   `attachment_id` | `image_url`/`csv_url`; both rejected"). **Installed handler
-   source contradicts the premise**: each uses an
-   `if ($attachment_id) {…} elseif ($url) {…}` precedence chain — supplying
-   **both is accepted** (attachment_id wins, url ignored, call succeeds); only
-   **neither-resolvable** is rejected. Applying the prescribed
-   `oneOf:[attachment_id]|[image_url]` would make the schema **falsely reject
-   handler-valid input** (both present) — the inverse of the reclassification
-   trigger and a Principle-4 violation (schema must stay truthful). The
-   truthful constraint is "≥ 1 of" (anyOf), **not** oneOf — a schema change on
-   a contradicted premise. → **STOP, NOT self-elected; escalate to reviewer**
-   for disposition (correct constraint = at-least-one, or leave optional +
-   description). No `oneOf` and no P-B note applied to any of the 5.
+3. **`fluent-boards` P-B ×5 — RESOLVED in this PR (reviewer-directed, no split).**
+   The dispatch prescribed `oneOf` ("exactly one; both rejected"). Installed
+   handler source **contradicts the premise** (Vendor-Contract "caution on
+   principle-checking" → installed-source wins). Reviewer disposition: fold the
+   **corrected** constraint into #91 as **`anyOf` ("at least one" / not-neither),
+   explicitly NOT oneOf** — both-supplied AND either-supplied stay accepted,
+   only neither rejected.
+
+   **(a) Constraint = `anyOf`** added to each input_schema:
+   `anyOf:[ {required:[attachment_id]}, {required:[<url>]} ]` (`<url>` =
+   `image_url`, or `csv_url` for `upload-csv`). oneOf was NOT used (it would
+   false-reject the handler-valid both-case = Principle-4 violation).
+
+   **(b) Per-slug installed-handler-source citation** (precedence chain — all 5
+   identical shape: `$attachment_id=(int)($input['attachment_id']??0); if($attachment_id){…} elseif(!empty($input['<url>'])){…} ; if(!$resolved) return fluent_abilities_error('ability_invalid_input','Provide attachment_id or <url>.')`):
+   - `upload-board-background-image` — `includes/boards/abilities-discovery.php` (`if($attachment_id) wp_get_attachment_url elseif(image_url) media_sideload_image; if(!$image_url) error`)
+   - `add-task-cover-image` — `includes/boards/abilities-tasks-extended.php` (same; writes task.settings.cover_image)
+   - `upload-comment-image` — `includes/boards/abilities-comments-replies.php` (same)
+   - `add-task-attachment` — `includes/boards/abilities-attachments.php` (`if($attachment_id) get_post elseif(image_url) media_sideload; else error`)
+   - `upload-csv` — `includes/boards/abilities-import.php` (`if($attachment_id) get_attached_file elseif(csv_url) sideload; else 'Provide attachment_id or csv_url.'`; note: this slug has no top-level `required` — `anyOf` is the only cross-field constraint)
+
+   **(c) Principle-10 changelog note (constraint addition on released abilities —
+   factually-corrective, NOT silent):** adding `anyOf` to these 5 released
+   abilities is a *factually-corrective* schema constraint, not a behavior
+   change: (1) it breaks **no working call** — the neither-input case already
+   failed at the handler (`Provide attachment_id or <url>.`); `anyOf` now
+   rejects it one layer earlier with a typed schema error; (2) it **false-rejects
+   no handler-valid input** — both-supplied and either-supplied still satisfy
+   `anyOf` and reach the unchanged handler; (3) handler/callbacks untouched.
+   Documented here and surfaced in the PR body changelog snippet (CHANGELOG.md
+   is scaffold-owned — orchestrator integrates).
+
+   **(d) Focused live verify** (representative `upload-board-background-image`,
+   FluentBoards on the helenawillow probe — incidental surface; board 13,
+   deploy→verify→restore→0 residue):
+   - **both-supplied** `{board_id:13, attachment_id:999999999, image_url:"https://example.com/…"}` → reached the handler, returned the **handler** message `"Provide attachment_id or image_url."` ⇒ schema `anyOf` **accepted** the both-case (no false-reject); handler precedence unchanged.
+   - **neither-supplied** `{board_id:13}` → `"invalid input. Reason: input does not match any of the expected formats"` ⇒ **schema-layer `anyOf` typed rejection, pre-handler** (previously this passed schema and failed only at the handler).
+   - Probe `includes/boards/abilities-discovery.php` restored to parent `44f3991` (post-restore md5 `7db95aa8c83565d6271a510e33b50538` == parent blob; pre-restore = p5 build `8173be02…`). No fixtures created (fake ids failed at handler — no upload); `/tmp` cleaned. **0 residue.**
 
 ## Acceptance
 - Every P-C / routed-V4 / P-D finding **patched** (editorial; one P-D

@@ -198,12 +198,13 @@
       "destructive": false,
       "read_back": "N/A — V4/V5 schema-clarity, no write",
       "principles": [
-        "V4"
+        "V4",
+        "V5"
       ],
       "package": "5",
-      "pattern": "P-B oneOf — RECLASSIFIED/escalated (dispatch premise contradicted by installed handler)",
-      "notes": "Package 5 STOP/escalate: dispatch prescribed oneOf('exactly one; both rejected') but installed handler (abilities-discovery.php) uses if(attachment_id) elseif(url) precedence — BOTH accepted (attachment_id wins), only neither-resolvable rejected. Prescribed oneOf would falsely reject handler-valid input (Principle-4 violation). NOT self-elected; truthful constraint is at-least-one (anyOf), a schema change on a contradicted premise — bounced to reviewer. No code change in P5. see docs/P5-SCHEMA-CLARITY.md",
-      "status": "PENDING — reclassified, escalated to reviewer (no P5 code)"
+      "pattern": "P-B at-least-one constraint (anyOf) — factually-corrective vs installed handler",
+      "notes": "Package 5 reviewer-directed correction. Installed handler precedence if($attachment_id) elseif($url) — BOTH accepted (attachment_id wins), only NEITHER rejected. Added input_schema `anyOf:[{required:[attachment_id]},{required:[<url>]}]` (NOT oneOf — oneOf would false-reject the handler-valid both-case, Principle-4 violation). Factually-corrective Principle-10: breaks no working call (neither already failed at handler), false-rejects no handler-valid input, handler untouched. Live-verified representative upload-board-background-image on helenawillow probe (incidental): both-supplied -> reached handler (schema accepted); neither-supplied -> typed schema anyOf rejection pre-handler. Probe restored to parent 44f3991, 0 residue. see docs/P5-SCHEMA-CLARITY.md",
+      "status": "RESOLVED in PR #91 (reviewer-directed; anyOf not oneOf; representative live-verified)"
     },
     {
       "ability": "fluent-boards/add-task-cover-image",
@@ -215,12 +216,13 @@
       "destructive": false,
       "read_back": "N/A — V4/V5 schema-clarity, no write",
       "principles": [
-        "V4"
+        "V4",
+        "V5"
       ],
       "package": "5",
-      "pattern": "P-B oneOf — RECLASSIFIED/escalated (dispatch premise contradicted by installed handler)",
-      "notes": "Package 5 STOP/escalate: dispatch prescribed oneOf('exactly one; both rejected') but installed handler (abilities-tasks-extended.php) uses if(attachment_id) elseif(url) precedence — BOTH accepted (attachment_id wins), only neither-resolvable rejected. Prescribed oneOf would falsely reject handler-valid input (Principle-4 violation). NOT self-elected; truthful constraint is at-least-one (anyOf), a schema change on a contradicted premise — bounced to reviewer. No code change in P5. see docs/P5-SCHEMA-CLARITY.md",
-      "status": "PENDING — reclassified, escalated to reviewer (no P5 code)"
+      "pattern": "P-B at-least-one constraint (anyOf) — factually-corrective vs installed handler",
+      "notes": "Package 5 reviewer-directed correction. Installed handler precedence if($attachment_id) elseif($url) — BOTH accepted (attachment_id wins), only NEITHER rejected. Added input_schema `anyOf:[{required:[attachment_id]},{required:[<url>]}]` (NOT oneOf — oneOf would false-reject the handler-valid both-case, Principle-4 violation). Factually-corrective Principle-10: breaks no working call (neither already failed at handler), false-rejects no handler-valid input, handler untouched. Live-verified representative upload-board-background-image on helenawillow probe (incidental): both-supplied -> reached handler (schema accepted); neither-supplied -> typed schema anyOf rejection pre-handler. Probe restored to parent 44f3991, 0 residue. see docs/P5-SCHEMA-CLARITY.md",
+      "status": "RESOLVED in PR #91 (reviewer-directed; anyOf not oneOf; representative live-verified)"
     },
     {
       "ability": "fluent-boards/upload-comment-image",
@@ -232,12 +234,13 @@
       "destructive": false,
       "read_back": "N/A — V4/V5 schema-clarity, no write",
       "principles": [
-        "V4"
+        "V4",
+        "V5"
       ],
       "package": "5",
-      "pattern": "P-B oneOf — RECLASSIFIED/escalated (dispatch premise contradicted by installed handler)",
-      "notes": "Package 5 STOP/escalate: dispatch prescribed oneOf('exactly one; both rejected') but installed handler (abilities-comments-replies.php) uses if(attachment_id) elseif(url) precedence — BOTH accepted (attachment_id wins), only neither-resolvable rejected. Prescribed oneOf would falsely reject handler-valid input (Principle-4 violation). NOT self-elected; truthful constraint is at-least-one (anyOf), a schema change on a contradicted premise — bounced to reviewer. No code change in P5. see docs/P5-SCHEMA-CLARITY.md",
-      "status": "PENDING — reclassified, escalated to reviewer (no P5 code)"
+      "pattern": "P-B at-least-one constraint (anyOf) — factually-corrective vs installed handler",
+      "notes": "Package 5 reviewer-directed correction. Installed handler precedence if($attachment_id) elseif($url) — BOTH accepted (attachment_id wins), only NEITHER rejected. Added input_schema `anyOf:[{required:[attachment_id]},{required:[<url>]}]` (NOT oneOf — oneOf would false-reject the handler-valid both-case, Principle-4 violation). Factually-corrective Principle-10: breaks no working call (neither already failed at handler), false-rejects no handler-valid input, handler untouched. Live-verified representative upload-board-background-image on helenawillow probe (incidental): both-supplied -> reached handler (schema accepted); neither-supplied -> typed schema anyOf rejection pre-handler. Probe restored to parent 44f3991, 0 residue. see docs/P5-SCHEMA-CLARITY.md",
+      "status": "RESOLVED in PR #91 (reviewer-directed; anyOf not oneOf; representative live-verified)"
     },
     {
       "ability": "fluent-boards/add-task-attachment",
@@ -249,12 +252,13 @@
       "destructive": false,
       "read_back": "N/A — V4/V5 schema-clarity, no write",
       "principles": [
-        "V4"
+        "V4",
+        "V5"
       ],
       "package": "5",
-      "pattern": "P-B oneOf — RECLASSIFIED/escalated (dispatch premise contradicted by installed handler)",
-      "notes": "Package 5 STOP/escalate: dispatch prescribed oneOf('exactly one; both rejected') but installed handler (abilities-attachments.php) uses if(attachment_id) elseif(url) precedence — BOTH accepted (attachment_id wins), only neither-resolvable rejected. Prescribed oneOf would falsely reject handler-valid input (Principle-4 violation). NOT self-elected; truthful constraint is at-least-one (anyOf), a schema change on a contradicted premise — bounced to reviewer. No code change in P5. see docs/P5-SCHEMA-CLARITY.md",
-      "status": "PENDING — reclassified, escalated to reviewer (no P5 code)"
+      "pattern": "P-B at-least-one constraint (anyOf) — factually-corrective vs installed handler",
+      "notes": "Package 5 reviewer-directed correction. Installed handler precedence if($attachment_id) elseif($url) — BOTH accepted (attachment_id wins), only NEITHER rejected. Added input_schema `anyOf:[{required:[attachment_id]},{required:[<url>]}]` (NOT oneOf — oneOf would false-reject the handler-valid both-case, Principle-4 violation). Factually-corrective Principle-10: breaks no working call (neither already failed at handler), false-rejects no handler-valid input, handler untouched. Live-verified representative upload-board-background-image on helenawillow probe (incidental): both-supplied -> reached handler (schema accepted); neither-supplied -> typed schema anyOf rejection pre-handler. Probe restored to parent 44f3991, 0 residue. see docs/P5-SCHEMA-CLARITY.md",
+      "status": "RESOLVED in PR #91 (reviewer-directed; anyOf not oneOf; representative live-verified)"
     },
     {
       "ability": "fluent-boards/upload-csv",
@@ -266,12 +270,13 @@
       "destructive": false,
       "read_back": "N/A — V4/V5 schema-clarity, no write",
       "principles": [
-        "V4"
+        "V4",
+        "V5"
       ],
       "package": "5",
-      "pattern": "P-B oneOf — RECLASSIFIED/escalated (dispatch premise contradicted by installed handler)",
-      "notes": "Package 5 STOP/escalate: dispatch prescribed oneOf('exactly one; both rejected') but installed handler (abilities-import.php) uses if(attachment_id) elseif(url) precedence — BOTH accepted (attachment_id wins), only neither-resolvable rejected. Prescribed oneOf would falsely reject handler-valid input (Principle-4 violation). NOT self-elected; truthful constraint is at-least-one (anyOf), a schema change on a contradicted premise — bounced to reviewer. No code change in P5. see docs/P5-SCHEMA-CLARITY.md",
-      "status": "PENDING — reclassified, escalated to reviewer (no P5 code)"
+      "pattern": "P-B at-least-one constraint (anyOf) — factually-corrective vs installed handler",
+      "notes": "Package 5 reviewer-directed correction. Installed handler precedence if($attachment_id) elseif($url) — BOTH accepted (attachment_id wins), only NEITHER rejected. Added input_schema `anyOf:[{required:[attachment_id]},{required:[<url>]}]` (NOT oneOf — oneOf would false-reject the handler-valid both-case, Principle-4 violation). Factually-corrective Principle-10: breaks no working call (neither already failed at handler), false-rejects no handler-valid input, handler untouched. Live-verified representative upload-board-background-image on helenawillow probe (incidental): both-supplied -> reached handler (schema accepted); neither-supplied -> typed schema anyOf rejection pre-handler. Probe restored to parent 44f3991, 0 residue. see docs/P5-SCHEMA-CLARITY.md",
+      "status": "RESOLVED in PR #91 (reviewer-directed; anyOf not oneOf; representative live-verified)"
     }
   ]
 }
