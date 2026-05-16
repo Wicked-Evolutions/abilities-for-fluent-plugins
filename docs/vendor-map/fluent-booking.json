@@ -6,14 +6,14 @@
       "ability": "fluent-booking/add-booking-note",
       "vendor": "fluent-booking",
       "vendor_version_checked": "1.7.x",
-      "authority": "direct_storage",
-      "canonical_handler": "wpFluent()->table('fcal_booking_activity')->insertGetId",
-      "direct_storage": true,
+      "authority": "vendor_public_model",
+      "canonical_handler": "FluentBooking\\App\\Models\\BookingActivity::create",
+      "direct_storage": false,
       "destructive": false,
-      "principles": [ "V9", "V10" ],
-      "package": 3,
-      "pattern": "P-N",
-      "notes": "Package 3 V9 returned-id fix (F-BOOK-04). Prior registrar used wpFluent insert() which returns boolean; the returned activity_id was always cast from true to 1. insertGetId() returns the auto-increment primary key of the inserted row. No vendor model wraps fcal_booking_activity, so direct wpFluent insert is the appropriate V3 path; this package corrects only the id-return shape."
+      "principles": [ "V3", "V9", "V10" ],
+      "package": "3b",
+      "pattern": "P-N + duplicate-write (ledger Addendum 6)",
+      "notes": "Package 3 (#84) corrected the returned-id shape (P-N/V9). Package 3b corrects a duplicate-write: the prior callback did BOTH a direct wpFluent insertGetId() AND do_action('fluent_booking/log_booking_note'); the vendor LogHandler (app/Hooks/Handlers/LogHandler.php:16-30) listens to that action and ALSO calls BookingActivity::create() — so every call persisted two fcal_booking_activity rows. Now routes once through the vendor canonical model FluentBooking\\App\\Models\\BookingActivity::create (the same model the LogHandler uses), returning $activity->id for the V9 round-trip and writing exactly one row. The do_action is dropped (LogHandler only persists; no other side effect). V10 typed WP_Error when the vendor model class is absent. Live re-test helenawillow 2026-05-16: one row persisted (id=3298), id round-trip confirmed, created_by auto-set by the vendor model creating-hook."
     },
     {
       "ability": "fluent-booking/create-event",

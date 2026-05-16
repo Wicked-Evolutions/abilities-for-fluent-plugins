@@ -1,0 +1,45 @@
+{
+  "_doc": "FluentCart vendor-map per PRINCIPLES-VENDOR.md V11. One row per touched ability. Populated incrementally as fix packages land.",
+  "vendor": "fluent-cart",
+  "abilities": [
+    {
+      "ability": "fluent-cart/create-custom-order",
+      "vendor": "fluent-cart",
+      "vendor_version_checked": "installed on helenawillow 2026-05-16",
+      "authority": "vendor_public_model + vendor_public_service",
+      "canonical_handler": "FluentCart\\App\\Models\\Order::create + FluentCart\\App\\Models\\OrderItem::create + FluentCart\\App\\Services\\OrderService::getItemsAmountTotal",
+      "direct_storage": false,
+      "destructive": false,
+      "principles": [ "V3", "V10" ],
+      "package": "3b",
+      "pattern": "F-CART-03 totals-not-aggregated",
+      "notes": "Package 3b V3 fix. Prior callback set the order subtotal/total_amount to a local sum and created OrderItem rows WITHOUT the per-item `subtotal` column. The vendor totals-calc (OrderService::getItemsAmountTotal reads item `subtotal` - `discount_total`; the vendor migrator sums fct_order_items.subtotal) therefore aggregated 0 — order total read back as 0 while line_total showed the value (F-CART-03). Fix: set the canonical per-item `subtotal`, then re-derive the order subtotal/total_amount via OrderService::getItemsAmountTotal($items,false,false) and persist on the order (route through the vendor totals-calc, not the local sum). V10 typed WP_Error when Order/OrderItem models absent; falls back to the local sum if OrderService is unavailable (no fatal). Live re-test helenawillow 2026-05-16: order subtotal=total_amount=4498 = sum of item subtotals (3998+500), items carry subtotal."
+    },
+    {
+      "ability": "fluent-cart/list-attachable-users",
+      "vendor": "fluent-cart",
+      "vendor_version_checked": "installed on helenawillow 2026-05-16",
+      "authority": "wp_core (get_users) — vendor endpoint has no filter",
+      "canonical_handler": "CustomerController::getAttachableUser (vendor returns ALL unlinked users, no filter param)",
+      "direct_storage": false,
+      "destructive": false,
+      "principles": [ "V3", "V4" ],
+      "package": "3b",
+      "pattern": "F-CART-04 filter-ignored",
+      "notes": "Package 3b V3 fix. The vendor getAttachableUser() endpoint has NO filter parameter (whereDoesntHave('customer')->get()). The ability adds its own get_users() filter but only read input `search`; the tester passed the vendor-style `q`, so the filter was silently ignored and the full list returned (F-CART-04). Fix: accept `q` as an alias of `search` (input_schema declares both; callback reads `search` then falls back to `q`), and apply the same filter to the count query so a filtered response reports the filtered total. Live re-test helenawillow 2026-05-16: q='helena' returned 3 matching users with total=3 (was full 119)."
+    },
+    {
+      "ability": "fluent-cart/update-order-address-id",
+      "vendor": "fluent-cart",
+      "vendor_version_checked": "installed on helenawillow 2026-05-16",
+      "authority": "vendor_public_model",
+      "canonical_handler": "FluentCart\\App\\Models\\CustomerAddresses::find + FluentCart\\App\\Models\\OrderAddress upsert",
+      "direct_storage": false,
+      "destructive": false,
+      "principles": [ "V10" ],
+      "package": "3b",
+      "pattern": "F-CART-06 cluster-precondition",
+      "notes": "Package 3b V10 fix, callback-body only (no schema/annotation change — Principle 10; the sibling fluent-cart/update-order-address is v1.1.3 Stable-locked and is NOT touched). `update-order-address-id` expects `address_id` to be a stored CUSTOMER address id (fct_customer_addresses.id), but `update-order-address` returns the per-order fct_order_addresses.id under the same field name; feeding that back failed the CustomerAddresses lookup with a bare 'Address not found.' (F-CART-06 'internally inconsistent'). Fix: the missing-address branch now returns a typed fluent_abilities_error('vendor_precondition_failed', …) naming exactly what address_id must be (a list-customer-addresses id) and must not be (the update-order-address return id). V10 typed WP_Error when models absent. Live re-test helenawillow 2026-05-16: feeding the order-address id returned the new explanatory typed error. Positive-path (valid customer-address id succeeds) live-verify was blocked by an unrelated MCP-bridge degraded-mode outage (Pattern P-E, wickedevolutions OAuth expiry) — positive-path logic is unchanged from the pre-existing code; only the error branch was modified."
+    }
+  ]
+}

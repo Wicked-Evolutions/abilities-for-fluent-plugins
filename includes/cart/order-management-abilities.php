@@ -129,6 +129,10 @@ add_action( 'wp_abilities_api_init', function() {
 		'annotations' => array( 'idempotent' => false ),
 		'capability'  => 'manage_options',
 		'callback'    => function( $input ) {
+			if ( ! class_exists( '\\FluentCart\\App\\Models\\Order' ) || ! class_exists( '\\FluentCart\\App\\Models\\OrderItem' ) ) {
+				return new WP_Error( 'vendor_helper_unavailable', 'FluentCart Order/OrderItem models are not available. FluentCart must be active for this ability.' );
+			}
+
 			$items = $input['items'] ?? array();
 			$total = 0;
 			foreach ( $items as $item ) {
@@ -146,6 +150,7 @@ add_action( 'wp_abilities_api_init', function() {
 				$unit_price = (int) ( $item['unit_price'] ?? 0 );
 				$quantity   = (int) ( $item['quantity'] ?? 1 );
 				$title      = sanitize_text_field( $item['title'] ?? '' );
+				$line_total = $unit_price * $quantity;
 				\FluentCart\App\Models\OrderItem::create( array(
 					'order_id'         => $order->id,
 					'post_id'          => (int) ( $item['post_id'] ?? 0 ),
@@ -156,10 +161,37 @@ add_action( 'wp_abilities_api_init', function() {
 					'title'            => $title,
 					'quantity'         => $quantity,
 					'unit_price'       => $unit_price,
-					'line_total'       => $unit_price * $quantity,
+					// `subtotal` is the canonical per-item field the vendor
+					// totals-calc reads (OrderService::getItemsAmountTotal +
+					// the vendor migrator's SUM(subtotal)). Without it the
+					// order total aggregated from items is 0 (F-CART-03).
+					'subtotal'         => $line_total,
+					'line_total'       => $line_total,
 				) );
 			}
-			return array( 'success' => true, 'id' => (int) $order->id, 'total_amount' => (int) $total );
+
+			// Route the order total through the vendor totals-calc rather than
+			// trusting the locally-summed value: re-derive subtotal/total_amount
+			// from the persisted order items via the canonical vendor service,
+			// then persist on the order so an order read-back shows the
+			// aggregated total (F-CART-03, V3). Falls back to the local sum if
+			// the vendor service is unavailable (V10 — no fatal).
+			$vendor_total = null;
+			if ( class_exists( '\\FluentCart\\App\\Services\\OrderService' )
+				&& method_exists( '\\FluentCart\\App\\Services\\OrderService', 'getItemsAmountTotal' ) ) {
+				try {
+					$order_items  = \FluentCart\App\Models\OrderItem::where( 'order_id', $order->id )->get();
+					$vendor_total = (int) \FluentCart\App\Services\OrderService::getItemsAmountTotal( $order_items, false, false );
+				} catch ( \Throwable $e ) {
+					$vendor_total = null;
+				}
+			}
+			$effective_total     = ( null !== $vendor_total ) ? $vendor_total : $total;
+			$order->subtotal     = $effective_total;
+			$order->total_amount = $effective_total;
+			$order->save();
+
+			return array( 'success' => true, 'id' => (int) $order->id, 'total_amount' => (int) $effective_total );
 		},
 	) );
 
@@ -615,13 +647,29 @@ add_action( 'wp_abilities_api_init', function() {
 		) ),
 		'capability' => 'manage_options',
 		'callback'   => function( $input ) {
+			if ( ! class_exists( '\\FluentCart\\App\\Models\\Order' ) || ! class_exists( '\\FluentCart\\App\\Models\\CustomerAddresses' ) ) {
+				return new WP_Error( 'vendor_helper_unavailable', 'FluentCart Order/CustomerAddresses models are not available. FluentCart must be active for this ability.' );
+			}
 			$order   = \FluentCart\App\Models\Order::find( (int) $input['order_id'] );
 			$address = \FluentCart\App\Models\CustomerAddresses::find( (int) $input['address_id'] );
 			if ( ! $order ) {
-				return fluent_abilities_error( 'not_found', 'Order not found.' );
+				return fluent_abilities_error( 'not_found', "Order {$input['order_id']} not found." );
 			}
 			if ( ! $address ) {
-				return fluent_abilities_error( 'not_found', 'Address not found.' );
+				// F-CART-06 precondition (V10): `address_id` here is a STORED
+				// CUSTOMER address id (fct_customer_addresses.id) — the kind
+				// returned by list-customer-addresses — NOT the per-order
+				// fct_order_addresses.id that `update-order-address` returns as
+				// its `address_id`. Feeding that order-address id here fails the
+				// CustomerAddresses lookup. Make the precondition explicit
+				// instead of a bare "not found".
+				return fluent_abilities_error(
+					'vendor_precondition_failed',
+					sprintf(
+						'No stored customer address with id %d (fct_customer_addresses). `address_id` must be a saved customer-address id from fluent-cart/list-customer-addresses, not the per-order address id returned by fluent-cart/update-order-address.',
+						(int) $input['address_id']
+					)
+				);
 			}
 			$type = sanitize_text_field( $input['type'] );
 			$row = \FluentCart\App\Models\OrderAddress::where( 'order_id', $order->id )
