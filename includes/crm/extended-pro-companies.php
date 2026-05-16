@@ -53,7 +53,7 @@ function fluent_abilities_crm_register_extended_pro_companies() {
 		'input_schema'  => array( 'type' => 'object', 'required' => array( 'id' ), 'properties' => array( 'id' => array( 'type' => 'integer' ) ) ),
 		'output_schema' => fluent_abilities_schema_item_output( $company_item ),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/companies/' . (int) ( $input['id'] ?? 0 ) );
+			return fluent_abilities_project_response( $proxy( 'GET', '/fluent-crm/v2/companies/' . (int) ( $input['id'] ?? 0 ) ) );
 		},
 	) );
 
@@ -79,7 +79,7 @@ function fluent_abilities_crm_register_extended_pro_companies() {
 		),
 		'output_schema' => fluent_abilities_schema_item_output( $company_item ),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/companies', $input );
+			return fluent_abilities_project_response( $proxy( 'POST', '/fluent-crm/v2/companies', $input ) );
 		},
 	) );
 
@@ -108,7 +108,7 @@ function fluent_abilities_crm_register_extended_pro_companies() {
 		'callback'      => function ( $input ) use ( $proxy ) {
 			$id = (int) ( $input['id'] ?? 0 );
 			unset( $input['id'] );
-			return $proxy( 'PUT', '/fluent-crm/v2/companies/' . $id, $input );
+			return fluent_abilities_project_response( $proxy( 'PUT', '/fluent-crm/v2/companies/' . $id, $input ) );
 		},
 	) );
 

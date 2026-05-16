@@ -77,7 +77,7 @@ function fluent_abilities_crm_register_extended_misc_small() {
 				'slug'  => isset( $input['slug'] ) ? (string) $input['slug'] : ( isset( $input['title'] ) ? sanitize_title( (string) $input['title'] ) : '' ),
 				'color' => isset( $input['color'] ) ? (string) $input['color'] : '',
 			);
-			return $proxy( 'POST', '/fluent-crm/v2/labels', array( 'label' => $label ) );
+			return fluent_abilities_project_response( $proxy( 'POST', '/fluent-crm/v2/labels', array( 'label' => $label ) ) );
 		},
 	) );
 
@@ -104,7 +104,7 @@ function fluent_abilities_crm_register_extended_misc_small() {
 					$label[ $k ] = (string) $input[ $k ];
 				}
 			}
-			return $proxy( 'PUT', '/fluent-crm/v2/labels/' . $id, array( 'label' => $label ) );
+			return fluent_abilities_project_response( $proxy( 'PUT', '/fluent-crm/v2/labels/' . $id, array( 'label' => $label ) ) );
 		},
 	) );
 

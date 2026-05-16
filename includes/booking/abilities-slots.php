@@ -38,7 +38,11 @@ function fluent_booking_register_slot_abilities() {
 			'event_type'   => array( 'type' => 'string' ),
 			'slot_minutes' => array( 'type' => 'integer' ),
 			'timezone'     => array( 'type' => 'string' ),
-			'days'         => array( 'type' => 'array', 'items' => array( 'type' => 'object' ) ),
+			// P-H: vendor TimeSlotService::getDates() returns a date-KEYED map
+			// (keys are Y-m-d, values are slot arrays), not a sequential list —
+			// a genuinely alternative shape, so union-declare object|array
+			// rather than discard the semantically-meaningful date keys.
+			'days'         => array( 'type' => array( 'object', 'array' ) ),
 		) ),
 		'callback' => function( $input ) {
 			if ( ! class_exists( '\FluentBooking\App\Services\TimeSlotService' ) ) {
