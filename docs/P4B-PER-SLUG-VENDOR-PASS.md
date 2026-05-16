@@ -77,3 +77,38 @@ All 4b fixes are response-boundary projection / output_schema corrections at the
 ability layer — **vendor-contract-level, site-config-agnostic, no single/multisite
 branching**. Verification probes are single-site (incidental surface); the
 multisite dimension is **config-agnostic by construction** — flagged, not gated.
+
+---
+
+## Deploy-Hygiene Receipt — corrected to the 792990b standard (reviewer #90)
+
+Initial PR receipt said "probe restored to 29b9101". That was the **wrong
+baseline**: P4b's parent is **792990b** (which includes 4a's edits to the same
+`includes/crm/extended-*.php` + `includes/helpers.php`). The original restore
+genuinely returned the probe's touched files to **29b9101 content** (pre-4a),
+leaving the probe incoherent with the PR's actual parent. Resolved per reviewer
+option (ii): the probe's 12 touched files were **re-restored to the 792990b
+blob** (standing test-env clearance, reversible), pre/post recorded vs the true
+parent.
+
+helenawillow probe (incidental test surface), touched-file md5 (pre = state
+before this correction = 29b9101 content; post = git `792990b:<file>` blob):
+
+| file | pre (29b9101) | post-restore (792990b) | == 792990b |
+|---|---|---|---|
+| includes/crm/extended-campaigns.php | 66c97d22 | 8a03fcd8 | ✅ |
+| includes/crm/extended-funnels.php | 2e77e8a6 | 53e8702e | ✅ |
+| includes/crm/extended-misc-medium.php | 013125bd | 15cc3905 | ✅ |
+| includes/crm/extended-misc-small.php | 2883517b | d24a931e | ✅ |
+| includes/crm/extended-pro-companies.php | da1e571e | 101972db | ✅ |
+| includes/crm/extended-pro-marketing.php | 410c30e0 | fa0cb000 | ✅ |
+| includes/crm/extended-pro-settings-and-commerce.php | 4f373bd0 | 4f373bd0 | ✅ (4a-untouched; identical in both blobs) |
+| includes/crm/extended-reports.php | abaaa3f7 | 44292357 | ✅ |
+| includes/crm/extended-settings.php | d0f3f464 | d0f3f464 | ✅ (4a-untouched) |
+| includes/crm/extended-subscribers.php | 78de92ac | 78de92ac | ✅ (4a-untouched) |
+| includes/crm/extended-templates-and-patterns.php | 64ab5eb9 | 64ab5eb9 | ✅ (4a-untouched) |
+| includes/helpers.php | 04f382da | 6089e3cf | ✅ (4a-provided helper set) |
+
+Probe touched-file set is now coherently == **792990b** (P4b parent). Fixture
+template 5111 deleted earlier; `/tmp` artifacts removed. **0 residue.** Same
+pre==post-restore==PR-parent standard as P3c/P4a.
