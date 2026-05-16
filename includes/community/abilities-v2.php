@@ -1063,7 +1063,7 @@ function fluent_abilities_register_community_v2() {
 	// ── 4.6.5 get-customization-settings ────────────────────────────────────
 	$reg->read( 'fluent-community/get-customization-settings', array(
 		'label'       => 'Get Customization Settings',
-		'description' => 'Return UI/theming customization settings via Utility::getCustomizationSettings(). Yes|no keys: dark_mode, fixed_page_header, show_powered_by, show_post_modal, feed_link_on_sidebar, fixed_sidebar, icon_on_header_menu, disable_feed_layout, collapse_sidebar_groups; affiliate_id integer.',
+		'description' => 'Return UI/theming customization settings. Source: FluentCommunity\\App\\Functions\\Utility::getCustomizationSettings(). Keys: dark_mode, fixed_page_header, show_powered_by, show_post_modal, feed_link_on_sidebar, fixed_sidebar, icon_on_header_menu, disable_feed_layout, collapse_sidebar_groups (yes|no), affiliate_id (integer).',
 		'category'    => 'fluent-community',
 		'level'       => 'admin',
 		'input_schema' => array(
@@ -1074,17 +1074,21 @@ function fluent_abilities_register_community_v2() {
 			'type' => 'object',
 		),
 		'callback' => function( $input ) {
-			if ( ! class_exists( '\\FluentCommunity\\App\\Services\\Helper\\Utility' ) ) {
-				return fluent_abilities_error( 'not_available', 'FluentCommunity Utility helper not available' );
+				if ( ! class_exists( '\\FluentCommunity\\App\\Functions\\Utility' )
+				|| ! method_exists( '\\FluentCommunity\\App\\Functions\\Utility', 'getCustomizationSettings' ) ) {
+				return new WP_Error(
+					'vendor_helper_unavailable',
+					'FluentCommunity\\App\\Functions\\Utility::getCustomizationSettings is not available. FluentCommunity must be active for this ability.'
+				);
 			}
-			return (array) \FluentCommunity\App\Services\Helper\Utility::getCustomizationSettings();
+			return (array) \FluentCommunity\App\Functions\Utility::getCustomizationSettings();
 		},
 	) );
 
 	// ── 4.6.6 update-customization-settings ─────────────────────────────────
 	$reg->write( 'fluent-community/update-customization-settings', array(
 		'label'       => 'Update Customization Settings',
-		'description' => 'Update UI/theming customization settings via Utility::updateCustomizationSettings(). See get-customization-settings for keys.',
+		'description' => 'Update UI/theming customization settings. Source: FluentCommunity\\App\\Functions\\Utility::updateCustomizationSettings(). See get-customization-settings for valid keys. Partial updates are safe: only the keys you supply change; unspecified keys are preserved. Sanitizes yes/no enum values and affiliate_id integer before forwarding.',
 		'category'    => 'fluent-community',
 		'level'       => 'admin',
 		'input_schema' => array(
@@ -1096,8 +1100,17 @@ function fluent_abilities_register_community_v2() {
 		),
 		'output_schema' => fluent_abilities_schema_success_output(),
 		'callback' => function( $input ) {
-			if ( ! class_exists( '\\FluentCommunity\\App\\Services\\Helper\\Utility' ) || ! method_exists( '\\FluentCommunity\\App\\Services\\Helper\\Utility', 'updateCustomizationSettings' ) ) {
-				return fluent_abilities_error( 'not_available', 'FluentCommunity Utility::updateCustomizationSettings not available' );
+			// The merge fix depends on BOTH vendor methods: getCustomizationSettings
+			// (read-current) and updateCustomizationSettings (full-replace write).
+			// Guard both before touching the vendor so an absent class/method
+			// returns a typed WP_Error rather than a PHP fatal (V10/V11(d)).
+			if ( ! class_exists( '\\FluentCommunity\\App\\Functions\\Utility' )
+				|| ! method_exists( '\\FluentCommunity\\App\\Functions\\Utility', 'updateCustomizationSettings' )
+				|| ! method_exists( '\\FluentCommunity\\App\\Functions\\Utility', 'getCustomizationSettings' ) ) {
+				return new WP_Error(
+					'vendor_helper_unavailable',
+					'FluentCommunity\\App\\Functions\\Utility::{get,update}CustomizationSettings is not available. FluentCommunity must be active for this ability.'
+				);
 			}
 
 			$incoming    = isset( $input['settings'] ) && is_array( $input['settings'] ) ? $input['settings'] : array();
@@ -1109,22 +1122,32 @@ function fluent_abilities_register_community_v2() {
 				if ( in_array( $k, $yes_no_keys, true ) ) {
 					$sanitized[ $k ] = ( $v === 'yes' || $v === true || $v === 1 ) ? 'yes' : 'no';
 				} elseif ( $k === 'affiliate_id' ) {
-					$sanitized[ $k ] = (int) $v;
+					$sanitized[ $k ] = ( '' === $v || null === $v ) ? '' : (int) $v;
 				} else {
 					$sanitized[ $k ] = $v;
 				}
 			}
 
-			\FluentCommunity\App\Services\Helper\Utility::updateCustomizationSettings( $sanitized );
-
-			return array( 'success' => true );
+			try {
+				// Vendor updateCustomizationSettings() is a FULL REPLACE
+				// (Arr::only + updateOption) — any key absent from the payload is
+				// dropped and reads back as the vendor default. The read-current
+				// dependency is inside the try so a vendor Throwable on either the
+				// read or the write returns a typed WP_Error (V10/V11(d)).
+				$current = (array) \FluentCommunity\App\Functions\Utility::getCustomizationSettings();
+				$merged  = array_merge( $current, $sanitized );
+				\FluentCommunity\App\Functions\Utility::updateCustomizationSettings( $merged );
+				return array( 'success' => true );
+			} catch ( \Throwable $e ) {
+				return new WP_Error( 'vendor_precondition_failed', 'FluentCommunity Utility customization-settings read/merge/write failed: ' . $e->getMessage() );
+			}
 		},
 	) );
 
 	// ── 4.6.7 get-privacy-settings ──────────────────────────────────────────
 	$reg->read( 'fluent-community/get-privacy-settings', array(
 		'label'       => 'Get Privacy Settings',
-		'description' => 'Return privacy settings via Utility::getPrivacySettings().',
+		'description' => 'Return privacy settings. Source: FluentCommunity\\App\\Functions\\Utility::getPrivacySettings().',
 		'category'    => 'fluent-community',
 		'level'       => 'admin',
 		'input_schema' => array(
@@ -1135,10 +1158,14 @@ function fluent_abilities_register_community_v2() {
 			'type' => 'object',
 		),
 		'callback' => function( $input ) {
-			if ( ! class_exists( '\\FluentCommunity\\App\\Services\\Helper\\Utility' ) || ! method_exists( '\\FluentCommunity\\App\\Services\\Helper\\Utility', 'getPrivacySettings' ) ) {
-				return fluent_abilities_error( 'not_available', 'FluentCommunity Utility::getPrivacySettings not available' );
+				if ( ! class_exists( '\\FluentCommunity\\App\\Functions\\Utility' )
+				|| ! method_exists( '\\FluentCommunity\\App\\Functions\\Utility', 'getPrivacySettings' ) ) {
+				return new WP_Error(
+					'vendor_helper_unavailable',
+					'FluentCommunity\\App\\Functions\\Utility::getPrivacySettings is not available. FluentCommunity must be active for this ability.'
+				);
 			}
-			return (array) \FluentCommunity\App\Services\Helper\Utility::getPrivacySettings();
+			return (array) \FluentCommunity\App\Functions\Utility::getPrivacySettings();
 		},
 	) );
 
@@ -1242,7 +1269,7 @@ function fluent_abilities_register_community_v2() {
 	// Default read level so self-access works; callback enforces admin-or-self.
 	$reg->read( 'fluent-community/get-notification-prefs', array(
 		'label'       => 'Get Notification Preferences',
-		'description' => 'Return per-user notification email preferences. Self-access allowed; non-self requires admin. Keys: com_my_post_mail, reply_my_com_mail, mention_mail, digest_email_status, digest_mail, messaging_email_status, message_email_frequency, plus per-space np_by_<space_id>.',
+		'description' => 'Return per-user notification email preferences. Source: FluentCommunity\\App\\Services\\NotificationPref::getUserPrefs(). Self-access allowed; non-self requires admin. Keys: com_my_post_mail, reply_my_com_mail, mention_mail, digest_email_status, digest_mail, messaging_email_status, message_email_frequency, plus per-space np_by_<space_id>.',
 		'category'    => 'fluent-community',
 		'input_schema' => array(
 			'type'       => 'object',
@@ -1265,11 +1292,14 @@ function fluent_abilities_register_community_v2() {
 				return fluent_abilities_error( 'rest_forbidden', 'Only admins may read other users\' notification preferences' );
 			}
 
-			if ( ! class_exists( '\\FluentCommunity\\App\\Models\\NotificationPref' ) ) {
-				return fluent_abilities_error( 'not_available', 'FluentCommunity NotificationPref model not available' );
+			if ( ! class_exists( '\\FluentCommunity\\App\\Services\\NotificationPref' ) ) {
+				return new WP_Error(
+					'vendor_helper_unavailable',
+					'FluentCommunity\\App\\Services\\NotificationPref is not available. FluentCommunity must be active for this ability.'
+				);
 			}
 
-			$prefs = \FluentCommunity\App\Models\NotificationPref::getUserPrefs( $target_user_id );
+			$prefs = \FluentCommunity\App\Services\NotificationPref::getUserPrefs( $target_user_id );
 
 			return array(
 				'user_id' => $target_user_id,
@@ -1281,7 +1311,7 @@ function fluent_abilities_register_community_v2() {
 	// ── 4.6.12 update-notification-prefs (per-user) ─────────────────────────
 	$reg->write( 'fluent-community/update-notification-prefs', array(
 		'label'       => 'Update Notification Preferences',
-		'description' => 'Update per-user notification email preferences. Self-access allowed; non-self requires admin. See get-notification-prefs for keys.',
+		'description' => 'Update per-user notification email preferences. Source: FluentCommunity\\App\\Services\\NotificationPref::updateUserPrefs(). Self-access allowed; non-self requires admin. The vendor helper applies an internal validKeys allowlist and np_by_* normalization.',
 		'category'    => 'fluent-community',
 		'input_schema' => array(
 			'type'       => 'object',
@@ -1304,13 +1334,16 @@ function fluent_abilities_register_community_v2() {
 				return fluent_abilities_error( 'rest_forbidden', 'Only admins may update other users\' notification preferences' );
 			}
 
-			if ( ! class_exists( '\\FluentCommunity\\App\\Models\\NotificationPref' ) ) {
-				return fluent_abilities_error( 'not_available', 'FluentCommunity NotificationPref model not available' );
+			if ( ! class_exists( '\\FluentCommunity\\App\\Services\\NotificationPref' ) ) {
+				return new WP_Error(
+					'vendor_helper_unavailable',
+					'FluentCommunity\\App\\Services\\NotificationPref is not available. FluentCommunity must be active for this ability.'
+				);
 			}
 
 			$prefs = isset( $input['prefs'] ) && is_array( $input['prefs'] ) ? $input['prefs'] : array();
 
-			\FluentCommunity\App\Models\NotificationPref::updateUserPrefs( $target_user_id, $prefs );
+			\FluentCommunity\App\Services\NotificationPref::updateUserPrefs( $target_user_id, $prefs );
 
 			return array( 'success' => true );
 		},

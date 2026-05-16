@@ -313,7 +313,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-messaging/send-message', array(
 		'label'       => 'Send Message',
-		'description' => 'Send a message to a chat thread. Non-admin users must be a participant. Uses the current WordPress user as the sender. Updates thread message_count and updated_at timestamp.',
+		'description' => 'Send a message to a chat thread. Non-admin users must be a participant. Uses the current WordPress user as the sender. Updates thread message_count and updated_at timestamp. Returns the persisted message_id of the new entry so callers can reference it in subsequent reads.',
 		'category'    => 'fluent-messaging',
 		'input_schema' => array(
 			'type'       => 'object',
@@ -356,8 +356,8 @@ add_action( 'wp_abilities_api_init', function() {
 
 			$now = current_time( 'mysql' );
 
-			// Insert the message.
-			$message_id = wpFluent()->table( 'fcom_chat_messages' )->insert( array(
+			// insertGetId() returns the auto-increment id; insert() returns boolean
+			$message_id = wpFluent()->table( 'fcom_chat_messages' )->insertGetId( array(
 				'thread_id'  => (int) $input['thread_id'],
 				'user_id'    => $user_id,
 				'text'       => wp_kses_post( $input['text'] ),
