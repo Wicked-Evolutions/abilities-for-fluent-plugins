@@ -513,7 +513,7 @@ function fluent_abilities_crm_register_extended_reports() {
 			$id    = (int) ( $input['id'] ?? 0 );
 			$query = $input;
 			unset( $query['id'] );
-			return $proxy_get( '/fluent-crm/v2/reports/automations/' . $id . '/steps', $query );
+			return fluent_abilities_project_response( $proxy_get( '/fluent-crm/v2/reports/automations/' . $id . '/steps', $query ) );
 		},
 	) );
 

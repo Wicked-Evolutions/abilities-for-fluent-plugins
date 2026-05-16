@@ -562,7 +562,7 @@ add_action( 'wp_abilities_api_init', function() {
 			'subject'      => array( 'type' => array( 'string', 'null' ) ),
 			'status'       => array( 'type' => 'string' ),
 			'type'         => array( 'type' => 'string' ),
-			'scheduled_at' => array( 'type' => 'string' ),
+			'scheduled_at' => array( 'type' => array( 'string', 'null' ) ),
 			'created_at'   => array( 'type' => 'string' ),
 		) ),
 		'callback' => function( $input ) {

@@ -46,7 +46,7 @@ function fluent_abilities_crm_register_extended_pro_marketing() {
 		'output_schema' => fluent_abilities_schema_collection_output( 'sequences', $obj ),
 		'callback'      => function ( $input ) use ( $proxy ) {
 			$sid = (int) ( $input['subscriber_id'] ?? 0 );
-			return $proxy( 'GET', '/fluent-crm/v2/sequences/subscriber/' . $sid . '/sequences' );
+			return fluent_abilities_unwrap_paginator( $proxy( 'GET', '/fluent-crm/v2/sequences/subscriber/' . $sid . '/sequences' ), 'sequences' );
 		},
 	) );
 
@@ -57,7 +57,7 @@ function fluent_abilities_crm_register_extended_pro_marketing() {
 		'input_schema'  => array( 'type' => 'object', 'required' => array( 'id' ), 'properties' => array( 'id' => array( 'type' => 'integer' ) ) ),
 		'output_schema' => fluent_abilities_schema_item_output(),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/sequences/' . (int) ( $input['id'] ?? 0 ) . '/duplicate' );
+			return fluent_abilities_project_response( $proxy( 'POST', '/fluent-crm/v2/sequences/' . (int) ( $input['id'] ?? 0 ) . '/duplicate' ) );
 		},
 	) );
 
@@ -196,7 +196,7 @@ function fluent_abilities_crm_register_extended_pro_marketing() {
 			),
 		),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/recurring-campaigns', $input );
+			return fluent_abilities_unwrap_paginator( $proxy( 'GET', '/fluent-crm/v2/recurring-campaigns', $input ), 'campaigns' );
 		},
 	) );
 
@@ -241,7 +241,7 @@ function fluent_abilities_crm_register_extended_pro_marketing() {
 		'input_schema'  => array( 'type' => 'object', 'required' => array( 'campaign_id' ), 'properties' => array( 'campaign_id' => array( 'type' => 'integer' ) ) ),
 		'output_schema' => fluent_abilities_schema_item_output(),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/recurring-campaigns/' . (int) ( $input['campaign_id'] ?? 0 ) );
+			return fluent_abilities_project_response( $proxy( 'GET', '/fluent-crm/v2/recurring-campaigns/' . (int) ( $input['campaign_id'] ?? 0 ) ) );
 		},
 	) );
 
@@ -274,10 +274,10 @@ function fluent_abilities_crm_register_extended_pro_marketing() {
 			$campaign_id = (int) ( $input['campaign_id'] ?? 0 );
 			$campaign    = $input;
 			unset( $campaign['campaign_id'] );
-			return $proxy( 'POST', '/fluent-crm/v2/recurring-campaigns/update-campaign-data', array(
+			return fluent_abilities_project_response( $proxy( 'POST', '/fluent-crm/v2/recurring-campaigns/update-campaign-data', array(
 				'campaign_id' => $campaign_id,
 				'campaign'    => $campaign,
-			) );
+			) ) );
 		},
 	) );
 
@@ -296,7 +296,7 @@ function fluent_abilities_crm_register_extended_pro_marketing() {
 		'output_schema' => fluent_abilities_schema_success_output(),
 		'callback'      => function ( $input ) use ( $proxy ) {
 			$cid = (int) ( $input['campaign_id'] ?? 0 );
-			return $proxy( 'POST', '/fluent-crm/v2/recurring-campaigns/' . $cid . '/change-status', array( 'status' => $input['status'] ?? '' ) );
+			return fluent_abilities_project_response( $proxy( 'POST', '/fluent-crm/v2/recurring-campaigns/' . $cid . '/change-status', array( 'status' => $input['status'] ?? '' ) ) );
 		},
 	) );
 
@@ -326,7 +326,7 @@ function fluent_abilities_crm_register_extended_pro_marketing() {
 		'input_schema'  => array( 'type' => 'object', 'required' => array( 'campaign_id' ), 'properties' => array( 'campaign_id' => array( 'type' => 'integer' ) ) ),
 		'output_schema' => fluent_abilities_schema_item_output(),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/recurring-campaigns/' . (int) ( $input['campaign_id'] ?? 0 ) . '/duplicate' );
+			return fluent_abilities_project_response( $proxy( 'POST', '/fluent-crm/v2/recurring-campaigns/' . (int) ( $input['campaign_id'] ?? 0 ) . '/duplicate' ) );
 		},
 	) );
 

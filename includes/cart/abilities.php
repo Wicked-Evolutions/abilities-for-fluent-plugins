@@ -531,7 +531,7 @@ add_action( 'wp_abilities_api_init', function() {
 			'total_order_count'    => array( 'type' => 'integer' ),
 			'lifetime_value'       => array( 'type' => 'number' ),
 			'contact_id'           => array( 'type' => 'integer' ),
-			'user_id'              => array( 'type' => 'integer' ),
+			'user_id'              => array( 'type' => array( 'integer', 'null' ) ),
 			'recent_orders'        => array( 'type' => 'array', 'items' => array( 'type' => 'object' ) ),
 			'active_subscriptions' => array( 'type' => 'integer' ),
 			'created_at'           => array( 'type' => 'string' ),

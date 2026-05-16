@@ -10,7 +10,11 @@
       "canonical_handler": "FluentBooking\\App\\Models\\BookingActivity::create",
       "direct_storage": false,
       "destructive": false,
-      "principles": [ "V3", "V9", "V10" ],
+      "principles": [
+        "V3",
+        "V9",
+        "V10"
+      ],
       "package": "3b",
       "pattern": "P-N + duplicate-write (ledger Addendum 6)",
       "notes": "Package 3 (#84) corrected the returned-id shape (P-N/V9). Package 3b corrects a duplicate-write: the prior callback did BOTH a direct wpFluent insertGetId() AND do_action('fluent_booking/log_booking_note'); the vendor LogHandler (app/Hooks/Handlers/LogHandler.php:16-30) listens to that action and ALSO calls BookingActivity::create() — so every call persisted two fcal_booking_activity rows. Now routes once through the vendor canonical model FluentBooking\\App\\Models\\BookingActivity::create (the same model the LogHandler uses), returning $activity->id for the V9 round-trip and writing exactly one row. The do_action is dropped (LogHandler only persists; no other side effect). V10 typed WP_Error when the vendor model class is absent. Live re-test helenawillow 2026-05-16: one row persisted (id=3298), id round-trip confirmed, created_by auto-set by the vendor model creating-hook."
@@ -23,7 +27,10 @@
       "canonical_handler": "FluentBooking\\App\\Models\\CalendarSlot::create",
       "direct_storage": false,
       "destructive": false,
-      "principles": [ "V3", "V10" ],
+      "principles": [
+        "V3",
+        "V10"
+      ],
       "v3_priority": 2,
       "package": 2,
       "pattern": "P-K",
@@ -37,11 +44,33 @@
       "canonical_handler": "FluentBooking\\App\\Services\\TimeSlotService::getDates",
       "direct_storage": false,
       "destructive": false,
-      "principles": [ "V1", "V3", "V10" ],
+      "principles": [
+        "V1",
+        "V3",
+        "V10"
+      ],
       "v3_priority": 2,
       "package": 2,
       "pattern": "P-K signature-mismatch",
-      "notes": "Package 2 V10 signature-alignment fix (F-BOOK-02). Vendor TimeSlotService constructor is __construct(Calendar $calendar, CalendarSlot $calendarSlot) per installed source app/Services/TimeSlotService.php:18 — the prior registrar passed (CalendarSlot, string $timezone) which produced a PHP TypeError on every call. Registrar now looks up the parent Calendar via CalendarSlot::calendar_id and passes both objects to the constructor; the slot lookup uses the public getDates($fromDate, $toDate, $duration, $isDoingBooking, $timeZone) method (the prior call to a non-existent getAvailableSlots($start, $end) is replaced)."
+      "notes": "Package 4a special (V5 P-H; P2-deferred — P-K TimeSlotService crash already fixed P2/#83). Vendor source: FluentBooking TimeSlotService::getDates() returns a date-KEYED map (keys=Y-m-d, values=slot arrays); output_schema declared days as sequential array. Fix: union-declare days ['object','array'] (date keys are semantically meaningful — not flattened/discarded). Schema-only. Product-level (vendor-contract), site-agnostic. LIVE-VERIFIED via probe on helenawillow (incidental test surface), 2026-05-16: pre-deploy reproduced output[days] not-of-type-array; post-deploy get-available-slots(event_id=3,2026-05-20..22,Europe/Stockholm) -> days returned as date-keyed map {'2026-05-20':[...],...} and ACCEPTED by the union schema. Restored to baseline, 0 residue. Multisite dimension: config-agnostic by construction; single-site probe only (flagged, not gating).",
+      "status": "VERIFIED (live, probe on helenawillow incidental surface)"
+    },
+    {
+      "ability": "fluent-booking/get-availability",
+      "vendor": "fluent-booking",
+      "vendor_version_checked": "FluentBooking installed on helenawillow (source read live 2026-05-16)",
+      "authority": "vendor model/service read + V5 schema/normalize",
+      "canonical_handler": "FluentBooking availability/slots",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 response-shape fix (V3 read-back N/A)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4a",
+      "pattern": "P-H null where array declared (date_overrides)",
+      "notes": "Package 4a special (V5 P-H, response-boundary). Vendor source: FluentBooking AvailabilityController (get-availability) returns date_overrides null/object when empty/sparse; output_schema declares array. Fix: callback normalizes to a sequential array — array_values((array)fluent_abilities_safe_array($value['date_overrides'] ?? [])); schema unchanged (the array contract is the vendor-canonical shape). Product-level fix (vendor-contract), site-agnostic; no single/multisite branching. LIVE-VERIFIED via probe on helenawillow (incidental test surface), 2026-05-16: pre-deploy reproduced output[date_overrides] not-of-type-array; post-deploy get-availability id=3 -> date_overrides is a proper array [[{start,end}],...]. Restored to baseline, 0 residue. Multisite dimension: fix is config-agnostic by construction; verified single-site only — multisite probe not available (flagged, not gating).",
+      "status": "VERIFIED (live, probe on helenawillow incidental surface)"
     }
   ]
 }

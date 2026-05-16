@@ -193,7 +193,7 @@ function fluent_abilities_crm_register_extended_campaigns() {
 		'input_schema'  => $id_required(),
 		'output_schema' => fluent_abilities_schema_item_output(),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/campaigns/' . (int) ( $input['id'] ?? 0 ) . '/duplicate' );
+			return fluent_abilities_project_response( $proxy( 'POST', '/fluent-crm/v2/campaigns/' . (int) ( $input['id'] ?? 0 ) . '/duplicate' ) );
 		},
 	) );
 
@@ -207,7 +207,7 @@ function fluent_abilities_crm_register_extended_campaigns() {
 		'output_schema' => fluent_abilities_schema_success_output(),
 		'callback'      => function ( $input ) use ( $proxy ) {
 			$id = (int) ( $input['id'] ?? 0 );
-			return $proxy( 'PUT', '/fluent-crm/v2/campaigns/' . $id . '/title', array( 'title' => $input['title'] ?? '' ) );
+			return fluent_abilities_project_response( $proxy( 'PUT', '/fluent-crm/v2/campaigns/' . $id . '/title', array( 'title' => $input['title'] ?? '' ) ) );
 		},
 	) );
 
@@ -291,7 +291,7 @@ function fluent_abilities_crm_register_extended_campaigns() {
 			$id = (int) ( $input['id'] ?? 0 );
 			$q  = $input;
 			unset( $q['id'] );
-			return $proxy( 'POST', '/fluent-crm/v2/campaigns/' . $id . '/schedule', $q );
+			return fluent_abilities_project_response( $proxy( 'POST', '/fluent-crm/v2/campaigns/' . $id . '/schedule', $q ) );
 		},
 	) );
 
@@ -317,7 +317,7 @@ function fluent_abilities_crm_register_extended_campaigns() {
 			'failed_count'  => array( 'type' => 'integer' ),
 		) ),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/campaigns/' . (int) ( $input['id'] ?? 0 ) . '/processing-stat' );
+			return fluent_abilities_project_response( $proxy( 'GET', '/fluent-crm/v2/campaigns/' . (int) ( $input['id'] ?? 0 ) . '/processing-stat' ) );
 		},
 	) );
 
@@ -343,7 +343,7 @@ function fluent_abilities_crm_register_extended_campaigns() {
 			'status' => array( 'type' => 'string' ),
 		) ),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/campaigns/' . (int) ( $input['id'] ?? 0 ) . '/status' );
+			return fluent_abilities_project_response( $proxy( 'GET', '/fluent-crm/v2/campaigns/' . (int) ( $input['id'] ?? 0 ) . '/status' ) );
 		},
 	) );
 
@@ -412,7 +412,7 @@ function fluent_abilities_crm_register_extended_campaigns() {
 			$id = (int) ( $input['id'] ?? 0 );
 			$q  = $input;
 			unset( $q['id'] );
-			return $proxy( 'GET', '/fluent-crm/v2/campaigns/' . $id . '/unsubscribers', $q );
+			return fluent_abilities_unwrap_paginator( $proxy( 'GET', '/fluent-crm/v2/campaigns/' . $id . '/unsubscribers', $q ), 'unsubscribers' );
 		},
 	) );
 
@@ -431,7 +431,7 @@ function fluent_abilities_crm_register_extended_campaigns() {
 			$id = (int) ( $input['id'] ?? 0 );
 			$q  = $input;
 			unset( $q['id'] );
-			return $proxy( 'GET', '/fluent-crm/v2/campaigns/' . $id . '/contacts-by-segment', $q );
+			return fluent_abilities_unwrap_paginator( $proxy( 'GET', '/fluent-crm/v2/campaigns/' . $id . '/contacts-by-segment', $q ), 'contacts' );
 		},
 	) );
 

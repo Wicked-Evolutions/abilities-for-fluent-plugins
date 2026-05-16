@@ -145,7 +145,7 @@ function fluent_abilities_crm_register_extended_funnels() {
 		'input_schema'  => $id_required(),
 		'output_schema' => fluent_abilities_schema_item_output(),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/funnels/' . (int) ( $input['id'] ?? 0 ) . '/clone' );
+			return fluent_abilities_project_response( $proxy( 'POST', '/fluent-crm/v2/funnels/' . (int) ( $input['id'] ?? 0 ) . '/clone' ) );
 		},
 	) );
 
@@ -214,7 +214,7 @@ function fluent_abilities_crm_register_extended_funnels() {
 			$id = (int) ( $input['id'] ?? 0 );
 			$q  = $input;
 			unset( $q['id'] );
-			return $proxy( 'GET', '/fluent-crm/v2/funnels/' . $id . '/subscribers', $q );
+			return fluent_abilities_unwrap_paginator( $proxy( 'GET', '/fluent-crm/v2/funnels/' . $id . '/subscribers', $q ), 'subscribers' );
 		},
 	) );
 

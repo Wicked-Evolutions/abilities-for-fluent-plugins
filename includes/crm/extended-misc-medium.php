@@ -192,10 +192,16 @@ function fluent_abilities_crm_register_extended_misc_medium() {
 			'type'     => array( 'type' => 'string' ),
 			'required' => array( 'type' => 'boolean' ),
 			'group'    => array( 'type' => array( 'string', 'null' ) ),
-			'options'  => array( 'type' => 'array', 'items' => $obj ),
+			// P-H union: vendor returns option entries as either {label,value}
+			// objects OR bare scalars depending on field type — accept both so
+			// a valid vendor response is not rejected by the output validator.
+			'options'  => array( 'type' => 'array', 'items' => array( 'type' => array( 'object', 'string', 'number', 'boolean' ) ) ),
 		) ),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/custom-fields/contacts' );
+			// P-H empty-state: vendor returns the definition set as null/{} when
+			// no custom fields exist (and `fields: []` post full-replace);
+			// normalize so the declared `fields` array always validates.
+			return fluent_abilities_normalize_collection( $proxy( 'GET', '/fluent-crm/v2/custom-fields/contacts' ), 'fields' );
 		},
 	) );
 
