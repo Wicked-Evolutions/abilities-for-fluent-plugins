@@ -1,89 +1,10 @@
 {
-  "_doc": "FluentBooking vendor-map per PRINCIPLES-VENDOR.md V11. One row per touched ability. Populated incrementally as fix packages land.",
-  "vendor": "fluent-booking",
+  "_doc": "FluentPlayer vendor-map per PRINCIPLES-VENDOR.md V11.",
+  "vendor": "fluent-player",
   "abilities": [
     {
-      "ability": "fluent-booking/add-booking-note",
-      "vendor": "fluent-booking",
-      "vendor_version_checked": "1.7.x",
-      "authority": "vendor_public_model",
-      "canonical_handler": "FluentBooking\\App\\Models\\BookingActivity::create",
-      "direct_storage": false,
-      "destructive": false,
-      "principles": [
-        "V3",
-        "V9",
-        "V10"
-      ],
-      "package": "3b",
-      "pattern": "P-N + duplicate-write (ledger Addendum 6)",
-      "notes": "Package 3 (#84) corrected the returned-id shape (P-N/V9). Package 3b corrects a duplicate-write: the prior callback did BOTH a direct wpFluent insertGetId() AND do_action('fluent_booking/log_booking_note'); the vendor LogHandler (app/Hooks/Handlers/LogHandler.php:16-30) listens to that action and ALSO calls BookingActivity::create() — so every call persisted two fcal_booking_activity rows. Now routes once through the vendor canonical model FluentBooking\\App\\Models\\BookingActivity::create (the same model the LogHandler uses), returning $activity->id for the V9 round-trip and writing exactly one row. The do_action is dropped (LogHandler only persists; no other side effect). V10 typed WP_Error when the vendor model class is absent. Live re-test helenawillow 2026-05-16: one row persisted (id=3298), id round-trip confirmed, created_by auto-set by the vendor model creating-hook.",
-      "doc": "installed vendor source: FluentBooking\\App\\Models\\BookingActivity::create",
-      "read_back": {
-        "ability": "fluent-booking/get-booking-activities",
-        "field": "id"
-      }
-    },
-    {
-      "ability": "fluent-booking/create-event",
-      "vendor": "fluent-booking",
-      "vendor_version_checked": "1.7.x",
-      "authority": "vendor_public_model",
-      "canonical_handler": "FluentBooking\\App\\Models\\CalendarSlot::create",
-      "direct_storage": false,
-      "destructive": false,
-      "principles": [
-        "V3",
-        "V10"
-      ],
-      "v3_priority": 2,
-      "package": 2,
-      "pattern": "P-K",
-      "notes": "Package 2 V10 fix (F-BOOK-01). Vendor AvailabilityService::getDefaultSchedule() can call reset() on a null schedule list when the calendar user has no configured availability, raising a PHP TypeError that previously bubbled as a fatal. Registrar now wraps the getDefaultSchedule call in try/catch and returns WP_Error('vendor_precondition_failed', …). CalendarSlot::create remains the canonical write path.",
-      "doc": "installed vendor source: FluentBooking\\App\\Models\\CalendarSlot::create",
-      "read_back": "N/A — P-K V10 typed-error-guard only; CalendarSlot::create write path unchanged (no state-change write / carry-forward)"
-    },
-    {
-      "ability": "fluent-booking/get-available-slots",
-      "vendor": "fluent-booking",
-      "vendor_version_checked": "1.7.x",
-      "authority": "vendor_public_service",
-      "canonical_handler": "FluentBooking\\App\\Services\\TimeSlotService::getDates",
-      "direct_storage": false,
-      "destructive": false,
-      "principles": [
-        "V1",
-        "V3",
-        "V10"
-      ],
-      "v3_priority": 2,
-      "package": 2,
-      "pattern": "P-K signature-mismatch",
-      "notes": "Package 4a special (V5 P-H; P2-deferred — P-K TimeSlotService crash already fixed P2/#83). Vendor source: FluentBooking TimeSlotService::getDates() returns a date-KEYED map (keys=Y-m-d, values=slot arrays); output_schema declared days as sequential array. Fix: union-declare days ['object','array'] (date keys are semantically meaningful — not flattened/discarded). Schema-only. Product-level (vendor-contract), site-agnostic. LIVE-VERIFIED via probe on helenawillow (incidental test surface), 2026-05-16: pre-deploy reproduced output[days] not-of-type-array; post-deploy get-available-slots(event_id=3,2026-05-20..22,Europe/Stockholm) -> days returned as date-keyed map {'2026-05-20':[...],...} and ACCEPTED by the union schema. Restored to baseline, 0 residue. Multisite dimension: config-agnostic by construction; single-site probe only (flagged, not gating).",
-      "status": "VERIFIED (live, probe on helenawillow incidental surface)",
-      "doc": "installed vendor source: FluentBooking\\App\\Services\\TimeSlotService::getDates"
-    },
-    {
-      "ability": "fluent-booking/get-availability",
-      "vendor": "fluent-booking",
-      "vendor_version_checked": "FluentBooking installed on helenawillow (source read live 2026-05-16)",
-      "authority": "vendor model/service read + V5 schema/normalize",
-      "canonical_handler": "FluentBooking availability/slots",
-      "direct_storage": false,
-      "destructive": false,
-      "read_back": "N/A - V5 response-shape fix (V3 read-back N/A)",
-      "principles": [
-        "V5"
-      ],
-      "package": "4a",
-      "pattern": "P-H null where array declared (date_overrides)",
-      "notes": "Package 4a special (V5 P-H, response-boundary). Vendor source: FluentBooking AvailabilityController (get-availability) returns date_overrides null/object when empty/sparse; output_schema declares array. Fix: callback normalizes to a sequential array — array_values((array)fluent_abilities_safe_array($value['date_overrides'] ?? [])); schema unchanged (the array contract is the vendor-canonical shape). Product-level fix (vendor-contract), site-agnostic; no single/multisite branching. LIVE-VERIFIED via probe on helenawillow (incidental test surface), 2026-05-16: pre-deploy reproduced output[date_overrides] not-of-type-array; post-deploy get-availability id=3 -> date_overrides is a proper array [[{start,end}],...]. Restored to baseline, 0 residue. Multisite dimension: fix is config-agnostic by construction; verified single-site only — multisite probe not available (flagged, not gating).",
-      "status": "VERIFIED (live, probe on helenawillow incidental surface)",
-      "doc": "installed vendor source: FluentBooking availability/slots"
-    },
-    {
-      "ability": "fluent-booking/list-calendar-conflicts",
-      "vendor": "fluent-booking",
+      "ability": "fluent-player/create-media-tag",
+      "vendor": "fluent-player",
       "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
       "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
       "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
@@ -98,8 +19,8 @@
       "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
     },
     {
-      "ability": "fluent-booking/list-remote-calendars",
-      "vendor": "fluent-booking",
+      "ability": "fluent-player/get-media",
+      "vendor": "fluent-player",
       "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
       "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
       "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
@@ -114,8 +35,8 @@
       "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
     },
     {
-      "ability": "fluent-booking/get-zoom-account",
-      "vendor": "fluent-booking",
+      "ability": "fluent-player/get-media-metadata",
+      "vendor": "fluent-player",
       "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
       "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
       "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
@@ -130,8 +51,8 @@
       "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
     },
     {
-      "ability": "fluent-booking/get-calendar-integration",
-      "vendor": "fluent-booking",
+      "ability": "fluent-player/get-youtube-captions",
+      "vendor": "fluent-player",
       "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
       "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
       "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
@@ -146,8 +67,8 @@
       "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
     },
     {
-      "ability": "fluent-booking/get-booking-activities",
-      "vendor": "fluent-booking",
+      "ability": "fluent-player/analytics-video-stats",
+      "vendor": "fluent-player",
       "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
       "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
       "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
@@ -162,8 +83,8 @@
       "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
     },
     {
-      "ability": "fluent-booking/get-booking-meta",
-      "vendor": "fluent-booking",
+      "ability": "fluent-player/bunny-storage-create-directory",
+      "vendor": "fluent-player",
       "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
       "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
       "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
@@ -178,8 +99,8 @@
       "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
     },
     {
-      "ability": "fluent-booking/update-booking-status",
-      "vendor": "fluent-booking",
+      "ability": "fluent-player/list-integrations",
+      "vendor": "fluent-player",
       "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
       "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
       "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
@@ -194,8 +115,8 @@
       "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
     },
     {
-      "ability": "fluent-booking/set-booking-meta",
-      "vendor": "fluent-booking",
+      "ability": "fluent-player/list-email-providers",
+      "vendor": "fluent-player",
       "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
       "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
       "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
@@ -210,8 +131,40 @@
       "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
     },
     {
-      "ability": "fluent-booking/list-booking-hosts",
-      "vendor": "fluent-booking",
+      "ability": "fluent-player/list-provider-resources",
+      "vendor": "fluent-player",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-player/mux-get-live-stream",
+      "vendor": "fluent-player",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-player/search-media",
+      "vendor": "fluent-player",
       "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
       "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
       "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",

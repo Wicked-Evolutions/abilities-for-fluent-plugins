@@ -10,11 +10,20 @@
       "canonical_handler": "FluentCommunity\\Modules\\Course\\Model\\Course::create",
       "direct_storage": false,
       "destructive": false,
-      "principles": [ "V2", "V3", "V10" ],
+      "principles": [
+        "V2",
+        "V3",
+        "V10"
+      ],
       "v3_priority": 2,
       "package": 3,
       "pattern": "F-COM-01",
-      "notes": "Package 3 V2 canonical namespace fix. Prior registrar called Space::create(['type'=>'course']); the BaseSpace::boot creating hook reads the model's static $type property, so Space (static $type='community') overwrote the passed type and persisted type=community — causing all downstream course/lesson/enrollment reads to return 'Course not found' (7 cascade failures). Course model (static $type='course') uses the same hook correctly. Slug uniqueness check still uses Space::withoutGlobalScopes() to detect conflicts across all space types (community/course/sidebar_link share the slug-unique constraint on fcom_spaces)."
+      "notes": "Package 3 V2 canonical namespace fix. Prior registrar called Space::create(['type'=>'course']); the BaseSpace::boot creating hook reads the model's static $type property, so Space (static $type='community') overwrote the passed type and persisted type=community — causing all downstream course/lesson/enrollment reads to return 'Course not found' (7 cascade failures). Course model (static $type='course') uses the same hook correctly. Slug uniqueness check still uses Space::withoutGlobalScopes() to detect conflicts across all space types (community/course/sidebar_link share the slug-unique constraint on fcom_spaces).",
+      "doc": "installed vendor source: FluentCommunity\\Modules\\Course\\Model\\Course::create",
+      "read_back": {
+        "ability": "fluent-community/get-course",
+        "field": "id"
+      }
     },
     {
       "ability": "fluent-community/update-course",
@@ -24,11 +33,19 @@
       "canonical_handler": "FluentCommunity\\Modules\\Course\\Model\\Course::find",
       "direct_storage": false,
       "destructive": false,
-      "principles": [ "V2", "V10" ],
+      "principles": [
+        "V2",
+        "V10"
+      ],
       "v3_priority": 2,
       "package": 3,
       "pattern": "F-COM-01 cascade",
-      "notes": "Package 3 V2 canonical namespace fix (cascade of create-course fix). Uses Course model which has a type=course global scope, replacing the legacy Space::where('type','course') pattern."
+      "notes": "Package 3 V2 canonical namespace fix (cascade of create-course fix). Uses Course model which has a type=course global scope, replacing the legacy Space::where('type','course') pattern.",
+      "doc": "installed vendor source: FluentCommunity\\Modules\\Course\\Model\\Course::find",
+      "read_back": {
+        "ability": "fluent-community/get-course",
+        "field": "id"
+      }
     },
     {
       "ability": "fluent-community/get-customization-settings",
@@ -38,10 +55,14 @@
       "canonical_handler": "FluentCommunity\\App\\Functions\\Utility::getCustomizationSettings",
       "direct_storage": false,
       "destructive": false,
-      "principles": [ "V2", "V10" ],
+      "principles": [
+        "V2",
+        "V10"
+      ],
       "package": 3,
       "pattern": "F-COM-03",
-      "notes": "Package 3 V2 canonical namespace fix. Prior registrar referenced FluentCommunity\\App\\Services\\Helper\\Utility (drifted namespace); installed vendor exposes the helper at FluentCommunity\\App\\Functions\\Utility. Returns vendor_helper_unavailable WP_Error when class absent."
+      "notes": "Package 3 V2 canonical namespace fix. Prior registrar referenced FluentCommunity\\App\\Services\\Helper\\Utility (drifted namespace); installed vendor exposes the helper at FluentCommunity\\App\\Functions\\Utility. Returns vendor_helper_unavailable WP_Error when class absent.",
+      "doc": "installed vendor source: FluentCommunity\\App\\Functions\\Utility::getCustomizationSettings"
     },
     {
       "ability": "fluent-community/update-customization-settings",
@@ -51,10 +72,16 @@
       "canonical_handler": "FluentCommunity\\App\\Functions\\Utility::updateCustomizationSettings",
       "direct_storage": false,
       "destructive": false,
-      "principles": [ "V2", "V7", "V10" ],
+      "principles": [
+        "V2",
+        "V7",
+        "V10"
+      ],
       "package": 3,
       "pattern": "F-COM-03",
-      "notes": "Package 3 V2 canonical namespace fix. Same namespace drift as get-customization-settings. Registrar sanitizes yes/no enum + affiliate_id integer before forwarding (input whitelist). Wraps call in try/catch; vendor Throwable returns WP_Error vendor_precondition_failed."
+      "notes": "Package 3 V2 canonical namespace fix. Same namespace drift as get-customization-settings. Registrar sanitizes yes/no enum + affiliate_id integer before forwarding (input whitelist). Wraps call in try/catch; vendor Throwable returns WP_Error vendor_precondition_failed.",
+      "doc": "installed vendor source: FluentCommunity\\App\\Functions\\Utility::updateCustomizationSettings",
+      "read_back": "N/A — V2 canonical-namespace fix; settings carry no round-trip id — verified live in Package 3 per notes (sibling fluent-community/get-customization-settings)"
     },
     {
       "ability": "fluent-community/get-privacy-settings",
@@ -64,10 +91,14 @@
       "canonical_handler": "FluentCommunity\\App\\Functions\\Utility::getPrivacySettings",
       "direct_storage": false,
       "destructive": false,
-      "principles": [ "V2", "V10" ],
+      "principles": [
+        "V2",
+        "V10"
+      ],
       "package": 3,
       "pattern": "F-COM-03",
-      "notes": "Package 3 V2 canonical namespace fix. Same namespace drift as get-customization-settings."
+      "notes": "Package 3 V2 canonical namespace fix. Same namespace drift as get-customization-settings.",
+      "doc": "installed vendor source: FluentCommunity\\App\\Functions\\Utility::getPrivacySettings"
     },
     {
       "ability": "fluent-community/get-notification-prefs",
@@ -77,10 +108,14 @@
       "canonical_handler": "FluentCommunity\\App\\Services\\NotificationPref::getUserPrefs",
       "direct_storage": false,
       "destructive": false,
-      "principles": [ "V2", "V10" ],
+      "principles": [
+        "V2",
+        "V10"
+      ],
       "package": 3,
       "pattern": "F-COM-03",
-      "notes": "Package 3 V2 canonical namespace fix. Prior registrar referenced FluentCommunity\\App\\Models\\NotificationPref (wrong namespace); the class is a Services helper, not an Eloquent model. Installed vendor exposes it at FluentCommunity\\App\\Services\\NotificationPref."
+      "notes": "Package 3 V2 canonical namespace fix. Prior registrar referenced FluentCommunity\\App\\Models\\NotificationPref (wrong namespace); the class is a Services helper, not an Eloquent model. Installed vendor exposes it at FluentCommunity\\App\\Services\\NotificationPref.",
+      "doc": "installed vendor source: FluentCommunity\\App\\Services\\NotificationPref::getUserPrefs"
     },
     {
       "ability": "fluent-community/update-notification-prefs",
@@ -90,10 +125,16 @@
       "canonical_handler": "FluentCommunity\\App\\Services\\NotificationPref::updateUserPrefs",
       "direct_storage": false,
       "destructive": false,
-      "principles": [ "V2", "V7", "V10" ],
+      "principles": [
+        "V2",
+        "V7",
+        "V10"
+      ],
       "package": 3,
       "pattern": "F-COM-03",
-      "notes": "Package 3 V2 canonical namespace fix. Same namespace drift as get-notification-prefs. Vendor helper applies internal validKeys allowlist and np_by_* per-space key normalization."
+      "notes": "Package 3 V2 canonical namespace fix. Same namespace drift as get-notification-prefs. Vendor helper applies internal validKeys allowlist and np_by_* per-space key normalization.",
+      "doc": "installed vendor source: FluentCommunity\\App\\Services\\NotificationPref::updateUserPrefs",
+      "read_back": "N/A — V2 canonical-namespace fix; notification prefs carry no round-trip id — verified live in Package 3 per notes (sibling fluent-community/get-notification-prefs)"
     },
     {
       "ability": "fluent-community/update-privacy-settings",
@@ -106,11 +147,242 @@
       "rest_handler_seen_first": "FluentCommunity\\App\\Http\\Controllers\\SettingController::updatePrivacySettings",
       "direct_storage": false,
       "destructive": false,
-      "principles": [ "V1", "V3", "V7", "V10" ],
+      "principles": [
+        "V1",
+        "V3",
+        "V7",
+        "V10"
+      ],
       "v3_priority": 2,
       "package": 2,
       "pattern": "P-K signature-mismatch",
-      "notes": "Package 2 V10 signature-alignment fix (F-COM-04). Vendor SettingController::updatePrivacySettings(Request $request) expects a vendor Framework Request, not an array — registrar previously passed an array and produced a PHP TypeError. Registrar now routes through the vendor public helper Utility::updatePrivacySettings($settings) (V3 priority 2 — the same call the controller invokes internally, which applies the vendor Arr::only allowlist + vendor storage/cache invariants). When the vendor helper is absent, returns WP_Error('vendor_helper_unavailable', …) — no raw update_option() fallback (would bypass V7 input whitelist and V3 vendor storage semantics; reviewer-flagged on P2 PR #83)."
+      "notes": "Package 2 V10 signature-alignment fix (F-COM-04). Vendor SettingController::updatePrivacySettings(Request $request) expects a vendor Framework Request, not an array — registrar previously passed an array and produced a PHP TypeError. Registrar now routes through the vendor public helper Utility::updatePrivacySettings($settings) (V3 priority 2 — the same call the controller invokes internally, which applies the vendor Arr::only allowlist + vendor storage/cache invariants). When the vendor helper is absent, returns WP_Error('vendor_helper_unavailable', …) — no raw update_option() fallback (would bypass V7 input whitelist and V3 vendor storage semantics; reviewer-flagged on P2 PR #83).",
+      "doc": "installed vendor source: FluentCommunity\\App\\Functions\\Utility::updatePrivacySettings",
+      "read_back": "N/A — P-K V10 signature-alignment typed-error fix (no state-change write / carry-forward)"
+    },
+    {
+      "ability": "fluent-community/update-space",
+      "vendor": "fluent-community",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-community/delete-space",
+      "vendor": "fluent-community",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-community/follow-user",
+      "vendor": "fluent-community",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-community/unfollow-user",
+      "vendor": "fluent-community",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-community/check-is-following",
+      "vendor": "fluent-community",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-community/create-comment",
+      "vendor": "fluent-community",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-community/add-reaction",
+      "vendor": "fluent-community",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-community/remove-reaction",
+      "vendor": "fluent-community",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-community/list-reactions",
+      "vendor": "fluent-community",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-community/search-members-mention",
+      "vendor": "fluent-community",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-community/cast-survey-vote",
+      "vendor": "fluent-community",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-community/update-crm-tagging-config",
+      "vendor": "fluent-community",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-community/emit-event",
+      "vendor": "fluent-community",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-community/get-lesson",
+      "vendor": "fluent-community",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
     }
   ]
 }
