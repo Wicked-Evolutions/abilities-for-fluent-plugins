@@ -297,7 +297,7 @@ function fluent_abilities_player_register_presets_abilities() {
 
 	$reg->write( 'fluent-player/update-settings', array(
 		'label'         => 'Update settings',
-		'description'   => 'Update FluentPlayer settings (any subset of whitelisted top-level keys). On free installs, Pro-only fields (subtitle_service.service_url / api_token) are stripped by the vendor sanitizer.',
+		'description'   => 'Update FluentPlayer settings. Partial update IS safe: the vendor SettingsService::saveSettings() does array_replace_recursive($existing,$passed) (vendor-source-verified, line 162) — it MERGES the submitted subset onto stored settings and does not blank sibling keys; getSettings() (line 93) normalizes any legacy array-shaped value (e.g. email_capture) to its object default on every vendor save path including FluentPlayer\'s own admin screen (this is vendor normalization, not data loss — v1.4.0 Phase-7 STOP(a) reclassified Outcome 4). The returned `settings` is a full SettingsService::getSettings() read-back of the persisted, merged state (V3 read-back proof). On free installs, Pro-only fields (subtitle_service.service_url / api_token) are stripped by the vendor sanitizer. CONTRACT-HARDENING NOTE (flagged, cross-plugin candidate — same family as FluentCRM §14; no shared treatment applied without J authorization): safe-partial-update relies on the documented-but-vendor-owned merge; if the vendor ever switched saveSettings() to a replace, this ability would need its own read-merge-write. Surfaced, not changed, in v1.4.0 P8.',
 		'category'      => 'fluent-player',
 		'input_schema'  => array(
 			'type'       => 'object',

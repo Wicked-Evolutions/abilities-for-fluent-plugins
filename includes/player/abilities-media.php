@@ -511,6 +511,17 @@ function fluent_abilities_player_register_media_abilities() {
 			if ( ! $id ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'id is required.' );
 			}
+			// V10/P-L: vendor MediaController::update does NOT 404 on a
+			// nonexistent id — prepareMedia() falls back to empty existing
+			// settings and `new Media(); $m->id=$id; ->save()` (upsert-by-id),
+			// returning success:true on a bogus id. Validate existence first
+			// → typed not_found, never a false success on nonexistent media.
+			if ( ! class_exists( '\FluentPlayer\App\Models\Media' ) ) {
+				return fluent_abilities_error( 'missing_class', 'FluentPlayer Media model not found.' );
+			}
+			if ( ! \FluentPlayer\App\Models\Media::find( $id ) ) {
+				return fluent_abilities_error( 'not_found', 'Media not found: ' . $id );
+			}
 
 			$settings = isset( $input['settings'] ) && is_array( $input['settings'] ) ? $input['settings'] : array();
 
@@ -651,6 +662,15 @@ function fluent_abilities_player_register_media_abilities() {
 					),
 				),
 			),
+			// V5 serialization: vendor TagService::getTags() returns a FLAT
+			// string[] of names when with_counts is falsy (wp_list_pluck) and
+			// [{name,count}] only when truthy; getTagOptions() always returns
+			// [{name,slug}] (assoc arrays). The pre-P8 callback (a) read
+			// $tag['name'] off a string → empty name, and (b) strval()'d each
+			// {name,slug} option → the literal "Array". Vendor-grounded fix:
+			// always request with_counts so `tags` is uniformly objects, and
+			// declare/emit tagOptions as {name,slug} objects (slug is the only
+			// stable tag identifier the vendor exposes — no numeric term id).
 			'output_schema' => array(
 				'type'       => 'object',
 				'properties' => array(
@@ -664,15 +684,25 @@ function fluent_abilities_player_register_media_abilities() {
 							),
 						),
 					),
-					'tagOptions' => array( 'type' => 'array', 'items' => array( 'type' => 'string' ) ),
+					'tagOptions' => array(
+						'type'  => 'array',
+						'items' => array(
+							'type'       => 'object',
+							'properties' => array(
+								'name' => array( 'type' => 'string' ),
+								'slug' => array( 'type' => 'string' ),
+							),
+						),
+					),
 				),
 			),
 			'callback' => function ( $input ) {
-				$with_counts = ! empty( $input['with_counts'] );
-				$response    = fluent_abilities_player_invoke_controller(
+				// Always pass with_counts=1: the vendor's no-count branch is a
+				// flat string[] with no stable per-item object shape.
+				$response = fluent_abilities_player_invoke_controller(
 					'\FluentPlayerPro\App\Http\Controllers\TagController',
 					'getTags',
-					array( 'with_counts' => $with_counts ? 1 : 0 )
+					array( 'with_counts' => 1 )
 				);
 				if ( is_wp_error( $response ) ) {
 					return $response;
@@ -681,6 +711,10 @@ function fluent_abilities_player_register_media_abilities() {
 				$tags = array();
 				if ( isset( $data['tags'] ) && is_array( $data['tags'] ) ) {
 					foreach ( $data['tags'] as $tag ) {
+						if ( is_string( $tag ) ) {
+							$tags[] = array( 'name' => $tag, 'count' => 0 );
+							continue;
+						}
 						$tag    = (array) $tag;
 						$tags[] = array(
 							'name'  => (string) ( $tag['name'] ?? '' ),
@@ -691,7 +725,17 @@ function fluent_abilities_player_register_media_abilities() {
 
 				$tag_options = array();
 				if ( isset( $data['tagOptions'] ) && is_array( $data['tagOptions'] ) ) {
-					$tag_options = array_values( array_map( 'strval', $data['tagOptions'] ) );
+					foreach ( $data['tagOptions'] as $opt ) {
+						if ( is_string( $opt ) ) {
+							$tag_options[] = array( 'name' => $opt, 'slug' => sanitize_title( $opt ) );
+							continue;
+						}
+						$opt           = (array) $opt;
+						$tag_options[] = array(
+							'name' => (string) ( $opt['name'] ?? '' ),
+							'slug' => (string) ( $opt['slug'] ?? '' ),
+						);
+					}
 				}
 
 				return array(
@@ -712,8 +756,23 @@ function fluent_abilities_player_register_media_abilities() {
 					'tag_name' => array( 'type' => 'string', 'description' => 'Tag name to create.' ),
 				),
 			),
+			// V3/V9: vendor TagController::createTag discards the wp_insert_term
+			// id and returns only {message}. The pre-P8 callback echoed
+			// success:true with no reference to the created tag. Vendor-grounded
+			// fix: after a successful create, READ BACK via getTags/getTagOptions
+			// (the only vendor surfaces that enumerate tags) and resolve the
+			// created tag by exact name → return the persisted {name,slug}.
+			// No numeric term id is exposed by any vendor tag endpoint; slug is
+			// the stable identifier.
 			'output_schema' => fluent_abilities_schema_success_output( array(
 				'message' => array( 'type' => 'string' ),
+				'tag'     => array(
+					'type'       => array( 'object', 'null' ),
+					'properties' => array(
+						'name' => array( 'type' => 'string' ),
+						'slug' => array( 'type' => 'string' ),
+					),
+				),
 			) ),
 			'annotations' => array( 'idempotent' => false ),
 			'callback'    => function ( $input ) {
@@ -731,9 +790,33 @@ function fluent_abilities_player_register_media_abilities() {
 				}
 				$data    = is_array( $response ) ? $response : array();
 				$message = $data['message'] ?? 'Tag created.';
+				// V3 read-back: resolve the just-created tag by exact name.
+				$tag      = null;
+				$readback = fluent_abilities_player_invoke_controller(
+					'\FluentPlayerPro\App\Http\Controllers\TagController',
+					'getTags',
+					array( 'with_counts' => 1 )
+				);
+				if ( ! is_wp_error( $readback ) && is_array( $readback )
+					&& isset( $readback['tagOptions'] ) && is_array( $readback['tagOptions'] ) ) {
+					foreach ( $readback['tagOptions'] as $opt ) {
+						$opt = (array) $opt;
+						if ( isset( $opt['name'] ) && (string) $opt['name'] === $tag_name ) {
+							$tag = array(
+								'name' => (string) $opt['name'],
+								'slug' => (string) ( $opt['slug'] ?? '' ),
+							);
+							break;
+						}
+					}
+				}
+				if ( null === $tag ) {
+					return fluent_abilities_error( 'ability_execution_failed', 'Tag create reported success but the tag was not found on read-back: ' . $tag_name );
+				}
 				return array(
 					'success' => true,
 					'message' => (string) $message,
+					'tag'     => $tag,
 				);
 			},
 		) );

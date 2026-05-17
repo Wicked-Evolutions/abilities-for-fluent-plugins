@@ -146,29 +146,93 @@ function fluent_abilities_player_register_analytics_abilities() {
 
 	$reg->read( 'fluent-player/analytics-performance-over-time', array(
 		'label'         => 'Analytics — performance over time',
-		'description'   => 'Time-series performance for global / single video / single user scopes. When scope = video or user, id is required.',
+		'description'   => 'Time-series performance broken down by media provider. scope=global (default) is the dashboard view; scope=video|user requires id. Vendor AnalyticsController::getPerformanceOverTime treats a null/absent scope as the global dashboard path — "global" is mapped to null here (a non-empty scope that is not video|user is rejected vendor-side). Dates: start/end (YYYY-MM-DD) map to the vendor start_date/end_date; metric is plays|watch_time.',
 		'category'      => 'fluent-player',
 		'input_schema'  => array(
 			'type'       => 'object',
 			'properties' => array_merge( $date_range_schema, array(
 				'scope'       => array( 'type' => 'string', 'enum' => array( 'global', 'video', 'user' ), 'default' => 'global' ),
 				'id'          => array( 'type' => 'integer', 'description' => 'Required when scope = video or user.' ),
+				'metric'      => array( 'type' => 'string', 'enum' => array( 'plays', 'watch_time' ), 'default' => 'plays' ),
 				'granularity' => array( 'type' => 'string', 'enum' => array( 'day', 'week', 'month' ) ),
 			) ),
 		),
-		'output_schema' => fluent_abilities_schema_collection_output( 'points', array(
-			'date'             => array( 'type' => 'string' ),
-			'views'            => array( 'type' => 'integer' ),
-			'total_watch_time' => array( 'type' => array( 'integer', 'number' ) ),
-			'avg_watch_time'   => array( 'type' => array( 'integer', 'number' ) ),
-		) ),
+		// V5 P-H: vendor sendSuccess({data:{dates,series},metric,start_date,
+		// end_date}); series = [{provider_key,name,data:[number]}] aligned to
+		// dates[] (AnalyticsService::getPerformanceOverTime ->
+		// buildSeriesByProvider, vendor-source-verified). The pre-P8 schema
+		// declared a points[] collection the vendor never emits.
+		'output_schema' => array(
+			'type'       => 'object',
+			'properties' => array(
+				'metric'     => array( 'type' => 'string' ),
+				'start_date' => array( 'type' => 'string' ),
+				'end_date'   => array( 'type' => 'string' ),
+				'dates'      => array( 'type' => 'array', 'items' => array( 'type' => 'string' ) ),
+				'series'     => array(
+					'type'  => 'array',
+					'items' => array(
+						'type'       => 'object',
+						'properties' => array(
+							'provider_key' => array( 'type' => 'string' ),
+							'name'         => array( 'type' => 'string' ),
+							'data'         => array( 'type' => 'array', 'items' => array( 'type' => array( 'integer', 'number' ) ) ),
+						),
+					),
+				),
+			),
+		),
 		'callback'      => function ( $input ) use ( $invoke ) {
 			$scope = isset( $input['scope'] ) ? sanitize_key( $input['scope'] ) : 'global';
 			$id    = isset( $input['id'] ) ? absint( $input['id'] ) : 0;
 			if ( in_array( $scope, array( 'video', 'user' ), true ) && ! $id ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'id is required when scope = ' . $scope );
 			}
-			return $invoke( 'getPerformanceOverTime', $input, array( 'scope' => $scope, 'id' => $id ) );
+			// V10: the vendor rejects any non-empty scope that is not
+			// video|user ("Invalid scope for performance over time."). The
+			// global/dashboard path is selected by a NULL scope vendor-side.
+			$vendor_scope = in_array( $scope, array( 'video', 'user' ), true ) ? $scope : null;
+			// Map operator start/end -> vendor start_date/end_date (the vendor
+			// reads start_date/end_date via getDateRangeFromRequest).
+			if ( isset( $input['start'] ) && ! isset( $input['start_date'] ) ) {
+				$input['start_date'] = $input['start'];
+			}
+			if ( isset( $input['end'] ) && ! isset( $input['end_date'] ) ) {
+				$input['end_date'] = $input['end'];
+			}
+			$result = $invoke( 'getPerformanceOverTime', $input, array( 'scope' => $vendor_scope, 'id' => $id ) );
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
+			$result = is_array( $result ) ? $result : array();
+			$series_raw = array();
+			if ( isset( $result['data']['series'] ) && is_array( $result['data']['series'] ) ) {
+				$series_raw = $result['data']['series'];
+			} elseif ( isset( $result['series'] ) && is_array( $result['series'] ) ) {
+				$series_raw = $result['series'];
+			}
+			$dates = array();
+			if ( isset( $result['data']['dates'] ) && is_array( $result['data']['dates'] ) ) {
+				$dates = array_values( array_map( 'strval', $result['data']['dates'] ) );
+			} elseif ( isset( $result['dates'] ) && is_array( $result['dates'] ) ) {
+				$dates = array_values( array_map( 'strval', $result['dates'] ) );
+			}
+			$series = array();
+			foreach ( $series_raw as $s ) {
+				$s        = (array) $s;
+				$series[] = array(
+					'provider_key' => (string) ( $s['provider_key'] ?? '' ),
+					'name'         => (string) ( $s['name'] ?? '' ),
+					'data'         => isset( $s['data'] ) && is_array( $s['data'] ) ? array_values( $s['data'] ) : array(),
+				);
+			}
+			return array(
+				'metric'     => (string) ( $result['metric'] ?? ( isset( $input['metric'] ) ? $input['metric'] : 'plays' ) ),
+				'start_date' => (string) ( $result['start_date'] ?? '' ),
+				'end_date'   => (string) ( $result['end_date'] ?? '' ),
+				'dates'      => $dates,
+				'series'     => $series,
+			);
 		},
 	) );
 
