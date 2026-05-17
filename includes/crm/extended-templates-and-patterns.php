@@ -60,7 +60,39 @@ function fluent_abilities_crm_register_extended_templates_and_patterns() {
 		),
 		'output_schema' => fluent_abilities_schema_item_output( $template_item ),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/templates/' . (int) ( $input['id'] ?? 0 ) );
+			$id = (int) ( $input['id'] ?? 0 );
+			// P4b — Addendum 15 (b) same-slug V3 route-correctness. Vendor
+			// TemplateController::template() (route GET /templates/{id}; the
+			// registrar "getTemplate" citation is V4 description drift)
+			// coerces a missing/non-positive id to 0, Template::find(0) is
+			// null, and the handler then SILENTLY returns a blank default
+			// placeholder with HTTP success — no 404. Guard the id first.
+			if ( $id < 1 ) {
+				return fluent_abilities_error( 'ability_invalid_input', 'id must be a positive template ID' );
+			}
+			$resp = $proxy( 'GET', '/fluent-crm/v2/templates/' . $id );
+			if ( is_wp_error( $resp ) ) {
+				return $resp;
+			}
+			// V3: the vendor route cannot signal not-found — on a miss it
+			// fabricates an empty placeholder (post_title/post_content/
+			// email_subject all ''), still HTTP success. A genuinely stored
+			// template always carries a title (create-template requires
+			// `title`). Treat the placeholder sentinel as a typed not-found
+			// so callers can distinguish it from a real stored template,
+			// instead of silently surfacing the vendor placeholder.
+			$tpl = ( is_array( $resp ) && isset( $resp['template'] ) && is_array( $resp['template'] ) ) ? $resp['template'] : null;
+			if ( null === $tpl ) {
+				return fluent_abilities_error( 'not_found', 'Template ' . $id . ' was not found.' );
+			}
+			$title   = (string) ( $tpl['post_title'] ?? '' );
+			$content = (string) ( $tpl['post_content'] ?? '' );
+			$subject = (string) ( $tpl['email_subject'] ?? '' );
+			if ( '' === $title && '' === $content && '' === $subject ) {
+				return fluent_abilities_error( 'not_found', 'Template ' . $id . ' was not found (vendor returned the default placeholder, not a stored template).' );
+			}
+			// V5: vendor payload is already plain arrays/scalars (sendSuccess) — pass through.
+			return $resp;
 		},
 	) );
 
@@ -81,7 +113,47 @@ function fluent_abilities_crm_register_extended_templates_and_patterns() {
 		),
 		'output_schema' => fluent_abilities_schema_item_output( $template_item ),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/templates', $input );
+			$title = isset( $input['title'] ) ? sanitize_text_field( (string) $input['title'] ) : '';
+			if ( '' === $title ) {
+				return fluent_abilities_error( 'ability_invalid_input', 'title is required' );
+			}
+			// P7 (same class as F-FORMS-01 / P3c): vendor
+			// TemplateController::create reads a NESTED `template` payload
+			// (Helper::parseArrayOrJson($request->get('template')) →
+			// post_title/post_content/post_excerpt + email_subject/
+			// design_template/settings). The pre-fix callback forwarded the
+			// ability's flat top-level keys, so the vendor saw no `template`
+			// and persisted a generic placeholder ('Email Template @ <ts>',
+			// empty body), discarding the operator's title/body. Map the
+			// documented flat input to the vendor-expected `template` shape so
+			// it actually persists.
+			$tpl = array(
+				'post_title'      => $title,
+				'post_content'    => isset( $input['email_body'] ) ? (string) $input['email_body'] : '',
+				'post_excerpt'    => '',
+				'email_subject'   => isset( $input['email_subject'] ) ? (string) $input['email_subject'] : $title,
+				'edit_type'       => 'html',
+				'design_template' => isset( $input['design_template'] ) ? (string) $input['design_template'] : '',
+				'settings'        => ( isset( $input['settings'] ) && is_array( $input['settings'] ) ) ? $input['settings'] : array(),
+			);
+			$created = $proxy( 'POST', '/fluent-crm/v2/templates', array( 'template' => $tpl ) );
+			if ( is_wp_error( $created ) ) {
+				return $created;
+			}
+			$tid = (int) ( is_array( $created ) ? ( $created['template_id'] ?? 0 ) : 0 );
+			if ( $tid < 1 ) {
+				return fluent_abilities_error( 'ability_execution_failed', 'Template create did not return a persisted template_id.' );
+			}
+			// V3 read-back: return the PERSISTED record (vendor template()
+			// read), not the create echo — proves title/body landed.
+			$readback = $proxy( 'GET', '/fluent-crm/v2/templates/' . $tid );
+			if ( is_wp_error( $readback ) ) {
+				return $readback;
+			}
+			if ( is_array( $readback ) && isset( $readback['template'] ) && is_array( $readback['template'] ) ) {
+				$readback['template']['template_id'] = $tid;
+			}
+			return $readback;
 		},
 	) );
 
@@ -172,22 +244,12 @@ function fluent_abilities_crm_register_extended_templates_and_patterns() {
 		},
 	) );
 
-	$reg->write( 'fluent-crm/set-global-email-style', array(
-		'label'         => 'Set CRM Global Email Style',
-		'description'   => 'Apply font/colors/spacing root-level CSS-like settings across email templates. Source: TemplateController::setGlobalStyle (POST /templates/set-global-style). Capability: fcrm_manage_emails.',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'style' ),
-			'properties' => array(
-				'style' => $obj,
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output(),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/templates/set-global-style', $input );
-		},
-	) );
+	// fluent-crm/set-global-email-style — REMOVED (v1.4.0 P7 close).
+	// Never functional since v2.0.0: schema declared/forwarded `style`, but
+	// vendor TemplateController::setGlobalStyle reads `config` — every
+	// schema-valid call silently saved an empty style and returned success
+	// (input discarded). No working contract to preserve; unregistered.
+	// See docs/vendor-map/fluent-crm.json + docs/P7-CLOSE.md.
 
 	$reg->read( 'fluent-crm/list-built-in-templates', array(
 		'label'         => 'List CRM Built-In Email Templates',
@@ -246,7 +308,7 @@ function fluent_abilities_crm_register_extended_templates_and_patterns() {
 		),
 		'output_schema' => fluent_abilities_schema_list_output( 'patterns', $pattern_item ),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/email-patterns', $input );
+			return fluent_abilities_normalize_collection( $proxy( 'GET', '/fluent-crm/v2/email-patterns', $input ), 'patterns' );
 		},
 	) );
 

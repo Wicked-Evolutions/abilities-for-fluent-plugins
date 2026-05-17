@@ -332,7 +332,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->read( 'fluent-forms/get-submission', array(
 		'label'       => 'Get Form Submission',
-		'description' => 'Get a single submission by ID with full parsed response data and entry details.',
+		'description' => 'Get a single submission by ID with full parsed response data and entry details. Note: the parameter is `id` (the submission row ID), not `submission_id`.',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'id' ),

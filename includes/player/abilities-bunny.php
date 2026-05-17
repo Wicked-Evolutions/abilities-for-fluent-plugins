@@ -483,7 +483,7 @@ function fluent_abilities_player_register_bunny_abilities() {
 
 	$reg->write( 'fluent-player/bunny-storage-create-directory', array(
 		'label'         => 'Bunny Storage — create directory',
-		'description'   => 'Create a directory in Bunny Storage.',
+		'description'   => 'Create a directory in Bunny Storage. Input: the new directory name field is `name` (a required string) — NOT `path`; the optional containing path is `parent_path` (defaults to /).',
 		'category'      => 'fluent-player',
 		'input_schema'  => array(
 			'type'       => 'object',

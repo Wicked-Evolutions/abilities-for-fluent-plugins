@@ -70,7 +70,7 @@ function fluent_booking_register_zoom_twilio_abilities() {
 
 	$reg->read( 'fluent-booking/get-zoom-account', array(
 		'label'       => 'Get Zoom Account',
-		'description' => 'Return a single Zoom account record by ID. Token fields redacted.',
+		'description' => 'Return a single Zoom account record by ID. Token fields redacted. Input: pass the Zoom account row ID as `account_id` (an integer) — the field is `account_id`, NOT `id`.',
 		'capability'  => 'manage_options',
 		'input_schema' => array(
 			'type'       => 'object',

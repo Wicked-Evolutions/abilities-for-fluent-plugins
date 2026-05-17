@@ -62,7 +62,7 @@ $reg->read( 'fluent-boards/list-task-attachments', array(
 // =========================================================================
 $reg->write( 'fluent-boards/add-task-attachment', array(
 	'label'       => 'Add Task Attachment (Pro)',
-	'description' => 'Attach a WordPress attachment to a task by attachment_id, or sideload from image_url.',
+	'description' => 'Attach a file to a task. Provide at least one of `attachment_id` or `image_url` (both may be supplied — `attachment_id` takes precedence; the handler rejects only when NEITHER resolves). Schema declares this via `anyOf` (P5 factually-corrective per installed-handler precedence chain, not exactly-one).',
 	'category'    => 'fluent-boards',
 	'input_schema' => array(
 		'type'       => 'object',
@@ -72,6 +72,13 @@ $reg->write( 'fluent-boards/add-task-attachment', array(
 			'attachment_id' => array( 'type' => 'integer' ),
 			'image_url'     => array( 'type' => 'string' ),
 			'visibility'    => array( 'type' => 'string', 'enum' => array( 'public', 'private' ), 'default' => 'public' ),
+		),
+		// P5 factually-corrective (NOT oneOf): handler precedence
+		// if($attachment_id) elseif($image_url) — both accepted, only
+		// neither rejected. anyOf = "at least one".
+		'anyOf'      => array(
+			array( 'required' => array( 'attachment_id' ) ),
+			array( 'required' => array( 'image_url' ) ),
 		),
 	),
 	'output_schema' => fluent_abilities_schema_success_output( array(

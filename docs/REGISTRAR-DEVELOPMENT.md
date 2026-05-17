@@ -180,9 +180,18 @@ If your diff shows ANY change inside an existing registration block, your PR wil
 
 ## PR body template
 
+> **Product scope is canonical:** read [`docs/PRODUCT-SCOPE.md`](PRODUCT-SCOPE.md)
+> before filling this in. Site-agnostic product for arbitrary single-site **and**
+> multisite WordPress; our sites are an incidental test environment, never the
+> fix scope; site-coupled behavior is a defect; multisite is first-class. Every
+> PR body carries the one-line pointer in the template below.
+
 Every Phase B feature PR uses this template. Copy and fill in:
 
 ```markdown
+> Product scope: site-agnostic, arbitrary single/multisite WordPress; probe
+> sites are incidental test surfaces — see docs/PRODUCT-SCOPE.md.
+
 ## Sprint context
 
 - Sprint: Fluent Suite Registrar Bundle Sprint 2026-05-13 v1.1

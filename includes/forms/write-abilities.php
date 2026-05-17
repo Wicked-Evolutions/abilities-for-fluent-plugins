@@ -65,6 +65,8 @@ add_action( 'wp_abilities_api_init', function() {
 				return fluent_abilities_error( 'plugin_missing', 'Fluent Forms is not active.' );
 			}
 
+			// Vendor-canonical attribute set (keys consumed by
+			// FluentForm\App\Models\Form::prepare()).
 			$attributes = array(
 				'title' => $title,
 			);
@@ -80,47 +82,77 @@ add_action( 'wp_abilities_api_init', function() {
 			if ( isset( $input['appearance_settings'] ) && is_array( $input['appearance_settings'] ) ) {
 				$attributes['appearance_settings'] = wp_json_encode( $input['appearance_settings'] );
 			}
-			if ( isset( $input['template_id'] ) ) {
+
+			$is_template = isset( $input['template_id'] );
+			if ( $is_template ) {
 				$attributes['template_id'] = (int) $input['template_id'];
 			}
 
 			try {
-				if ( class_exists( '\\FluentForm\\App\\Services\\Form\\FormService' ) ) {
+				if ( $is_template ) {
+					// Template/predefined path: FormService::store() is
+					// vendor-native here — its ' (#id)' rename and default
+					// form-meta seeding are part of the documented
+					// template-seed flow (P3c: kept intentionally).
+					if ( ! class_exists( '\\FluentForm\\App\\Services\\Form\\FormService' )
+						|| ! method_exists( '\\FluentForm\\App\\Services\\Form\\FormService', 'store' ) ) {
+						return fluent_abilities_error( 'vendor_precondition_failed', 'Fluent Forms FormService::store() is unavailable; cannot seed a form from a template.' );
+					}
 					$service = new \FluentForm\App\Services\Form\FormService();
-					$response = $service->store( $attributes );
+					$created = $service->store( $attributes );
+					$form_id = ( is_object( $created ) && isset( $created->id ) )
+						? (int) $created->id
+						: (int) ( is_array( $created ) ? ( $created['form_id'] ?? $created['id'] ?? 0 ) : 0 );
 				} else {
-					$form = new \FluentForm\App\Models\Form();
-					$form->title  = $title;
-					$form->status = $attributes['status'] ?? 'published';
-					$form->type   = $attributes['type'] ?? 'form';
-					if ( isset( $attributes['form_fields'] ) ) {
-						$form->form_fields = $attributes['form_fields'];
+					// Bare create (Variant A, P3c — F-FORMS-01): route through
+					// the vendor Form model the same way FormService::store()
+					// does internally (Form::prepare() -> model create + save)
+					// but WITHOUT the admin-only ' (#id)' rename, so the
+					// declared title/status/form_fields persist verbatim.
+					if ( ! method_exists( '\\FluentForm\\App\\Models\\Form', 'prepare' ) ) {
+						return fluent_abilities_error( 'vendor_precondition_failed', 'Fluent Forms Form::prepare() is unavailable on this build; cannot create a form via the vendor model path.' );
 					}
-					if ( isset( $attributes['appearance_settings'] ) ) {
-						$form->appearance_settings = $attributes['appearance_settings'];
+					// The WPFluent ORM resolves create()/find() through
+					// __call/__callStatic, so method_exists() is intentionally
+					// NOT used to gate them (it would false-negative). A vendor
+					// failure surfaces through the surrounding try/catch as a
+					// typed ability_execution_failed error (V10).
+					$model = new \FluentForm\App\Models\Form();
+					$data  = \FluentForm\App\Models\Form::prepare( $attributes );
+					$form  = $model->create( $data );
+					if ( ! is_object( $form ) || ! isset( $form->id ) ) {
+						return fluent_abilities_error( 'ability_execution_failed', 'Fluent Forms did not return a persisted form id.' );
 					}
-					$form->created_by = get_current_user_id();
 					$form->save();
-					$response = array( 'form_id' => $form->id, 'redirect' => '' );
+					$form_id = (int) $form->id;
 				}
 			} catch ( \Throwable $e ) {
 				return fluent_abilities_error( 'ability_execution_failed', $e->getMessage() );
 			}
 
-			$form_id = (int) ( $response['form_id'] ?? $response['id'] ?? 0 );
+			if ( $form_id < 1 ) {
+				return fluent_abilities_error( 'ability_execution_failed', 'Fluent Forms did not return a persisted form id.' );
+			}
+
+			// V3 read-back: the return reflects the PERSISTED vendor object,
+			// never an input echo. Re-fetch via the vendor public model.
+			$persisted = \FluentForm\App\Models\Form::find( $form_id );
+			if ( ! is_object( $persisted ) || ! isset( $persisted->id ) ) {
+				return fluent_abilities_error( 'vendor_precondition_failed', 'Form was created but could not be read back for verification.' );
+			}
 
 			return array(
-				'form_id'      => $form_id,
-				'title'        => $title,
-				'status'       => $attributes['status'] ?? 'published',
-				'redirect_url' => $response['redirect'] ?? null,
+				'form_id'      => (int) $persisted->id,
+				'title'        => (string) $persisted->title,
+				'status'       => (string) $persisted->status,
+				'redirect_url' => null,
 			);
 		},
 	) );
 
 	$reg->write( 'fluent-forms/update-form', array(
 		'label'       => 'Update Form',
-		'description' => 'Update an existing Fluent Form. Any subset of title, status, type, form_fields, appearance_settings, conditions may be supplied.',
+		'description' => 'Update an existing Fluent Form. Any subset of title, status, type, form_fields, appearance_settings, conditions may be supplied. Note: the identifier parameter is `form_id` (not `id`).',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'form_id' ),
@@ -1151,7 +1183,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->delete( 'fluent-forms/delete-submission-note', array(
 		'label'       => 'Delete Submission Note',
-		'description' => 'Delete a single note (by note_id) belonging to a Fluent Forms submission.',
+		'description' => 'Delete a single note (by note_id) belonging to a Fluent Forms submission. Note: requires a composite key — both `submission_id` (the parent submission/response row) and `note_id` (the note meta row) are required.',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'submission_id', 'note_id' ),
@@ -2044,7 +2076,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->read( 'fluent-forms/get-form-integration', array(
 		'label'       => 'Get Form Integration',
-		'description' => 'Get a single integration feed config by its row id.',
+		'description' => 'Get a single integration feed config by its row id. Note: the feed identifier parameter is `integration_id` (the form_meta row ID of the feed), and `form_id` is also required.',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'form_id', 'integration_id' ),
@@ -2282,7 +2314,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->read( 'fluent-forms/get-integration-list-ids', array(
 		'label'       => 'Get Integration List IDs',
-		'description' => 'Return the available remote list ids for an integration (mailing list, audience, board, etc.). Output shape is integration-specific.',
+		'description' => 'Return the available remote list ids for an integration (mailing list, audience, board, etc.). Output shape is integration-specific. Note: both `form_id` and `integration_name` (the integration slug string) are required.',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'form_id', 'integration_name' ),
@@ -2408,7 +2440,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-forms/toggle-integration-status', array(
 		'label'       => 'Toggle Integration Status',
-		'description' => 'Enable or disable an integration globally. status is yes or no.',
+		'description' => 'Enable or disable an integration globally. Note: requires `integration_name` (the integration slug string) and `status`, where `status` is the string "yes" or "no" (a string enum, not a boolean).',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'integration_name', 'status' ),
@@ -3013,7 +3045,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->read( 'fluent-forms/global-search', array(
 		'label'       => 'Global Search',
-		'description' => 'Search across Fluent Forms titles and submission responses. scope controls which result types are returned (forms / submissions / all).',
+		'description' => 'Search across Fluent Forms titles and submission responses. scope controls which result types are returned (forms / submissions / all). Note: the query parameter is `search` (not `q`).',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'search' ),

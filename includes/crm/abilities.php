@@ -398,7 +398,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-crm/attach-tag', array(
 		'label'       => 'Attach Tag to Contact',
-		'description' => 'Attach one or more tags to a contact.',
+		'description' => 'Attach one or more tags to a contact. Note: `tag_ids` must be a comma-separated string (e.g. "5,8,12"), not a JSON array — the handler splits it via explode(",", ...).',
 		'category'    => 'fluent-crm',
 		'input_schema' => array(
 			'type'       => 'object',
@@ -427,7 +427,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-crm/detach-tag', array(
 		'label'       => 'Detach Tag from Contact',
-		'description' => 'Remove one or more tags from a contact.',
+		'description' => 'Remove one or more tags from a contact. Note: `tag_ids` must be a comma-separated string (e.g. "5,8,12"), not a JSON array — the handler splits it via explode(",", ...).',
 		'category'    => 'fluent-crm',
 		'input_schema' => array(
 			'type'       => 'object',
@@ -562,7 +562,7 @@ add_action( 'wp_abilities_api_init', function() {
 			'subject'      => array( 'type' => array( 'string', 'null' ) ),
 			'status'       => array( 'type' => 'string' ),
 			'type'         => array( 'type' => 'string' ),
-			'scheduled_at' => array( 'type' => 'string' ),
+			'scheduled_at' => array( 'type' => array( 'string', 'null' ) ),
 			'created_at'   => array( 'type' => 'string' ),
 		) ),
 		'callback' => function( $input ) {
@@ -675,7 +675,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-crm/update-campaign', array(
 		'label'       => 'Update CRM Campaign',
-		'description' => 'Update a draft campaign title, subject, body, or UTM parameters. Only draft campaigns can be updated — live/scheduled campaigns will be rejected.',
+		'description' => 'Update a draft campaign title, subject, body, or UTM parameters. Only draft campaigns can be updated — live/scheduled campaigns will be rejected. Note: the identifying field is `campaign_id` (not `id`). Source: \FluentCrm\App\Models\Campaign::find/fill/save.',
 		'category'    => 'fluent-crm',
 		'input_schema' => array(
 			'type'       => 'object',

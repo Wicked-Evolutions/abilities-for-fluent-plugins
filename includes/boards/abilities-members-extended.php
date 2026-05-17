@@ -264,7 +264,8 @@ $reg->read( 'fluent-boards/list-board-assignees', array(
 	'callback' => function( $input ) {
 		$board_id = (int) $input['board_id'];
 		$task_ids = wpFluent()->table( 'fbs_tasks' )->where( 'board_id', $board_id )->select( 'id' )->get();
-		$tids     = array_map( function( $t ) { return (int) $t->id; }, $task_ids );
+		// V5: coerce vendor Collection to array before array_map (P-A pattern).
+		$tids     = array_map( function( $t ) { return (int) $t->id; }, fluent_abilities_to_array( $task_ids ) );
 		if ( empty( $tids ) ) {
 			return array( 'assignees' => array(), 'total' => 0 );
 		}
@@ -393,7 +394,8 @@ $reg->read( 'fluent-boards/list-member-boards', array(
 	'callback' => function( $input ) {
 		$user_id = (int) $input['user_id'];
 		$rels    = wpFluent()->table( 'fbs_relations' )->where( 'object_type', 'board_user' )->where( 'foreign_id', $user_id )->get();
-		$ids     = array_map( function( $r ) { return (int) $r->object_id; }, $rels );
+		// V5: coerce vendor Collection to array before array_map (P-A pattern).
+		$ids     = array_map( function( $r ) { return (int) $r->object_id; }, fluent_abilities_to_array( $rels ) );
 		if ( empty( $ids ) ) {
 			return array( 'boards' => array(), 'total' => 0 );
 		}
@@ -432,7 +434,8 @@ $reg->read( 'fluent-boards/list-member-tasks', array(
 		$user_id    = (int) $input['user_id'];
 		$pagination = fluent_abilities_pagination( $input, 25 );
 		$rels       = wpFluent()->table( 'fbs_relations' )->where( 'object_type', 'task_assignee' )->where( 'foreign_id', $user_id )->select( 'object_id' )->get();
-		$task_ids   = array_map( function( $r ) { return (int) $r->object_id; }, $rels );
+		// V5: coerce vendor Collection to array before array_map (P-A pattern).
+		$task_ids   = array_map( function( $r ) { return (int) $r->object_id; }, fluent_abilities_to_array( $rels ) );
 		if ( empty( $task_ids ) ) {
 			return array( 'tasks' => array(), 'total' => 0, 'page' => $pagination['page'], 'per_page' => $pagination['per_page'] );
 		}
@@ -478,7 +481,8 @@ $reg->read( 'fluent-boards/list-member-associated-users', array(
 	'callback' => function( $input ) {
 		$user_id = (int) $input['user_id'];
 		$rels    = wpFluent()->table( 'fbs_relations' )->where( 'object_type', 'board_user' )->where( 'foreign_id', $user_id )->select( 'object_id' )->get();
-		$boards  = array_map( function( $r ) { return (int) $r->object_id; }, $rels );
+		// V5: coerce vendor Collection to array before array_map (P-A pattern).
+		$boards  = array_map( function( $r ) { return (int) $r->object_id; }, fluent_abilities_to_array( $rels ) );
 		if ( empty( $boards ) ) {
 			return array( 'users' => array(), 'total' => 0 );
 		}
@@ -522,7 +526,8 @@ $reg->read( 'fluent-boards/list-top-tasks-for-boards', array(
 		$user_id = (int) $input['user_id'];
 		$limit   = max( 1, min( 50, (int) ( $input['limit'] ?? 10 ) ) );
 		$rels    = wpFluent()->table( 'fbs_relations' )->where( 'object_type', 'task_assignee' )->where( 'foreign_id', $user_id )->select( 'object_id' )->get();
-		$ids     = array_map( function( $r ) { return (int) $r->object_id; }, $rels );
+		// V5: coerce vendor Collection to array before array_map (P-A pattern).
+		$ids     = array_map( function( $r ) { return (int) $r->object_id; }, fluent_abilities_to_array( $rels ) );
 		if ( empty( $ids ) ) {
 			return array( 'tasks' => array(), 'total' => 0 );
 		}
@@ -720,7 +725,8 @@ $reg->read( 'fluent-boards/list-manager-team-users', array(
 			return fluent_abilities_error( 'forbidden', 'User is not an org-wide manager.' );
 		}
 		$mgr_boards = wpFluent()->table( 'fbs_relations' )->where( 'object_type', 'board_user' )->where( 'foreign_id', $user_id )->select( 'object_id' )->get();
-		$board_ids  = array_map( function( $r ) { return (int) $r->object_id; }, $mgr_boards );
+		// V5: coerce vendor Collection to array before array_map (P-A pattern).
+		$board_ids  = array_map( function( $r ) { return (int) $r->object_id; }, fluent_abilities_to_array( $mgr_boards ) );
 		if ( empty( $board_ids ) ) {
 			$rows  = wpFluent()->table( 'fbs_relations' )->where( 'object_type', 'board_user' )->where( 'foreign_id', '!=', $user_id )->select( 'foreign_id' )->get();
 		} else {

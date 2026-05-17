@@ -25,7 +25,9 @@ class FluentCRMSubscribersAbilitiesTest extends TestCase {
 		'fluent-crm/get-contact-external-view'       => 'write',
 		'fluent-crm/get-contact-url-metrics'         => 'read',
 		'fluent-crm/list-subscriber-tracking-events' => 'read',
-		'fluent-crm/list-subscribers-prev-next-ids'  => 'read',
+		// fluent-crm/list-subscribers-prev-next-ids REMOVED in v1.4.0 P7
+		// close (vendor handler never reads the only schema-required field;
+		// rejected 100% of valid input since v2.0.0). see docs/P7-CLOSE.md
 		'fluent-crm/search-contacts-fast'            => 'read',
 		// §5.2
 		'fluent-crm/update-subscribers-property'     => 'write',

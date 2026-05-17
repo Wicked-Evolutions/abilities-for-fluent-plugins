@@ -983,7 +983,9 @@ add_action( 'wp_abilities_api_init', function() {
 				->where( 'board_id', $board_id )
 				->select( 'id' )
 				->get();
-			$task_id_list = array_map( function( $t ) { return (int) $t->id; }, $task_ids );
+			// V5: vendor `->get()` returns a FluentBoards\Framework\Support\Collection,
+			// not a plain array — array_map() would raise a PHP TypeError (P-A pattern).
+			$task_id_list = array_map( function( $t ) { return (int) $t->id; }, fluent_abilities_to_array( $task_ids ) );
 
 			// Cascade: task-level relations (assignees, labels, watchers, custom fields).
 			if ( ! empty( $task_id_list ) ) {
@@ -1046,7 +1048,8 @@ add_action( 'wp_abilities_api_init', function() {
 				->where( 'parent_id', $task_id )
 				->select( 'id' )
 				->get();
-			$sub_id_list = array_map( function( $t ) { return (int) $t->id; }, $subtask_ids );
+			// V5: coerce vendor Collection to array before array_map (P-A pattern).
+			$sub_id_list = array_map( function( $t ) { return (int) $t->id; }, fluent_abilities_to_array( $subtask_ids ) );
 
 			$all_task_ids = array_merge( array( $task_id ), $sub_id_list );
 
@@ -1230,7 +1233,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->delete( 'fluent-boards/delete-stage', array(
 		'label'       => 'Delete Stage',
-		'description' => 'Delete a stage from a board. All tasks in this stage will be moved to the first remaining stage, or deleted if no other stages exist.',
+		'description' => 'Delete a stage from a board. All tasks in this stage will be moved to the first remaining stage, or deleted if no other stages exist. Note: the stage identifier parameter is `id` (the vendor-native stage ID); sibling stage abilities use `stage_id` for the same value — pass `id` here.',
 		'category'    => 'fluent-boards',
 		'input_schema' => array(
 			'type'       => 'object',
@@ -1407,7 +1410,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-boards/move-task', array(
 		'label'       => 'Move Task',
-		'description' => 'Move a task to a different stage and/or position within the same board, or to a different board entirely. Cross-board moves reset assignees, labels, and comments.',
+		'description' => 'Move a task to a different stage and/or position within the same board, or to a different board entirely. Cross-board moves reset assignees, labels, and comments. Note: the task identifier parameter is `task_id` (not `id`).',
 		'category'    => 'fluent-boards',
 		'input_schema' => array(
 			'type'       => 'object',

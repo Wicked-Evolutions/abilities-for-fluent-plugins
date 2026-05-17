@@ -192,24 +192,32 @@ function fluent_abilities_crm_register_extended_misc_medium() {
 			'type'     => array( 'type' => 'string' ),
 			'required' => array( 'type' => 'boolean' ),
 			'group'    => array( 'type' => array( 'string', 'null' ) ),
-			'options'  => array( 'type' => 'array', 'items' => $obj ),
+			// P-H union: vendor returns option entries as either {label,value}
+			// objects OR bare scalars depending on field type — accept both so
+			// a valid vendor response is not rejected by the output validator.
+			'options'  => array( 'type' => 'array', 'items' => array( 'type' => array( 'object', 'string', 'number', 'boolean' ) ) ),
 		) ),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/custom-fields/contacts' );
+			// P-H empty-state: vendor returns the definition set as null/{} when
+			// no custom fields exist (and `fields: []` post full-replace);
+			// normalize so the declared `fields` array always validates.
+			return fluent_abilities_normalize_collection( $proxy( 'GET', '/fluent-crm/v2/custom-fields/contacts' ), 'fields' );
 		},
 	) );
 
 	$reg->write( 'fluent-crm/update-contact-custom-fields', array(
-		'label'         => 'Update CRM Contact Custom Field Definitions',
-		'description'   => 'Full custom-field definitions replace. Structural validation per field type. Source: CustomFieldsController::updateContactFields (PUT /custom-fields/contacts).',
+		'label'         => 'Update CRM Contact Custom Field Definitions (DESTRUCTIVE — full replace)',
+		'description'   => 'DESTRUCTIVE FULL REPLACE. This ability replaces the entire custom-field definition set with the provided `fields` array — there is no merge mode. Any existing field NOT in `fields` is dropped globally for every contact. Empty array (`fields: []`) clears ALL custom-field definitions site-wide; that variant requires explicit `confirm_full_replace: true` and is otherwise rejected with a typed WP_Error. To preview the current set before replacing, read `fluent-crm/get-contact-custom-fields`. To rename a group only, use `fluent-crm/update-contact-custom-fields-group-name`. Source: \FluentCrm\App\Http\Controllers\CustomContactFieldsController::saveGlobalFields (PUT /custom-fields/contacts) — the previously cited CustomFieldsController::updateContactFields does not exist in the installed FluentCRM (Addendum 2 citation correction). V8 destructive annotation + V7 input whitelist applied.',
 		'category'      => 'fluent-crm',
+		'annotations'   => array( 'destructive' => true ),
 		'input_schema'  => array(
 			'type'       => 'object',
 			'required'   => array( 'fields' ),
 			'properties' => array(
-				'fields' => array(
-					'type'  => 'array',
-					'items' => array(
+				'fields'               => array(
+					'type'        => 'array',
+					'description' => 'Full replacement set of custom-field definitions. Any existing definition NOT in this array is dropped — there is no merge mode. Empty array clears all definitions globally and requires `confirm_full_replace: true`.',
+					'items'       => array(
 						'type'                 => 'object',
 						'required'             => array( 'slug', 'label', 'type' ),
 						'properties'           => array(
@@ -223,11 +231,35 @@ function fluent_abilities_crm_register_extended_misc_medium() {
 						'additionalProperties' => true,
 					),
 				),
+				'confirm_full_replace' => array(
+					'type'        => 'boolean',
+					'description' => 'Required (must be true) when `fields` is the empty array `[]`. Guards against silent global wipe of all custom-field definitions. Without this confirmation an empty-array call returns a typed WP_Error and no vendor write occurs.',
+				),
 			),
 		),
 		'output_schema' => fluent_abilities_schema_success_output(),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'PUT', '/fluent-crm/v2/custom-fields/contacts', $input );
+			// V8 destructive-semantics guard. Vendor's PUT /custom-fields/contacts is
+			// a full-set replace; passing an empty array wipes every custom-field
+			// definition for every contact. Phase 2 of the v1.4.0 cold-start re-test
+			// wiped 8 production definitions on helenawillow this way. Refuse the
+			// destructive variant unless the caller passes confirm_full_replace:true.
+			$fields = isset( $input['fields'] ) && is_array( $input['fields'] ) ? $input['fields'] : null;
+			if ( null === $fields ) {
+				return new WP_Error(
+					'fluent_crm_custom_fields_missing',
+					'fluent-crm/update-contact-custom-fields requires `fields` (array). To clear all definitions, pass `fields: []` together with `confirm_full_replace: true`.'
+				);
+			}
+			if ( array() === $fields && empty( $input['confirm_full_replace'] ) ) {
+				return new WP_Error(
+					'fluent_crm_custom_fields_destructive_unconfirmed',
+					'fluent-crm/update-contact-custom-fields with `fields: []` clears ALL custom-field definitions globally (full-replace, not a delta). Pass `confirm_full_replace: true` to confirm this is intentional. Read `fluent-crm/get-contact-custom-fields` first to verify what will be destroyed.'
+				);
+			}
+			// V7: whitelist payload to vendor-consumed keys. The local confirmation
+			// flag is not part of the vendor contract.
+			return $proxy( 'PUT', '/fluent-crm/v2/custom-fields/contacts', array( 'fields' => $fields ) );
 		},
 	) );
 
@@ -332,7 +364,7 @@ function fluent_abilities_crm_register_extended_misc_medium() {
 			'label' => array( 'type' => 'string' ),
 		) ),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/import/drivers' );
+			return fluent_abilities_normalize_collection( $proxy( 'GET', '/fluent-crm/v2/import/drivers' ), 'drivers' );
 		},
 	) );
 

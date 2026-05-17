@@ -22,7 +22,7 @@ function fluent_booking_register_slot_abilities() {
 
 	$reg->read( 'fluent-booking/get-available-slots', array(
 		'label'       => 'Get Available Slots',
-		'description' => 'List bookable time slots for an event over a date range. Dispatches by event type (round_robin / collective / multi-guest in Pro). Times are returned in the supplied IANA timezone.',
+		'description' => 'List bookable time slots for an event over a date range. Dispatches by event type (round_robin / collective / multi-guest in Pro). Times are returned in the supplied IANA timezone. Input: `timezone` is REQUIRED (an IANA identifier such as America/New_York) and is NOT defaulted — slot times cannot be computed without it; also pass `event_id` (integer), `start_date` and `end_date` (Y-m-d strings).',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'event_id', 'start_date', 'end_date', 'timezone' ),
@@ -38,7 +38,11 @@ function fluent_booking_register_slot_abilities() {
 			'event_type'   => array( 'type' => 'string' ),
 			'slot_minutes' => array( 'type' => 'integer' ),
 			'timezone'     => array( 'type' => 'string' ),
-			'days'         => array( 'type' => 'array', 'items' => array( 'type' => 'object' ) ),
+			// P-H: vendor TimeSlotService::getDates() returns a date-KEYED map
+			// (keys are Y-m-d, values are slot arrays), not a sequential list —
+			// a genuinely alternative shape, so union-declare object|array
+			// rather than discard the semantically-meaningful date keys.
+			'days'         => array( 'type' => array( 'object', 'array' ) ),
 		) ),
 		'callback' => function( $input ) {
 			if ( ! class_exists( '\FluentBooking\App\Services\TimeSlotService' ) ) {
@@ -47,6 +51,9 @@ function fluent_booking_register_slot_abilities() {
 			if ( ! class_exists( '\FluentBooking\App\Models\CalendarSlot' ) ) {
 				return fluent_abilities_error( 'missing_class', 'FluentBooking CalendarSlot model not found' );
 			}
+			if ( ! class_exists( '\FluentBooking\App\Models\Calendar' ) ) {
+				return fluent_abilities_error( 'missing_class', 'FluentBooking Calendar model not found' );
+			}
 
 			$event_id = (int) $input['event_id'];
 			$event    = \FluentBooking\App\Models\CalendarSlot::find( $event_id );
@@ -54,14 +61,27 @@ function fluent_booking_register_slot_abilities() {
 				return fluent_abilities_error( 'not_found', 'Event (calendar slot) not found' );
 			}
 
+			// V10 signature alignment (P-K): vendor TimeSlotService constructor is
+			// `__construct(Calendar $calendar, CalendarSlot $calendarSlot)` per
+			// installed source app/Services/TimeSlotService.php:18. The prior
+			// implementation passed (CalendarSlot, string $timezone) which produced
+			// a PHP TypeError on every call (F-BOOK-02). Look up the parent
+			// Calendar from the event's calendar_id and pass both objects.
+			$calendar = \FluentBooking\App\Models\Calendar::find( (int) ( $event->calendar_id ?? 0 ) );
+			if ( ! $calendar ) {
+				return fluent_abilities_error( 'not_found', 'Parent calendar not found for event ' . $event_id );
+			}
+
 			$start_date = sanitize_text_field( $input['start_date'] );
 			$end_date   = sanitize_text_field( $input['end_date'] );
 			$timezone   = sanitize_text_field( $input['timezone'] );
 
 			try {
-				$service = new \FluentBooking\App\Services\TimeSlotService( $event, $timezone );
-				$days    = $service->getAvailableSlots( $start_date, $end_date );
-			} catch ( \Exception $e ) {
+				$service = new \FluentBooking\App\Services\TimeSlotService( $calendar, $event );
+				// Vendor public API: getDates($fromDate, $toDate, $duration, $isDoingBooking, $timeZone).
+				// Returns array keyed by date with slot arrays.
+				$days    = $service->getDates( $start_date, $end_date, null, false, $timezone );
+			} catch ( \Throwable $e ) {
 				return fluent_abilities_error( 'slot_lookup_failed', $e->getMessage() );
 			}
 

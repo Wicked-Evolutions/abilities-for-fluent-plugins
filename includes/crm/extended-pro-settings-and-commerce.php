@@ -46,7 +46,7 @@ function fluent_abilities_crm_register_extended_pro_settings_and_commerce() {
 			'permissions'  => array( 'type' => 'array', 'items' => array( 'type' => 'string' ) ),
 		) ),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/campaign-pro-settings/managers' );
+			return fluent_abilities_normalize_collection( $proxy( 'GET', '/fluent-crm/v2/campaign-pro-settings/managers' ), 'managers' );
 		},
 	) );
 

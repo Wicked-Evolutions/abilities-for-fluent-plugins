@@ -19,16 +19,27 @@ if ( ! defined( 'FLUENT_ABILITIES_VERSION' ) ) {
 	define( 'FLUENT_ABILITIES_VERSION', 'test' );
 }
 
-// WP_REST_Response class (minimal stub — only enough surface for the player
-// invoke_controller normalization path to introspect get_data() in tests).
+// WP_REST_Response class (minimal stub — surface required by the player
+// invoke_controller normalization path AND by CRM extended-misc-* proxy
+// helpers that call ->is_error() / ->as_error() on a rest_do_request() return).
 if ( ! class_exists( 'WP_REST_Response' ) ) {
 	class WP_REST_Response {
 		protected $data;
-		public function __construct( $data = null, $status = 200 ) {
-			$this->data = $data;
+		protected $status;
+		protected $is_error;
+		public function __construct( $data = null, $status = 200, $is_error = false ) {
+			$this->data     = $data;
+			$this->status   = $status;
+			$this->is_error = (bool) $is_error;
 		}
 		public function get_data() {
 			return $this->data;
+		}
+		public function is_error() {
+			return $this->is_error;
+		}
+		public function as_error() {
+			return $this->data instanceof WP_Error ? $this->data : new WP_Error( 'rest_error', 'REST error' );
 		}
 	}
 }
@@ -234,6 +245,63 @@ if ( ! function_exists( 'get_site_option' ) ) {
 if ( ! function_exists( 'is_multisite' ) ) {
 	function is_multisite() {
 		return false;
+	}
+}
+
+// In-memory REST capture. Unit tests can read $GLOBALS['_test_rest_log'] after
+// invoking an ability callback to assert what method/route/params reached the
+// vendor REST layer. Tests can also pre-set $GLOBALS['_test_rest_response'] to
+// the response data the captured request should return.
+$_test_rest_log      = array();
+$_test_rest_response = array();
+
+if ( ! class_exists( 'WP_REST_Request' ) ) {
+	class WP_REST_Request {
+		private $method;
+		private $route;
+		private $params = array();
+
+		public function __construct( $method = 'GET', $route = '' ) {
+			$this->method = $method;
+			$this->route  = $route;
+		}
+
+		public function set_param( $key, $value ) {
+			$this->params[ $key ] = $value;
+		}
+
+		public function get_method() {
+			return $this->method;
+		}
+
+		public function get_route() {
+			return $this->route;
+		}
+
+		public function get_params() {
+			return $this->params;
+		}
+	}
+}
+
+if ( ! function_exists( 'rest_do_request' ) ) {
+	function rest_do_request( $request ) {
+		global $_test_rest_log, $_test_rest_response, $_test_rest_throw;
+		$entry = array(
+			'method' => $request->get_method(),
+			'route'  => $request->get_route(),
+			'params' => $request->get_params(),
+		);
+		$_test_rest_log[] = $entry;
+		// Package 2 P-K testing: when $_test_rest_throw is set, simulate the
+		// vendor-side PHP TypeError that the registrar's try/catch is meant to
+		// intercept. The value of $_test_rest_throw is the exception message.
+		if ( ! empty( $_test_rest_throw ) ) {
+			$message     = is_string( $_test_rest_throw ) ? $_test_rest_throw : 'Vendor TypeError simulated by test';
+			throw new \TypeError( $message );
+		}
+		$data = $_test_rest_response ?? array();
+		return new WP_REST_Response( $data, 200, false );
 	}
 }
 

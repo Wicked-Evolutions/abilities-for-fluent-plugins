@@ -139,7 +139,7 @@ add_action( 'wp_abilities_api_init', function() {
 	// 4.16.8 — Update payment method (write).
 	$reg->write( 'fluent-cart/update-payment-method', array(
 		'label'       => 'Update Payment Method',
-		'description' => 'Update a single payment-method configuration. Mirrors POST /settings/payment-methods.',
+		'description' => 'Update a single payment-method configuration. Note: the method is addressed by `key` (the method slug such as "stripe"/"paypal", used as the array key in the fluent_cart_payment_methods option) — there is no numeric `id` for a payment method; passing `id` has no effect. Mirrors POST /settings/payment-methods.',
 		'input_schema' => array(
 			'type'     => 'object',
 			'required' => array( 'key', 'settings' ),
@@ -203,7 +203,7 @@ add_action( 'wp_abilities_api_init', function() {
 	// 4.16.12 — Update storage driver (write, complex per-driver auth).
 	$reg->write( 'fluent-cart/update-storage-driver', array(
 		'label'       => 'Update Storage Driver',
-		'description' => 'Update a single storage driver configuration. Per-driver schema (bucket / region / access keys). Mirrors POST /settings/storage-drivers.',
+		'description' => 'Update a single storage driver configuration. Per-driver schema (bucket / region / access keys). Note: the driver is addressed by `key` (the driver slug such as "s3"/"r2"/"bunny", used as the array key in the fluent_cart_storage_drivers option) — the field is `key`, not `driver`; passing `driver` has no effect. Mirrors POST /settings/storage-drivers.',
 		'input_schema' => array(
 			'type'     => 'object',
 			'required' => array( 'key', 'settings' ),

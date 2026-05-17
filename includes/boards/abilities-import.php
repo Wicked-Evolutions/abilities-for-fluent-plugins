@@ -23,7 +23,7 @@ defined( 'ABSPATH' ) || exit;
 // =========================================================================
 $reg->write( 'fluent-boards/upload-csv', array(
 	'label'       => 'Upload CSV (Pro)',
-	'description' => 'Stage a CSV upload for later mapping/import. Accepts either an existing WordPress attachment_id pointing to a CSV file, or a remote csv_url (sideloaded with SSRF validation). Returns csv_id, detected columns, and a preview of the first rows.',
+	'description' => 'Stage a CSV upload for later mapping/import. Provide at least one of `attachment_id` (a WordPress attachment pointing to a CSV) or `csv_url` (remote, sideloaded with SSRF validation) — both may be supplied (`attachment_id` takes precedence); the handler rejects only when NEITHER resolves. Returns csv_id, detected columns, and a preview of the first rows. Schema declares this via `anyOf` (P5 factually-corrective per installed-handler precedence chain, not exactly-one).',
 	'category'    => 'fluent-boards',
 	'input_schema' => array(
 		'type'       => 'object',
@@ -31,6 +31,13 @@ $reg->write( 'fluent-boards/upload-csv', array(
 			'attachment_id' => array( 'type' => 'integer' ),
 			'csv_url'       => array( 'type' => 'string' ),
 			'preview_rows'  => array( 'type' => 'integer', 'default' => 5, 'minimum' => 1, 'maximum' => 50 ),
+		),
+		// P5 factually-corrective (NOT oneOf): handler precedence
+		// if($attachment_id) elseif($csv_url) — both accepted, only
+		// neither rejected. anyOf = "at least one".
+		'anyOf'      => array(
+			array( 'required' => array( 'attachment_id' ) ),
+			array( 'required' => array( 'csv_url' ) ),
 		),
 	),
 	'output_schema' => fluent_abilities_schema_success_output( array(

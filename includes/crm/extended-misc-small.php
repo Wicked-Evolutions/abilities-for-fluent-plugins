@@ -77,7 +77,7 @@ function fluent_abilities_crm_register_extended_misc_small() {
 				'slug'  => isset( $input['slug'] ) ? (string) $input['slug'] : ( isset( $input['title'] ) ? sanitize_title( (string) $input['title'] ) : '' ),
 				'color' => isset( $input['color'] ) ? (string) $input['color'] : '',
 			);
-			return $proxy( 'POST', '/fluent-crm/v2/labels', array( 'label' => $label ) );
+			return fluent_abilities_project_response( $proxy( 'POST', '/fluent-crm/v2/labels', array( 'label' => $label ) ) );
 		},
 	) );
 
@@ -104,7 +104,7 @@ function fluent_abilities_crm_register_extended_misc_small() {
 					$label[ $k ] = (string) $input[ $k ];
 				}
 			}
-			return $proxy( 'PUT', '/fluent-crm/v2/labels/' . $id, array( 'label' => $label ) );
+			return fluent_abilities_project_response( $proxy( 'PUT', '/fluent-crm/v2/labels/' . $id, array( 'label' => $label ) ) );
 		},
 	) );
 
@@ -155,7 +155,7 @@ function fluent_abilities_crm_register_extended_misc_small() {
 
 	$reg->write( 'fluent-crm/create-webhook', array(
 		'label'         => 'Create CRM Webhook',
-		'description'   => 'Create a new FluentCRM webhook endpoint. Returns the generated receiver URL. Source: WebhookController::create (POST /webhooks). Pattern-A flat: vendor reads $request->all() per source app/Http/Controllers/WebhookController.php:67 and validates {name, status} both required. Default contact status when omitted: subscribed.',
+		'description'   => 'Create a new FluentCRM webhook endpoint. Returns the generated receiver URL. V7: callback whitelists top-level input to schema-declared keys, then calls the vendor public model FluentCrm\\App\\Models\\Webhook::store() (same write path WebhookController::create uses internally). The REST-controller path is intentionally bypassed because vendor Request::all() (vendor framework/src/WPFluent/Http/Request/Request.php inputs() at array_merge($this->request, $json)) re-reads php://input and merges the raw transport body OVER any WP_REST_Request::set_param values, defeating a whitelist applied at rest_do_request. Routing through the model preserves the documented vendor operation (V3 priority 2) while keeping the V7 whitelist binding. Source: WebhookController::create (POST /webhooks) + Webhook::store (app/Models/Webhook.php:67-76).',
 		'category'      => 'fluent-crm',
 		'input_schema'  => array(
 			'type'       => 'object',
@@ -179,14 +179,49 @@ function fluent_abilities_crm_register_extended_misc_small() {
 				'message' => array( 'type' => 'string' ),
 			),
 		),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/webhooks', $input );
+		'callback'      => function ( $input ) {
+			// V7: whitelist top-level keys to those declared in input_schema, then
+			// pass the cleaned payload directly to the vendor public model. The
+			// transport envelope (method/params/jsonrpc/id/toolUseId/_links/_embedded)
+			// is never reachable by vendor code because we do not route through the
+			// REST controller (whose Request::all() re-reads php://input and would
+			// override anything we'd set via WP_REST_Request::set_param).
+			$allowed = array( 'name', 'status', 'lists', 'tags', 'companies', 'provider', 'extra' );
+			$payload = array();
+			foreach ( $allowed as $k ) {
+				if ( array_key_exists( $k, $input ) ) {
+					$payload[ $k ] = $input[ $k ];
+				}
+			}
+			// V10 typed-error guard: if vendor module is absent at runtime, return
+			// WP_Error rather than fataling on a missing class.
+			if ( ! class_exists( '\\FluentCrm\\App\\Models\\Webhook' ) ) {
+				return new WP_Error(
+					'fluent_crm_unavailable',
+					'FluentCrm\\App\\Models\\Webhook is not available. FluentCRM must be active for this ability.'
+				);
+			}
+			// Mirror WebhookController::create validation: name + status required.
+			foreach ( array( 'name', 'status' ) as $required ) {
+				if ( empty( $payload[ $required ] ) ) {
+					return new WP_Error(
+						'fluent_crm_webhook_missing_field',
+						sprintf( 'fluent-crm/create-webhook: required field `%s` is missing or empty.', $required )
+					);
+				}
+			}
+			$webhook = ( new \FluentCrm\App\Models\Webhook() )->store( $payload );
+			return array(
+				'id'      => isset( $webhook->id ) ? (int) $webhook->id : 0,
+				'webhook' => isset( $webhook->value ) ? $webhook->value : null,
+				'message' => __( 'Successfully created the WebHook', 'fluent-crm' ),
+			);
 		},
 	) );
 
 	$reg->write( 'fluent-crm/update-webhook', array(
 		'label'         => 'Update CRM Webhook',
-		'description'   => 'Update an existing webhook endpoint. Source: WebhookController::update (PUT /webhooks/{id}).',
+		'description'   => 'Update an existing webhook endpoint. V7: callback whitelists top-level input to schema-declared keys, then calls the vendor public model FluentCrm\\App\\Models\\Webhook::saveChanges() (same write path WebhookController::update uses internally). The REST-controller path is intentionally bypassed because vendor WebhookController::update calls $webhook->saveChanges($request->all()) and the vendor Request::all() (framework/src/WPFluent/Http/Request/Request.php — re-reads php://input) merges the raw transport body OVER any WP_REST_Request::set_param values, defeating a whitelist applied at rest_do_request; saveChanges() then array_merges that whole payload into the stored webhook `value` (app/Models/Webhook.php:88). Same leak + same fix shape as fluent-crm/create-webhook (Package 1, P-I family). Source: WebhookController::update (PUT /webhooks/{id}) + Webhook::saveChanges.',
 		'category'      => 'fluent-crm',
 		'input_schema'  => array(
 			'type'       => 'object',
@@ -201,10 +236,46 @@ function fluent_abilities_crm_register_extended_misc_small() {
 			),
 		),
 		'output_schema' => fluent_abilities_schema_success_output(),
-		'callback'      => function ( $input ) use ( $proxy ) {
+		'callback'      => function ( $input ) {
 			$id = (int) ( $input['id'] ?? 0 );
-			unset( $input['id'] );
-			return $proxy( 'PUT', '/fluent-crm/v2/webhooks/' . $id, $input );
+			if ( ! $id ) {
+				return new WP_Error(
+					'fluent_crm_webhook_missing_field',
+					'fluent-crm/update-webhook: required field `id` is missing or empty.'
+				);
+			}
+			// V7: whitelist top-level keys to those declared in input_schema,
+			// then pass the cleaned payload directly to the vendor public model
+			// (V3 priority 2). The transport envelope
+			// (method/params/jsonrpc/id/toolUseId/_links/_embedded) is never
+			// reachable by vendor code because we do not route through the REST
+			// controller (whose Request::all() re-reads php://input and
+			// saveChanges() then array_merges the whole thing into value).
+			$allowed = array( 'name', 'lists', 'tags', 'companies', 'extra' );
+			$payload = array();
+			foreach ( $allowed as $k ) {
+				if ( array_key_exists( $k, $input ) ) {
+					$payload[ $k ] = $input[ $k ];
+				}
+			}
+			// V10 typed-error guard: absent vendor class → WP_Error, not fatal.
+			if ( ! class_exists( '\\FluentCrm\\App\\Models\\Webhook' ) ) {
+				return new WP_Error(
+					'fluent_crm_unavailable',
+					'FluentCrm\\App\\Models\\Webhook is not available. FluentCRM must be active for this ability.'
+				);
+			}
+			$webhook = ( new \FluentCrm\App\Models\Webhook() )->find( $id );
+			if ( ! $webhook ) {
+				return new WP_Error(
+					'fluent_crm_webhook_not_found',
+					sprintf( 'Webhook %d not found.', $id )
+				);
+			}
+			// Mirror WebhookController::update — saveChanges() applies the
+			// vendor's own tags/lists/companies defaults + value array_merge.
+			$webhook->saveChanges( $payload );
+			return array( 'success' => true );
 		},
 	) );
 
@@ -282,7 +353,7 @@ function fluent_abilities_crm_register_extended_misc_small() {
 			'title' => array( 'type' => 'string' ),
 		) ),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/forms/templates' );
+			return fluent_abilities_normalize_collection( $proxy( 'GET', '/fluent-crm/v2/forms/templates' ), 'templates' );
 		},
 	) );
 
@@ -382,7 +453,7 @@ function fluent_abilities_crm_register_extended_misc_small() {
 			'url'   => array( 'type' => array( 'string', 'null' ) ),
 		) ),
 		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/docs/addons' );
+			return fluent_abilities_normalize_collection( $proxy( 'GET', '/fluent-crm/v2/docs/addons' ), 'addons' );
 		},
 	) );
 

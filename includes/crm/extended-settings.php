@@ -282,7 +282,7 @@ function fluent_abilities_crm_register_extended_settings() {
 			'title' => array( 'type' => 'string' ),
 		) ),
 		'callback'      => function ( $input ) use ( $proxy_get ) {
-			return $proxy_get( '/fluent-crm/v2/setting/experiments/campaigns' );
+			return fluent_abilities_normalize_collection( $proxy_get( '/fluent-crm/v2/setting/experiments/campaigns' ), 'campaigns' );
 		},
 	) );
 
@@ -313,7 +313,7 @@ function fluent_abilities_crm_register_extended_settings() {
 			'created_at' => array( 'type' => array( 'string', 'null' ) ),
 		) ),
 		'callback'      => function ( $input ) use ( $proxy_get ) {
-			return $proxy_get( '/fluent-crm/v2/setting/system-logs', $input );
+			return fluent_abilities_normalize_collection( $proxy_get( '/fluent-crm/v2/setting/system-logs', $input ), 'logs' );
 		},
 	) );
 
