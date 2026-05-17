@@ -94,7 +94,7 @@
       ],
       "package": 2,
       "pattern": "P-K",
-      "notes": "Package 2 V10 fix: callback wraps the proxy call in try/catch and returns WP_Error('vendor_precondition_failed', …) instead of letting the vendor TypeError propagate as a PHP fatal. Vendor controller surfaces TypeError when FluentCampaign Pro template-bundle state is incomplete.",
+      "notes": "Package 2 V10 fix: callback wraps the proxy call in try/catch and returns WP_Error('vendor_precondition_failed', …) instead of letting the vendor TypeError propagate as a PHP fatal. Vendor controller surfaces TypeError when FluentCampaign Pro template-bundle state is incomplete. || v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
       "doc": "installed vendor source: FluentCrm\\App\\Http\\Controllers\\FunnelController::getTemplates"
     },
     {
@@ -114,7 +114,7 @@
       ],
       "package": 2,
       "pattern": "P-K",
-      "notes": "Package 2 V10 fix: typed WP_Error guard wraps the proxy call. Vendor controller TypeErrors when FluentCampaign Pro is inactive or the dynamic-segment custom-field registry is empty.",
+      "notes": "Package 2 V10 fix: typed WP_Error guard wraps the proxy call. Vendor controller TypeErrors when FluentCampaign Pro is inactive or the dynamic-segment custom-field registry is empty. || v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
       "doc": "installed vendor source: FluentCrm\\App\\Http\\Controllers\\DynamicSegmentController::customFields"
     },
     {
@@ -176,7 +176,7 @@
       ],
       "package": 2,
       "pattern": "P-K",
-      "notes": "Package 2 V10 fix: typed WP_Error guard wraps the proxy call. Vendor controller TypeErrors when FluentCampaign Pro is inactive or no commerce provider is registered.",
+      "notes": "Package 2 V10 fix: typed WP_Error guard wraps the proxy call. Vendor controller TypeErrors when FluentCampaign Pro is inactive or no commerce provider is registered. || v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
       "doc": "installed vendor source: FluentCrm\\App\\Http\\Controllers\\CampaignsProController::products"
     },
     {
@@ -494,14 +494,14 @@
       "canonical_handler": "vendor controller returns ['sequence_trackers'=>$query->paginate()] (LengthAwarePaginator) — live-verified vendor wrapper key is 'sequence_trackers', NOT the schema items_key 'sequences'",
       "direct_storage": false,
       "destructive": false,
-      "read_back": "N/A - V5 response-boundary (P-J) fix; not a write (V3 read-back N/A)",
+      "read_back": "END-TO-END VERIFIED v1.4.0 P7.1 (helenawillow, FluentCRM populated, opcache cycled, 2026-05-17): ability->execute({subscriber_id:1}) -> {sequences:[3 real rows],total:3,page:1,per_page:15}; first row id=2213 subscriber_id=1 type=sequence_tracker + nested sequence/last_sequence — canonical shape, real records, validate_output passes. Pre-P7.1 this fataled with the Addendum 27 phantom TypeError.",
       "principles": [
         "V5"
       ],
-      "package": "4a; P7 unwrap fix live-verified; populated-case BLOCKED by Addendum 27 -> Package 7.1",
+      "package": "4a; P7 unwrap fix live-verified; populated-case BLOCKED by Addendum 27 -> Package 7.1; P7.1 Addendum 27 fixed + end-to-end VERIFIED",
       "pattern": "P-J Laravel/wpFluent paginator-internals leak",
-      "status": "PENDING — NOT flipped to VERIFIED. P7 unwrap_paginator() fix live-verified CORRECT at the data layer; ability->execute() populated-case blocked by Addendum 27 (code-routed to Package 7.1, not infra-deferred)",
-      "notes": "Package 4a callback wrapped with fluent_abilities_unwrap_paginator(<proxy>, 'sequences'). P7 (2026-05-17, helenawillow, FluentCRM populated, opcache cycled) LIVE-VERIFIED the unwrap helper fix CORRECT: vendor returns ['sequence_trackers'=>$paginator] (its OWN single key != schema items_key 'sequences'); the P7 single-key-wrapper descent resolves it to canonical {sequences:[3 real rows],total,page,per_page} — confirmed via direct proxy+unwrap probe (subscriber_id 1 -> 3 rows). The unwrap fix IS in this P7-close PR and is correct. HOWEVER ability->execute() still fatals on populated responses: WP core rest_validate_value_from_schema (validate_output) TypeError 'Cannot access offset of type string on string' at wp-includes/rest-api.php:2203, caused by fluent_abilities_schema_list_output($key,$obj) stuffing the {type:object,additionalProperties:true} fragment into `properties`, declaring a phantom property literally named `type` whose schema is the string \"object\"; every row carries a real `type` column -> core recurses into a string. Broad blast radius (all schema_list/collection/item_output($key,$obj) callers). Cold-start signature: empty site passes, populated fatals. Disposition: SPLIT (reviewer) — schema-output defect = Addendum 27, routed to Package 7.1; NOT flipped to VERIFIED here; code-routed, not infra-deferred. see docs/P7-CLOSE.md",
+      "status": "VERIFIED (v1.4.0 P7.1 — Addendum 27 fixed; end-to-end ability->execute() live read-back, helenawillow 2026-05-17)",
+      "notes": "Package 4a callback wrapped with fluent_abilities_unwrap_paginator(<proxy>, 'sequences'). P7 (2026-05-17, helenawillow, FluentCRM populated, opcache cycled) LIVE-VERIFIED the unwrap helper fix CORRECT: vendor returns ['sequence_trackers'=>$paginator] (its OWN single key != schema items_key 'sequences'); the P7 single-key-wrapper descent resolves it to canonical {sequences:[3 real rows],total,page,per_page} — confirmed via direct proxy+unwrap probe (subscriber_id 1 -> 3 rows). The unwrap fix IS in this P7-close PR and is correct. HOWEVER ability->execute() still fatals on populated responses: WP core rest_validate_value_from_schema (validate_output) TypeError 'Cannot access offset of type string on string' at wp-includes/rest-api.php:2203, caused by fluent_abilities_schema_list_output($key,$obj) stuffing the {type:object,additionalProperties:true} fragment into `properties`, declaring a phantom property literally named `type` whose schema is the string \"object\"; every row carries a real `type` column -> core recurses into a string. Broad blast radius (all schema_list/collection/item_output($key,$obj) callers). Cold-start signature: empty site passes, populated fatals. Disposition: SPLIT (reviewer) — schema-output defect = Addendum 27, routed to Package 7.1; NOT flipped to VERIFIED here; code-routed, not infra-deferred. see docs/P7-CLOSE.md || v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
       "doc": "installed vendor source: vendor controller returns ['sequence_trackers'=>$query->paginate()] (LengthAwarePaginator) — live-verified 2026-05-17"
     },
     {
@@ -512,14 +512,14 @@
       "canonical_handler": "CampaignAnalyticsController::getUnsubscribers returns ['unsubscribes'=>$query->paginate()] (LengthAwarePaginator) — live-verified vendor wrapper key is 'unsubscribes', NOT the schema items_key 'unsubscribers'",
       "direct_storage": false,
       "destructive": false,
-      "read_back": "N/A - V5 response-boundary (P-J) fix; not a write (V3 read-back N/A)",
+      "read_back": "END-TO-END VERIFIED v1.4.0 P7.1 (helenawillow, FluentCRM populated, opcache cycled, 2026-05-17): ability->execute({id:191}) -> {unsubscribers:[1 real row],total:1,page:1,per_page:15}; first row id=18049 campaign_id=191 subscriber_id=64 type=unsubscribe + nested real subscriber (Annica Blomstrom, id 64) — canonical shape, real record (NOT the paginator), validate_output passes. Pre-P7.1 this fataled with the Addendum 27 phantom TypeError (why it was PENDING).",
       "principles": [
         "V5"
       ],
-      "package": "4a; P7 unwrap fix live-verified; populated-case BLOCKED by Addendum 27 -> Package 7.1",
+      "package": "4a; P7 unwrap fix live-verified; populated-case BLOCKED by Addendum 27 -> Package 7.1; P7.1 Addendum 27 fixed + end-to-end VERIFIED",
       "pattern": "P-J Laravel/wpFluent paginator-internals leak",
-      "status": "PENDING — NOT flipped to VERIFIED. P7 unwrap_paginator() fix live-verified CORRECT at the data layer; ability->execute() populated-case blocked by Addendum 27 (code-routed to Package 7.1, not infra-deferred)",
-      "notes": "Package 4a callback wrapped with fluent_abilities_unwrap_paginator(<proxy>, 'unsubscribers'). P7 (2026-05-17, helenawillow, FluentCRM populated, opcache cycled) LIVE-VERIFIED the unwrap helper fix CORRECT: vendor CampaignAnalyticsController::getUnsubscribers returns ['unsubscribes'=>$paginator] (its OWN single key != schema items_key 'unsubscribers'); the P7 single-key-wrapper descent resolves it to canonical {unsubscribers:[1 real row + nested subscriber],total:1,page:1,per_page:15} — confirmed via direct proxy+unwrap probe (campaign id 191 -> 1 row). The unwrap fix IS in this P7-close PR and is correct. HOWEVER ability->execute() still fatals on populated responses: WP core rest_validate_value_from_schema (validate_output) TypeError 'Cannot access offset of type string on string' at wp-includes/rest-api.php:2203, caused by fluent_abilities_schema_list_output($key,$obj) stuffing the {type:object,additionalProperties:true} fragment into `properties`, declaring a phantom property literally named `type` whose schema is the string \"object\"; every row carries a real `type` column -> core recurses into a string. Broad blast radius (all schema_list/collection/item_output($key,$obj) callers). Cold-start signature: empty site passes, populated fatals. Disposition: SPLIT (reviewer) — schema-output defect = Addendum 27, routed to Package 7.1; NOT flipped to VERIFIED here; code-routed, not infra-deferred. see docs/P7-CLOSE.md",
+      "status": "VERIFIED (v1.4.0 P7.1 — Addendum 27 fixed; end-to-end ability->execute() live read-back, helenawillow 2026-05-17)",
+      "notes": "Package 4a callback wrapped with fluent_abilities_unwrap_paginator(<proxy>, 'unsubscribers'). P7 (2026-05-17, helenawillow, FluentCRM populated, opcache cycled) LIVE-VERIFIED the unwrap helper fix CORRECT: vendor CampaignAnalyticsController::getUnsubscribers returns ['unsubscribes'=>$paginator] (its OWN single key != schema items_key 'unsubscribers'); the P7 single-key-wrapper descent resolves it to canonical {unsubscribers:[1 real row + nested subscriber],total:1,page:1,per_page:15} — confirmed via direct proxy+unwrap probe (campaign id 191 -> 1 row). The unwrap fix IS in this P7-close PR and is correct. HOWEVER ability->execute() still fatals on populated responses: WP core rest_validate_value_from_schema (validate_output) TypeError 'Cannot access offset of type string on string' at wp-includes/rest-api.php:2203, caused by fluent_abilities_schema_list_output($key,$obj) stuffing the {type:object,additionalProperties:true} fragment into `properties`, declaring a phantom property literally named `type` whose schema is the string \"object\"; every row carries a real `type` column -> core recurses into a string. Broad blast radius (all schema_list/collection/item_output($key,$obj) callers). Cold-start signature: empty site passes, populated fatals. Disposition: SPLIT (reviewer) — schema-output defect = Addendum 27, routed to Package 7.1; NOT flipped to VERIFIED here; code-routed, not infra-deferred. see docs/P7-CLOSE.md || v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
       "doc": "installed vendor source: CampaignAnalyticsController::getUnsubscribers returns ['unsubscribes'=>$query->paginate()] (LengthAwarePaginator) — live-verified 2026-05-17"
     },
     {
@@ -537,7 +537,7 @@
       "package": "4a",
       "pattern": "P-J Laravel/wpFluent paginator-internals leak",
       "status": "PENDING (populated-case live-confirm deferred; see basis)",
-      "notes": "Package 4a. Callback wrapped with fluent_abilities_unwrap_paginator(<proxy>, 'contacts') -> canonical {contacts:[...],total,page,per_page}. RECORDED BASIS: P-J paginator-unwrap helper vendor-source-verified against FluentCrm\\Framework\\Pagination\\LengthAwarePaginator::toArray() ({current_page,data:items->toArray(),per_page,total}) + vendor ['<key>'=>paginate()] controllers, correct across all proxied shapes; empty-case live-confirmed (list-recurring-campaigns -> {campaigns:[],total:0,page:1,per_page:15}); per-item projection shared with P-G, fully live-verified x17 in this PR; populated-case live-confirm DEFERRED - infra-held solely on all-worker opcache flush on helenawillow, not an omitted code gate.",
+      "notes": "Package 4a. Callback wrapped with fluent_abilities_unwrap_paginator(<proxy>, 'contacts') -> canonical {contacts:[...],total,page,per_page}. RECORDED BASIS: P-J paginator-unwrap helper vendor-source-verified against FluentCrm\\Framework\\Pagination\\LengthAwarePaginator::toArray() ({current_page,data:items->toArray(),per_page,total}) + vendor ['<key>'=>paginate()] controllers, correct across all proxied shapes; empty-case live-confirmed (list-recurring-campaigns -> {campaigns:[],total:0,page:1,per_page:15}); per-item projection shared with P-G, fully live-verified x17 in this PR; populated-case live-confirm DEFERRED - infra-held solely on all-worker opcache flush on helenawillow, not an omitted code gate. || v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
       "doc": "installed vendor source: vendor controller returns ['contacts'=>$query->paginate()] (LengthAwarePaginator)"
     },
     {
@@ -725,7 +725,7 @@
       ],
       "package": "4b",
       "pattern": "P-H normalize (events (paginator; sendError WP_Error passes through))",
-      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe).",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe). || v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
       "doc": "installed vendor source: SubscriberController::getTrackingEvents (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)"
     },
     {
@@ -742,7 +742,7 @@
       ],
       "package": "4b",
       "pattern": "P-H normalize (automations (paginator))",
-      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe).",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe). || v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
       "doc": "installed vendor source: FunnelController::subscriberAutomations (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)"
     },
     {
@@ -759,7 +759,7 @@
       ],
       "package": "4b",
       "pattern": "P-H normalize (activities (paginator, decorated rows))",
-      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe).",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe). || v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
       "doc": "installed vendor source: FunnelController::getAllActivities (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)"
     },
     {
@@ -776,7 +776,7 @@
       ],
       "package": "4b",
       "pattern": "P-H normalize (taxonomies (post-type-keyed map; []-when-empty))",
-      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe).",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe). || v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
       "doc": "installed vendor source: DynamicPostDataController::getPostsTaxonomies (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)"
     },
     {
@@ -793,7 +793,7 @@
       ],
       "package": "4b",
       "pattern": "P-H normalize (emails (paginator; optional page-1 drafts key))",
-      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe).",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe). || v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
       "doc": "installed vendor source: RecurringCampaignController::getEmails (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)"
     },
     {
@@ -844,7 +844,7 @@
       ],
       "package": "4b",
       "pattern": "P-H normalize (notes (paginator))",
-      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe).",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe). || v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
       "doc": "installed vendor source: CompanyController::getNotes (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)"
     },
     {
@@ -861,7 +861,7 @@
       ],
       "package": "4b",
       "pattern": "P-H normalize (emails (paginator))",
-      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe).",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe). || v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
       "doc": "installed vendor source: CampaignController::campaignEmails (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)"
     },
     {
@@ -1200,6 +1200,114 @@
       "package": "5",
       "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
       "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-crm/get-funnel-email-reports",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (audited live 2026-05-17, registration-time schema scan)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 schema-output boundary",
+      "canonical_handler": "vendor controller -> paginator/collection; ability output via fluent_abilities_schema_collection_output",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 schema-output boundary fix (V3 read-back N/A; not a write)",
+      "principles": [
+        "V5"
+      ],
+      "package": "7.1",
+      "pattern": "Addendum 27 phantom-property schema-output TypeError",
+      "status": "FIXED (v1.4.0 P7.1) — Addendum 27; no phantom TypeError on populated responses (live-confirmed across affected family 2026-05-17)",
+      "notes": "Affected slug discovered by the P7.1 registration-time audit (collection_output(steps,$obj), registrar extended-funnels). v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
+      "doc": "installed vendor source: ability output_schema built via the shared schema-output helpers; see docs/P7.1-SCHEMA-OUTPUT.md"
+    },
+    {
+      "ability": "fluent-crm/list-abandon-carts",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (audited live 2026-05-17, registration-time schema scan)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 schema-output boundary",
+      "canonical_handler": "vendor controller -> paginator/collection; ability output via fluent_abilities_schema_list_output",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 schema-output boundary fix (V3 read-back N/A; not a write)",
+      "principles": [
+        "V5"
+      ],
+      "package": "7.1",
+      "pattern": "Addendum 27 phantom-property schema-output TypeError",
+      "status": "FIXED (v1.4.0 P7.1) — Addendum 27; no phantom TypeError on populated responses (live-confirmed across affected family 2026-05-17)",
+      "notes": "Affected slug discovered by the P7.1 registration-time audit (list_output(carts,$obj), registrar extended-misc-medium). v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
+      "doc": "installed vendor source: ability output_schema built via the shared schema-output helpers; see docs/P7.1-SCHEMA-OUTPUT.md"
+    },
+    {
+      "ability": "fluent-crm/list-campaigns-pro-posts",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (audited live 2026-05-17, registration-time schema scan)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 schema-output boundary",
+      "canonical_handler": "vendor controller -> paginator/collection; ability output via fluent_abilities_schema_collection_output",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 schema-output boundary fix (V3 read-back N/A; not a write)",
+      "principles": [
+        "V5"
+      ],
+      "package": "7.1",
+      "pattern": "Addendum 27 phantom-property schema-output TypeError",
+      "status": "FIXED (v1.4.0 P7.1) — Addendum 27; no phantom TypeError on populated responses (live-confirmed across affected family 2026-05-17)",
+      "notes": "Affected slug discovered by the P7.1 registration-time audit (collection_output(posts,$obj), registrar extended-pro-marketing). v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
+      "doc": "installed vendor source: ability output_schema built via the shared schema-output helpers; see docs/P7.1-SCHEMA-OUTPUT.md"
+    },
+    {
+      "ability": "fluent-crm/list-commerce-reports-for-provider",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (audited live 2026-05-17, registration-time schema scan)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 schema-output boundary",
+      "canonical_handler": "vendor controller -> paginator/collection; ability output via fluent_abilities_schema_collection_output",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 schema-output boundary fix (V3 read-back N/A; not a write)",
+      "principles": [
+        "V5"
+      ],
+      "package": "7.1",
+      "pattern": "Addendum 27 phantom-property schema-output TypeError",
+      "status": "FIXED (v1.4.0 P7.1) — Addendum 27; no phantom TypeError on populated responses (live-confirmed across affected family 2026-05-17)",
+      "notes": "Affected slug discovered by the P7.1 registration-time audit (collection_output(reports,$obj), registrar extended-pro-settings-and-commerce). v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
+      "doc": "installed vendor source: ability output_schema built via the shared schema-output helpers; see docs/P7.1-SCHEMA-OUTPUT.md"
+    },
+    {
+      "ability": "fluent-crm/list-dynamic-segments",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (audited live 2026-05-17, registration-time schema scan)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 schema-output boundary",
+      "canonical_handler": "vendor controller -> paginator/collection; ability output via fluent_abilities_schema_list_output",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 schema-output boundary fix (V3 read-back N/A; not a write)",
+      "principles": [
+        "V5"
+      ],
+      "package": "7.1",
+      "pattern": "Addendum 27 phantom-property schema-output TypeError",
+      "status": "FIXED (v1.4.0 P7.1) — Addendum 27; no phantom TypeError on populated responses (live-confirmed across affected family 2026-05-17)",
+      "notes": "Affected slug discovered by the P7.1 registration-time audit (list_output(segments,$obj), registrar extended-pro-marketing). v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
+      "doc": "installed vendor source: ability output_schema built via the shared schema-output helpers; see docs/P7.1-SCHEMA-OUTPUT.md"
+    },
+    {
+      "ability": "fluent-crm/search-unattached-contacts-for-company",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (audited live 2026-05-17, registration-time schema scan)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 schema-output boundary",
+      "canonical_handler": "vendor controller -> paginator/collection; ability output via fluent_abilities_schema_collection_output",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 schema-output boundary fix (V3 read-back N/A; not a write)",
+      "principles": [
+        "V5"
+      ],
+      "package": "7.1",
+      "pattern": "Addendum 27 phantom-property schema-output TypeError",
+      "status": "FIXED (v1.4.0 P7.1) — Addendum 27; no phantom TypeError on populated responses (live-confirmed across affected family 2026-05-17)",
+      "notes": "Affected slug discovered by the P7.1 registration-time audit (collection_output(contacts,$obj), registrar extended-pro-companies). v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
+      "doc": "installed vendor source: ability output_schema built via the shared schema-output helpers; see docs/P7.1-SCHEMA-OUTPUT.md"
     }
   ]
 }
