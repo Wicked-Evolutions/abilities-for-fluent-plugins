@@ -40,7 +40,7 @@ Per-finding provenance: dispatch brief + ledger Addenda 1–35 (`[[DISPATCH BRIE
 - Pro settings + commerce reports (9)
 - Global search helpers (1)
 
-`§5.32` drift-fix abilities deferred to a future v1.x hotfix lane per Principle 10 Stable Contracts (filed as KD-8 [#62](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/62) + KD-9 [#63](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/63)).
+`§5.32` drift-fix abilities deferred to a future v1.x hotfix lane per Principle 10 Stable Contracts (deferred drift-fixes tracked at [#62](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/62) and [#63](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/63); these are Phase-B follow-ups, not v1.1.3 KD-ledger entries — the canonical ledger defines only KD-1…KD-7).
 
 ### FluentCart
 
