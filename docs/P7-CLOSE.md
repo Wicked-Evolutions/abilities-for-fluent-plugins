@@ -16,9 +16,11 @@ not repointed/re-specced (a new contract is out of close scope).
 
 | Ability | Why never functional | Tombstone |
 |---|---|---|
-| `fluent-crm/get-report-top-campaigns` | Proxies `GET /fluent-crm/v2/reports/top-campaigns` — no such route in the installed vendor route table (`app/Http/Routes/api.php`); `rest_do_request` → 404. P4b separable-defect bounce; reviewer disposition = deprecate. | `includes/crm/extended-reports.php` |
-| `fluent-crm/set-global-email-style` | Vendor `TemplateController::setGlobalStyle` reads `config`; ability schema/forwards `style` → schema-valid input saved an empty config and returned a misleading success. P5 reclassification escalation; reviewer disposition = deprecate. | `includes/crm/extended-templates-and-patterns.php` |
-| `fluent-crm/list-subscribers-prev-next-ids` | Vendor `SubscriberController::getPrevNextIds` requires `filter_type`+`current_id` and never reads `id` (the only schema-`required` field) → rejected 100% of schema-valid input. P5 reclassification escalation; reviewer disposition = deprecate. | `includes/crm/extended-subscribers.php` |
+| `fluent-crm/get-report-top-campaigns` | Proxies `GET /fluent-crm/v2/reports/top-campaigns` — no such route in the installed vendor route table (`app/Http/Routes/api.php`); `rest_do_request` → 404. | `includes/crm/extended-reports.php` |
+| `fluent-crm/set-global-email-style` | Vendor `TemplateController::setGlobalStyle` reads `config`; ability schema/forwards `style` → schema-valid input saved an empty config and returned a misleading success. | `includes/crm/extended-templates-and-patterns.php` |
+| `fluent-crm/list-subscribers-prev-next-ids` | Vendor `SubscriberController::getPrevNextIds` requires `filter_type`+`current_id` and never reads `id` (the only schema-`required` field) → rejected 100% of schema-valid input. | `includes/crm/extended-subscribers.php` |
+
+**Authorization of record:** **J-AUTHORIZED removal** — J directive 2026-05-17 (ledger **Addendum 25**: *"these 3 we can just remove; we should not ship abilities that can be called and don't work"*). **Basis/rationale:** independently verified never-functional per slug (no vendor route / 100% schema-handler rejection / reads `config` not `style`) **AND** absent at tag `v1.1.3` (**NOT Stable-locked** — Principle-10 callback/contract lock does not bind). **Named removal version:** v1.4.0 P7-close. **Aliasing:** N/A (no working contract to alias). The P4b separable-defect bounce / P5 reclassification escalations are the *provenance* of the finding, not the disposition authority — the reviewer did **not** rule "deprecate".
 
 Vendor-map rows in `docs/vendor-map/fluent-crm.json` flipped to
 `REMOVED (v1.4.0 P7 close)`.
@@ -118,7 +120,8 @@ it is the necessary data-layer half — Package 7.1 supplies the schema half.
 ## Gate
 
 - **Sprint Plan 3-line:** (1) removed 3 never-functional CRM abilities
-  (deprecate disposition on P4b/P5 escalations); (2) fixed
+  (J-authorized, ledger Addendum 25; P4b/P5 escalations = finding
+  provenance, not disposition authority); (2) fixed
   `create-template` (vendor write + read-back return, V3 PASS template_id
   5112); (3) `unwrap_paginator()` single-key fix live-verified correct —
   schema-output defect SPLIT to Package 7.1 (Addendum 27), 4 read-backs not
@@ -135,7 +138,31 @@ it is the necessary data-layer half — Package 7.1 supplies the schema half.
 - **Vendor-map:** 3 CRM rows → `REMOVED`; 4 read-back rows →
   `PENDING — NOT flipped; routed to Package 7.1 (Addendum 27)`.
 - **Ledger:** PRINCIPLES-VENDOR.md drift table — Addendum 27 row added;
-  set-global-email-style row annotated with the P7 deprecate disposition.
+  set-global-email-style row annotated with the J-authorized removal
+  (Addendum 25).
+- **Authorization of record:** J-AUTHORIZED, J directive 2026-05-17
+  (ledger Addendum 25). Independently verified never-functional + absent
+  at tag v1.1.3 (not Stable-locked). Named removal version: v1.4.0
+  P7-close. See the Authorization-of-record block under §1 and the
+  CHANGELOG snippet.
+
+## CHANGELOG (scaffold-owned — for orchestrator integration, per P5 precedent)
+
+```
+### Removed — v1.4.0 P7-close (J-authorized, ledger Addendum 25)
+Three public abilities removed (unregistered). Independently verified
+never-functional since v2.0.0; absent at tag v1.1.3 so not Stable-locked
+(Principle-10 does not bind); no working contract to alias.
+
+- fluent-crm/get-report-top-campaigns — proxied a vendor REST route that
+  does not exist in the installed route table (404 on every call).
+- fluent-crm/set-global-email-style — handler reads `config`; the ability
+  forwarded `style`, so input was silently discarded with a misleading
+  success.
+- fluent-crm/list-subscribers-prev-next-ids — handler requires
+  `filter_type`+`current_id` and never reads `id` (the only
+  schema-required field), rejecting 100% of schema-valid input.
+```
 
 ## Deploy / restore receipts (0 residue)
 
