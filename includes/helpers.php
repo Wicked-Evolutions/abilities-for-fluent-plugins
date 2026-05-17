@@ -200,29 +200,64 @@ function fluent_abilities_unwrap_paginator( $data, $items_key = 'items' ) {
 			&& ( isset( $v['current_page'] ) || isset( $v['per_page'] ) || isset( $v['last_page'] ) || isset( $v['links'] ) || isset( $v['path'] ) || isset( $v['total'] ) );
 	};
 
-	// Locate the meta source (for total/page/per_page) and the raw rows,
-	// unwrapping a paginator wherever it sits — never flatten meta into rows.
-	$meta = $data;
-	if ( $is_paginator( $data ) ) {
-		$rows = $data['data'];
-	} elseif ( array_key_exists( $items_key, $data ) ) {
-		$candidate = fluent_abilities_to_array( $data[ $items_key ] );
-		if ( $is_paginator( $candidate ) ) {
-			$meta = $candidate;
-			$rows = $candidate['data'];
-		} else {
-			$rows = $candidate;
-		}
-	} elseif ( array_key_exists( 'data', $data ) ) {
-		$rows = $data['data'];
-	} elseif ( fluent_abilities_is_list( $data ) ) {
-		$rows = $data; // already a bare sequential list
-	} else {
-		// Assoc/keyed map of rows (e.g. id-keyed) — values are the rows.
-		$rows = $data;
+	// Resolve the row list + pagination meta by descending to the paginator
+	// wherever it sits: bare at the top level, under the items key as a
+	// paginator OBJECT or its array form, or wrapped one (or more) levels
+	// deep inside a single-element list — verified live: the FluentCRM
+	// campaign-unsubscribers / sequences-for-subscriber endpoints return
+	// `[ '<key>' => [ <paginator> ] ]` (a one-element list wrapping the
+	// paginator), which the prior single-pass logic mis-rendered as
+	// `<key>:[<whole paginator>]`. Never flatten paginator meta into rows.
+	$meta      = $data;
+	$candidate = $data;
+	if ( is_array( $data ) && array_key_exists( $items_key, $data ) ) {
+		$candidate = $data[ $items_key ];
+	} elseif ( is_array( $data ) && ! $is_paginator( $data )
+		&& array_key_exists( 'data', $data ) && ! fluent_abilities_is_list( $data ) ) {
+		$candidate = $data['data'];
+	} elseif ( is_array( $data ) && ! $is_paginator( $data )
+		&& ! fluent_abilities_is_list( $data ) && 1 === count( $data ) ) {
+		// Vendor wraps the result under ITS OWN single key, which need not
+		// equal our schema items_key — verified live: CampaignAnalytics
+		// Controller::getUnsubscribers returns `['unsubscribes' => $paginator]`
+		// while the ability's items_key is `unsubscribers`. Descend into the
+		// sole wrapper value; the loop below resolves the paginator from it.
+		$candidate = reset( $data );
 	}
 
-	$rows = fluent_abilities_safe_array( fluent_abilities_to_array( $rows ) );
+	for ( $guard = 0; $guard < 6; $guard++ ) {
+		$candidate = fluent_abilities_to_array( $candidate );
+		if ( $is_paginator( $candidate ) ) {
+			$meta      = $candidate;
+			$candidate = $candidate['data'];
+			continue;
+		}
+		// Single-element list wrapping a paginator → descend into it.
+		if ( is_array( $candidate ) && 1 === count( $candidate )
+			&& array_key_exists( 0, $candidate )
+			&& $is_paginator( fluent_abilities_to_array( $candidate[0] ) ) ) {
+			$candidate = $candidate[0];
+			continue;
+		}
+		// Single-key assoc wrapper whose sole value resolves to a paginator —
+		// the vendor-key-vs-items_key mismatch case nested one level deeper
+		// (e.g. `['<vendorkey>' => [ <paginator> ]]`). Bounded to the one
+		// value and only when it actually resolves to a paginator, so a
+		// legitimate single-row assoc result is never mis-descended.
+		if ( is_array( $candidate ) && ! fluent_abilities_is_list( $candidate )
+			&& ! $is_paginator( $candidate ) && 1 === count( $candidate ) ) {
+			$sole = fluent_abilities_to_array( reset( $candidate ) );
+			if ( $is_paginator( $sole )
+				|| ( is_array( $sole ) && 1 === count( $sole ) && array_key_exists( 0, $sole )
+					&& $is_paginator( fluent_abilities_to_array( $sole[0] ) ) ) ) {
+				$candidate = $sole;
+				continue;
+			}
+		}
+		break;
+	}
+
+	$rows = fluent_abilities_safe_array( fluent_abilities_to_array( $candidate ) );
 	$rows = is_array( $rows ) ? array_values( $rows ) : array();
 
 	$total = isset( $meta['total'] ) ? (int) $meta['total'] : count( $rows );

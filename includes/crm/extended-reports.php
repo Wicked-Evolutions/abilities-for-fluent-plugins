@@ -431,34 +431,13 @@ function fluent_abilities_crm_register_extended_reports() {
 	) );
 
 	// =========================================================================
-	// 5.12.16 — get-report-top-campaigns
+	// 5.12.16 — get-report-top-campaigns — REMOVED (v1.4.0 P7 close).
+	// Never functional since v2.0.0: proxied GET /fluent-crm/v2/reports/
+	// top-campaigns, a route that does not exist in the installed vendor
+	// route table (rest_do_request -> 404). No working contract to preserve;
+	// unregistered rather than repointed. See docs/vendor-map/fluent-crm.json
+	// + docs/P7-CLOSE.md. (Closest real vendor route: reports/campaigns-list.)
 	// =========================================================================
-	$reg->read( 'fluent-crm/get-report-top-campaigns', array(
-		'label'        => 'Get CRM Top-Performing Campaigns',
-		'description'  => 'Best-performing campaigns by selected metric (open_rate, click_rate, revenue). Source: ReportController::topCampaigns (GET /reports/top-campaigns). Capability: fcrm_view_dashboard.',
-		'category'     => 'fluent-crm',
-		'input_schema' => array(
-			'type'       => 'object',
-			'properties' => array(
-				'metric' => array(
-					'type'        => 'string',
-					'description' => 'Ranking metric (open_rate, click_rate, revenue, sent).',
-				),
-				'limit' => array(
-					'type'        => 'integer',
-					'description' => 'Top-N campaigns to return (default 10, max 50).',
-				),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_collection_output( 'campaigns', array(
-			'id'    => array( 'type' => 'integer' ),
-			'title' => array( 'type' => 'string' ),
-			'value' => array( 'type' => array( 'number', 'string' ) ),
-		) ),
-		'callback'      => function ( $input ) use ( $proxy_get ) {
-			return $proxy_get( '/fluent-crm/v2/reports/top-campaigns', $input );
-		},
-	) );
 
 	// =========================================================================
 	// 5.12 supplementary — get-report-automations

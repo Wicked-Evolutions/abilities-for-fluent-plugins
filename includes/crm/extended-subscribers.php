@@ -224,23 +224,12 @@ function fluent_abilities_crm_register_extended_subscribers() {
 		},
 	) );
 
-	$reg->read( 'fluent-crm/list-subscribers-prev-next-ids', array(
-		'label'         => 'Get CRM Subscriber Prev/Next ID Pair',
-		'description'   => 'Operator-UI navigation helper. Source: SubscriberController::getPrevNextIds (GET /subscribers/prev-next-ids).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'id' ),
-			'properties' => array( 'id' => array( 'type' => 'integer' ) ),
-		),
-		'output_schema' => fluent_abilities_schema_item_output( array(
-			'prev_id' => array( 'type' => array( 'integer', 'null' ) ),
-			'next_id' => array( 'type' => array( 'integer', 'null' ) ),
-		) ),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/subscribers/prev-next-ids', $input );
-		},
-	) );
+	// fluent-crm/list-subscribers-prev-next-ids — REMOVED (v1.4.0 P7 close).
+	// Never functional since v2.0.0: schema's only required field is `id`, but
+	// vendor SubscriberController::getPrevNextIds never reads `id` and requires
+	// `filter_type` + `current_id` — every schema-valid call was rejected
+	// ("filter_type and current_id are required"). No working contract to
+	// preserve; unregistered. See docs/vendor-map/fluent-crm.json + docs/P7-CLOSE.md.
 
 	$reg->read( 'fluent-crm/search-contacts-fast', array(
 		'label'         => 'Search CRM Contacts (Typeahead)',
