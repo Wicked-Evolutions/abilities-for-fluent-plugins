@@ -25,7 +25,9 @@ class FluentCRMTemplatesAndPatternsAbilitiesTest extends TestCase {
 		'fluent-crm/duplicate-template'               => 'write',
 		'fluent-crm/list-templates-all'               => 'read',
 		'fluent-crm/list-smart-codes'                 => 'read',
-		'fluent-crm/set-global-email-style'           => 'write',
+		// fluent-crm/set-global-email-style REMOVED in v1.4.0 P7 close
+		// (handler reads `config`, ability forwarded `style`; input
+		// silently discarded since v2.0.0). see docs/P7-CLOSE.md
 		'fluent-crm/list-built-in-templates'          => 'read',
 		'fluent-crm/do-bulk-action-templates'         => 'write',
 		// §5.7 Email patterns

@@ -491,36 +491,36 @@
       "vendor": "fluent-crm",
       "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (source read live 2026-05-16)",
       "authority": "vendor_rest_proxy (rest_do_request) + V5 paginator unwrap",
-      "canonical_handler": "vendor controller returns ['sequences'=>$query->paginate()] (LengthAwarePaginator)",
+      "canonical_handler": "vendor controller returns ['sequence_trackers'=>$query->paginate()] (LengthAwarePaginator) — live-verified vendor wrapper key is 'sequence_trackers', NOT the schema items_key 'sequences'",
       "direct_storage": false,
       "destructive": false,
       "read_back": "N/A - V5 response-boundary (P-J) fix; not a write (V3 read-back N/A)",
       "principles": [
         "V5"
       ],
-      "package": "4a",
+      "package": "4a; P7 unwrap fix live-verified; populated-case BLOCKED by Addendum 27 -> Package 7.1",
       "pattern": "P-J Laravel/wpFluent paginator-internals leak",
-      "status": "PENDING (populated-case live-confirm deferred; see basis)",
-      "notes": "Package 4a. Callback wrapped with fluent_abilities_unwrap_paginator(<proxy>, 'sequences') -> canonical {sequences:[...],total,page,per_page}. RECORDED BASIS: P-J paginator-unwrap helper vendor-source-verified against FluentCrm\\Framework\\Pagination\\LengthAwarePaginator::toArray() ({current_page,data:items->toArray(),per_page,total}) + vendor ['<key>'=>paginate()] controllers, correct across all proxied shapes; empty-case live-confirmed (list-recurring-campaigns -> {campaigns:[],total:0,page:1,per_page:15}); per-item projection shared with P-G, fully live-verified x17 in this PR; populated-case live-confirm DEFERRED - infra-held solely on all-worker opcache flush on helenawillow, not an omitted code gate.",
-      "doc": "installed vendor source: vendor controller returns ['sequences'=>$query->paginate()] (LengthAwarePaginator)"
+      "status": "PENDING — NOT flipped to VERIFIED. P7 unwrap_paginator() fix live-verified CORRECT at the data layer; ability->execute() populated-case blocked by Addendum 27 (code-routed to Package 7.1, not infra-deferred)",
+      "notes": "Package 4a callback wrapped with fluent_abilities_unwrap_paginator(<proxy>, 'sequences'). P7 (2026-05-17, helenawillow, FluentCRM populated, opcache cycled) LIVE-VERIFIED the unwrap helper fix CORRECT: vendor returns ['sequence_trackers'=>$paginator] (its OWN single key != schema items_key 'sequences'); the P7 single-key-wrapper descent resolves it to canonical {sequences:[3 real rows],total,page,per_page} — confirmed via direct proxy+unwrap probe (subscriber_id 1 -> 3 rows). The unwrap fix IS in this P7-close PR and is correct. HOWEVER ability->execute() still fatals on populated responses: WP core rest_validate_value_from_schema (validate_output) TypeError 'Cannot access offset of type string on string' at wp-includes/rest-api.php:2203, caused by fluent_abilities_schema_list_output($key,$obj) stuffing the {type:object,additionalProperties:true} fragment into `properties`, declaring a phantom property literally named `type` whose schema is the string \"object\"; every row carries a real `type` column -> core recurses into a string. Broad blast radius (all schema_list/collection/item_output($key,$obj) callers). Cold-start signature: empty site passes, populated fatals. Disposition: SPLIT (reviewer) — schema-output defect = Addendum 27, routed to Package 7.1; NOT flipped to VERIFIED here; code-routed, not infra-deferred. see docs/P7-CLOSE.md",
+      "doc": "installed vendor source: vendor controller returns ['sequence_trackers'=>$query->paginate()] (LengthAwarePaginator) — live-verified 2026-05-17"
     },
     {
       "ability": "fluent-crm/list-campaign-unsubscribers",
       "vendor": "fluent-crm",
       "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (source read live 2026-05-16)",
       "authority": "vendor_rest_proxy (rest_do_request) + V5 paginator unwrap",
-      "canonical_handler": "vendor controller returns ['unsubscribers'=>$query->paginate()] (LengthAwarePaginator)",
+      "canonical_handler": "CampaignAnalyticsController::getUnsubscribers returns ['unsubscribes'=>$query->paginate()] (LengthAwarePaginator) — live-verified vendor wrapper key is 'unsubscribes', NOT the schema items_key 'unsubscribers'",
       "direct_storage": false,
       "destructive": false,
       "read_back": "N/A - V5 response-boundary (P-J) fix; not a write (V3 read-back N/A)",
       "principles": [
         "V5"
       ],
-      "package": "4a",
+      "package": "4a; P7 unwrap fix live-verified; populated-case BLOCKED by Addendum 27 -> Package 7.1",
       "pattern": "P-J Laravel/wpFluent paginator-internals leak",
-      "status": "PENDING (populated-case live-confirm deferred; see basis)",
-      "notes": "Package 4a. Callback wrapped with fluent_abilities_unwrap_paginator(<proxy>, 'unsubscribers') -> canonical {unsubscribers:[...],total,page,per_page}. RECORDED BASIS: P-J paginator-unwrap helper vendor-source-verified against FluentCrm\\Framework\\Pagination\\LengthAwarePaginator::toArray() ({current_page,data:items->toArray(),per_page,total}) + vendor ['<key>'=>paginate()] controllers, correct across all proxied shapes; empty-case live-confirmed (list-recurring-campaigns -> {campaigns:[],total:0,page:1,per_page:15}); per-item projection shared with P-G, fully live-verified x17 in this PR; populated-case live-confirm DEFERRED - infra-held solely on all-worker opcache flush on helenawillow, not an omitted code gate.",
-      "doc": "installed vendor source: vendor controller returns ['unsubscribers'=>$query->paginate()] (LengthAwarePaginator)"
+      "status": "PENDING — NOT flipped to VERIFIED. P7 unwrap_paginator() fix live-verified CORRECT at the data layer; ability->execute() populated-case blocked by Addendum 27 (code-routed to Package 7.1, not infra-deferred)",
+      "notes": "Package 4a callback wrapped with fluent_abilities_unwrap_paginator(<proxy>, 'unsubscribers'). P7 (2026-05-17, helenawillow, FluentCRM populated, opcache cycled) LIVE-VERIFIED the unwrap helper fix CORRECT: vendor CampaignAnalyticsController::getUnsubscribers returns ['unsubscribes'=>$paginator] (its OWN single key != schema items_key 'unsubscribers'); the P7 single-key-wrapper descent resolves it to canonical {unsubscribers:[1 real row + nested subscriber],total:1,page:1,per_page:15} — confirmed via direct proxy+unwrap probe (campaign id 191 -> 1 row). The unwrap fix IS in this P7-close PR and is correct. HOWEVER ability->execute() still fatals on populated responses: WP core rest_validate_value_from_schema (validate_output) TypeError 'Cannot access offset of type string on string' at wp-includes/rest-api.php:2203, caused by fluent_abilities_schema_list_output($key,$obj) stuffing the {type:object,additionalProperties:true} fragment into `properties`, declaring a phantom property literally named `type` whose schema is the string \"object\"; every row carries a real `type` column -> core recurses into a string. Broad blast radius (all schema_list/collection/item_output($key,$obj) callers). Cold-start signature: empty site passes, populated fatals. Disposition: SPLIT (reviewer) — schema-output defect = Addendum 27, routed to Package 7.1; NOT flipped to VERIFIED here; code-routed, not infra-deferred. see docs/P7-CLOSE.md",
+      "doc": "installed vendor source: CampaignAnalyticsController::getUnsubscribers returns ['unsubscribes'=>$query->paginate()] (LengthAwarePaginator) — live-verified 2026-05-17"
     },
     {
       "ability": "fluent-crm/get-campaign-contacts-by-segment",
@@ -1032,9 +1032,9 @@
         "V3"
       ],
       "package": "4b",
-      "pattern": "SEPARABLE-DEFECT (dead proxy route) — NOT P-H; bounced to reviewer, not self-elected",
-      "notes": "Package 4b — STOP/bounce per Addendum 15 (c) split trigger. This is NOT a P-H response-shape drift: the proxied REST route does not exist (vendor route table verified), so the ability 404s regardless of schema. Repointing the route (e.g. to reports/campaigns-list) is a V3 route-correctness change of a different class than the 4b normalize/union pass and a different slug's contract — NOT self-elected. Excluded from 4b code; flagged to reviewer for disposition (repoint vs deprecate). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why)",
-      "status": "PENDING — separable defect, bounced to reviewer (no code in 4b)",
+      "pattern": "REMOVED (v1.4.0 P7 close) — dead proxy route, no working contract to preserve",
+      "notes": "Package 7 close: ability UNREGISTERED. J-AUTHORIZED removal — J directive 2026-05-17 (ledger Addendum 25: 'these 3 we can just remove; we should not ship abilities that can be called and don't work'). Basis/rationale: independently verified never-functional (proxied GET /fluent-crm/v2/reports/top-campaigns, a route that does not exist in the installed vendor route table — verified vs app/Http/Routes/api.php; closest real route reports/campaigns-list -> ReportingController::getCampaignsList) AND absent at tag v1.1.3 (NOT Stable-locked — Principle-10 callback/contract lock does not bind). Named removal version: v1.4.0 P7-close. Aliasing: N/A (no working contract to alias). The P4b separable-defect bounce is the finding provenance, NOT the disposition authority — the reviewer did NOT rule deprecate. Tombstone comment at includes/crm/extended-reports.php. see docs/P7-CLOSE.md + docs/P4B-PER-SLUG-VENDOR-PASS.md",
+      "status": "REMOVED (v1.4.0 P7 close — unregistered; never functional since v2.0.0)",
       "doc": "installed vendor source: ability proxies GET /fluent-crm/v2/reports/top-campaigns — NO such route in vendor app/Http/Routes/api.php (reports prefix); rest_do_request -> 404 WP_Error. Closest real route: reports/campaigns-list -> ReportingController::getCampaignsList"
     },
     {
@@ -1050,9 +1050,9 @@
         "V4"
       ],
       "package": "5",
-      "pattern": "RECLASSIFY — executable behavior (P-L-shape), not editorial",
-      "notes": "Package 5 STOP/escalate: vendor TemplateController::setGlobalStyle reads `config`; ability schema/forwards `style`. Schema-valid {style:{...}} -> handler saves empty config, returns success (input discarded, misleading success). Behavior bug, not naming. Escalated to write-correctness owner (Package-3/P-L); orchestrator routes. No P5 code. see docs/P5-SCHEMA-CLARITY.md",
-      "status": "PENDING — reclassified to behavior owner, escalated (no P5 code)",
+      "pattern": "REMOVED (v1.4.0 P7 close) — never-functional executable defect, no working contract",
+      "notes": "Package 7 close: ability UNREGISTERED. J-AUTHORIZED removal — J directive 2026-05-17 (ledger Addendum 25: 'these 3 we can just remove; we should not ship abilities that can be called and don't work'). Basis/rationale: independently verified never-functional (vendor TemplateController::setGlobalStyle reads `config`; ability schema/forwards `style` -> schema-valid {style:{...}} saved an empty config and returned a misleading success since v2.0.0) AND absent at tag v1.1.3 (NOT Stable-locked — Principle-10 callback/contract lock does not bind). Named removal version: v1.4.0 P7-close. Aliasing: N/A (no working contract to alias). The P5 reclassification escalation is the finding provenance, NOT the disposition authority — the reviewer did NOT rule deprecate. Tombstone comment at includes/crm/extended-templates-and-patterns.php. see docs/P7-CLOSE.md + docs/P5-SCHEMA-CLARITY.md",
+      "status": "REMOVED (v1.4.0 P7 close — unregistered; never functional since v2.0.0)",
       "doc": "installed vendor source: see notes"
     },
     {
@@ -1068,9 +1068,9 @@
         "V4"
       ],
       "package": "5",
-      "pattern": "RECLASSIFY — contract/behavior, not editorial",
-      "notes": "Package 5 STOP/escalate: vendor SubscriberController::getPrevNextIds requires filter_type+current_id, never reads `id` (the only schema-required field) -> rejects 100% of schema-valid input. `required` array factually unusable (beyond description clarity). Escalated; orchestrator routes. No P5 code. see docs/P5-SCHEMA-CLARITY.md",
-      "status": "PENDING — reclassified to behavior owner, escalated (no P5 code)",
+      "pattern": "REMOVED (v1.4.0 P7 close) — never-functional contract defect, no working contract",
+      "notes": "Package 7 close: ability UNREGISTERED. J-AUTHORIZED removal — J directive 2026-05-17 (ledger Addendum 25: 'these 3 we can just remove; we should not ship abilities that can be called and don't work'). Basis/rationale: independently verified never-functional (vendor SubscriberController::getPrevNextIds requires filter_type+current_id and never reads `id` — the only schema-required field — rejecting 100% of schema-valid input since v2.0.0) AND absent at tag v1.1.3 (NOT Stable-locked — Principle-10 callback/contract lock does not bind). Named removal version: v1.4.0 P7-close. Aliasing: N/A (no working contract to alias). The P5 reclassification escalation is the finding provenance, NOT the disposition authority — the reviewer did NOT rule deprecate. Tombstone comment at includes/crm/extended-subscribers.php. see docs/P7-CLOSE.md + docs/P5-SCHEMA-CLARITY.md",
+      "status": "REMOVED (v1.4.0 P7 close — unregistered; never functional since v2.0.0)",
       "doc": "installed vendor source: see notes"
     },
     {

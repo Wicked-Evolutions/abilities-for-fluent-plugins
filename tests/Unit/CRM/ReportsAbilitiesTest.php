@@ -2,8 +2,9 @@
 /**
  * Unit tests — FluentCRM extended Reports cluster (§5.12).
  *
- * Covers registration shape + permission-callback behaviour for the 18
- * extended Reports abilities. Actual REST passthrough execution is verified
+ * Covers registration shape + permission-callback behaviour for the 17
+ * extended Reports abilities (get-report-top-campaigns REMOVED in v1.4.0
+ * P7 close — dead proxy route, never functional since v2.0.0). Actual REST passthrough execution is verified
  * by the Phase B live-probe sequence (cluster-type carve-out for read-only +
  * one delete), not in this unit suite.
  *
@@ -47,7 +48,8 @@ class FluentCRMReportsAbilitiesTest extends TestCase {
 		'fluent-crm/get-report-contacts-by-lists'     => 'read',
 		'fluent-crm/get-report-contacts-by-country'   => 'read',
 		'fluent-crm/get-report-recent-tags'           => 'read',
-		'fluent-crm/get-report-top-campaigns'         => 'read',
+		// fluent-crm/get-report-top-campaigns REMOVED in v1.4.0 P7 close
+		// (dead proxy route, never functional since v2.0.0). see docs/P7-CLOSE.md
 		'fluent-crm/get-report-automations'           => 'read',
 		'fluent-crm/get-report-automation-steps'      => 'read',
 	);
@@ -79,7 +81,7 @@ class FluentCRMReportsAbilitiesTest extends TestCase {
 
 	// ── Registration shape ────────────────────────────────────────────────────
 
-	public function test_cluster_registers_18_abilities() {
+	public function test_cluster_registers_17_abilities() {
 		$abilities = wp_get_abilities();
 		foreach ( array_keys( self::SLUGS ) as $slug ) {
 			$this->assertArrayHasKey( $slug, $abilities, "Missing ability: {$slug}" );
