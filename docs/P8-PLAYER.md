@@ -3,16 +3,31 @@
 > Branch `fix/v1.4.0/p8-player` off `fix/v1.4.0-cold-start-findings @ 1565911`
 > (post-P7.1). Source of truth: Phase-7 tester report *FluentPlayer — Full
 > Row Set* (120 rows, helenawillow). FluentPlayer + Pro installed on
-> helenawillow = the incidental live probe (Addendum-19 framing). Ledger
-> **Addendum 28**.
+> helenawillow = the incidental live probe (Addendum-19 framing).
+>
+> **Authorizations of record:**
+> - **Scope:** J directive 2026-05-17 (ledger **Addendum 26**) — work through
+>   FluentPlayer completely before progressing, single package; supersedes the
+>   Addendum-23 v1.5.0 deferral. FluentPlayer behavior is in v1.4.0 as
+>   Package 8.
+> - **Shared-root treatment:** **J-authorized 2026-05-17 (ledger
+>   Addendum 32)** per the COLD START shared-root rule — ≥2 reproductions
+>   evidenced (~30, one root: the proxy discarded the vendor
+>   `WP_REST_Response` HTTP status); single shared fix in
+>   `invoke_controller` (wpfluent `error→≥422` / `success→200` contract).
+>   **Not reviewer-gated** — this is the J authorization the standing
+>   shared-root rule requires.
+> - **Technical drift record:** ledger **Addendum 28** (the shared-root /
+>   drift entry — a technical record, not the scope or shared-root authority).
 
 ## Sprint Plan (3-line)
-1. **Shared-root (Addendum 28):** the FluentPlayer proxy discarded the vendor
+1. **Shared-root (J-authorized, ledger Addendum 32; technical record
+   Addendum 28):** the FluentPlayer proxy discarded the vendor
    `WP_REST_Response` HTTP status, so every vendor `sendError()` reached the
    write callbacks as a bare body wrapped in `success:true` — fixed by
    preserving the status (wpfluent guarantees `sendError→≥422`,
    `sendSuccess→200`) and mapping ≥400 → typed `WP_Error`; one shared
-   treatment, per-family live-verified, reviewer-gated.
+   treatment, per-family live-verified.
 2. **Per-slug:** analytics-performance-over-time scope→null + vendor-grounded
    output (V10/V5); create-playlist persisted-id read-back (V3/V9);
    create-media-tag read-back-resolved tag (V3/V9); list-media-tags
@@ -66,7 +81,7 @@ Classification per Phase-7 pattern:
 
 ## Fixes
 
-### Shared-root — `fluent_abilities_player_invoke_controller` (Addendum 28)
+### Shared-root — `fluent_abilities_player_invoke_controller` (J-authorized, ledger Addendum 32; technical record Addendum 28)
 Preserve `WP_REST_Response::get_status()`; `≥400` → `fluent_abilities_player_vendor_error()`
 (404→`not_found`, 401/403→`forbidden`, 422/400→`vendor_precondition_failed`,
 else `vendor_error`) carrying the vendor `message`/`errors`. Plus
@@ -78,9 +93,11 @@ domain entity key is present** (genuine successes always carry an entity, so
 it cannot misfire). Also handles Mux `handleWebhook`'s
 `{success:true,result:{message}}` wrap. All three closures (`$invoke`,
 `$call`, `$mux_call`) delegate to the proxy, so the treatment is genuinely
-shared. **Reviewer-gated shared-root claim** — justification: the
-discriminator is the framework contract itself (status code), not a
-heuristic; per-family live-verified below.
+shared. **J-authorized shared-root (2026-05-17, ledger Addendum 32)** per
+the COLD START shared-root rule (≥2 reproductions, one root, one shared fix)
+— not reviewer-gated. Justification: the discriminator is the framework
+contract itself (status code), not a heuristic; per-family live-verified
+below.
 
 ### Per-slug
 - **analytics-performance-over-time** — `scope='global'`/absent → pass
@@ -182,8 +199,9 @@ self-healing). Documented.
 - `update-settings` STOP(a) already Outcome-4 — surfaced (description), not
   fixed; cross-plugin shared treatment withheld pending J authorization.
 - P-C/P-D editorial shipped P5/#91 — not redone.
-- Shared-root claim is **reviewer-gated** (per dispatch): one treatment,
-  per-family verification table above, justification = framework contract.
+- Shared-root is **J-authorized 2026-05-17 (ledger Addendum 32)** per the
+  COLD START shared-root rule — one treatment, per-family verification table
+  above, justification = framework contract. Not reviewer-gated.
 
 ## Deploy / restore receipts — 0 residue
 - helenawillow plugin path
