@@ -104,7 +104,7 @@ Per-finding provenance: dispatch brief + ledger Addenda 1–35 (`[[DISPATCH BRIE
 
 ### Preserved v1.1.3 defects (queued for a future v1.x hotfix lane)
 
-Per Principle 10 Stable Contracts, the following v1.1.3 defects were originally preserved as-is for the feature wave. **Update (cold-start fix sprint):** several were subsequently resolved in v1.4.0 — notably **KD-3** (canonical `Course` namespace, P3), **KD-10** (`get-customer user_id` union, P4/P7.1, live-verified), and **KD-12** (`send-message` real persisted id via `insertGetId`, P3); KD-11 (`create-event` fatal) is now a typed `WP_Error` (P2). **KD-1 and KD-2** (`create-product` wrong CPT + its cascade) **remain preserved** as a J-approved defer (v1.1.x hotfix lane, [#45](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/45)). Per-KD resolved/preserved status is reconciled in the sprint ledger. None block v1.4.0 release.
+Per Principle 10 Stable Contracts, the canonical v1.1.3 known-defects ledger ([`docs/V1.1.3-KNOWN-DEFECTS.md`](docs/V1.1.3-KNOWN-DEFECTS.md)) defines **KD-1 … KD-7**, all disposition **PRESERVE** for v1.4.0 — they ship unchanged and are tracked for a separate v1.x hotfix lane (issues [#45](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/45)–[#51](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/51)). KD-1 (`create-product` wrong CPT, #45) is the F-CART-01 J-approved defer; KD-2 (8 FluentCart schema/CPT drifts, #46) likewise remains preserved. The cold-start fix sprint (above) resolved a number of **distinct cold-start re-test findings that are not v1.1.3 known defects** — e.g. `fluent-cart/get-customer` `user_id` union (P4/P7.1), `fluent-booking/create-event` fatal→typed `WP_Error` (P2), `fluent-messaging/send-message` real persisted id (P3); those are described by package in the fix-sprint section above, **not** as KD-ledger entries. KD-3 (always-false `CourseLesson` dead branches, #47) remains PRESERVE — distinct from the P3a `create-course` *write-namespace* fix (F-COM-01); P3 did not remove the KD-3 dead branches. *(Prior revisions of this changelog carried non-canonical "KD-8…KD-12" rows absent from the canonical ledger on this branch — removed here to reconcile.)* None block v1.4.0 release.
 
 | KD | Plugin | Symptom | Issue |
 |---|---|---|---|
@@ -115,11 +115,6 @@ Per Principle 10 Stable Contracts, the following v1.1.3 defects were originally 
 | KD-5 | Fluent Bookings | Status enum drift (`no-show` read vs `no_show` write) | [#49](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/49) |
 | KD-6 | Fluent Boards | Cross-board `move-task` is destructive (documentation gap) | [#50](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/50) |
 | KD-7 | Fluent Boards | `Board::boot` global scope excludes sales-pipeline (vendor design quirk) | [#51](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/51) |
-| KD-8 | FluentCRM | `delete-automation` capability override drift | [#62](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/62) |
-| KD-9 | FluentCRM | `get-funnel-conversion` schema/callback shape mismatch | [#63](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/63) |
-| KD-10 | FluentCart | `get-customer user_id` schema-strict null bug | [#64](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/64) |
-| KD-11 | Fluent Bookings | `create-event` TypeError on non-simple calendars (vendor filter null reset) | [#69](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/69) |
-| KD-12 | FluentMessaging | `send-message` returns phantom `message_id` (`wpFluent->insert` returns boolean-as-int 1) | [#71](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/71) |
 
 ### Known follow-up work (not release blockers)
 
