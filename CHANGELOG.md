@@ -2,13 +2,27 @@
 
 All notable changes to Abilities for Fluent Plugins will be documented in this file.
 
-## [1.4.0] - UNRELEASED
+## [1.4.0] - 2026-05-17
 
 > **Sprint:** [Fluent Suite Registrar Bundle Sprint 2026-05-13](../../00%20Influencentricity%20OS/Plans/Alpha%20Release%20Gate/Fluent%20Suite%20Registrar%20Bundle%20Sprint%202026-05-13.md) (vault path). Sprint plan / dispatch briefs were authored with a "v2.0.0" working label; ratified release version is v1.4.0 per semver (additive feature wave, zero breaking changes).
 >
 > **Surface delta:** 272 existing abilities + 824 new abilities = 1,096 total abilities across the seven sprint-covered plugins and preserved v1.1.3 surfaces. Original sprint plan projected ~728 new abilities; final delivery exceeded projection because the per-plugin authoritative inventory sections were higher than several TL;DR estimates, and those count reconciliations were reviewed/ratified during Phase B. Existing abilities for `support`, `smtp`, `auth`, `snippets`, `affiliate`, `cross-module` ship unchanged from v1.1.3.
 >
-> **Stable Ability Contracts:** every ability shipping in v1.1.3 is contract-identical in v1.4.0 (slug + input_schema + output_schema + permission_callback). Known v1.1.3 defects are explicitly preserved per [`docs/V1.1.3-KNOWN-DEFECTS.md`](docs/V1.1.3-KNOWN-DEFECTS.md); fixes ship in a future v1.x hotfix lane, not in v1.4.0.
+> **Stable Ability Contracts:** v1.1.3 ability *input/output schemas + slugs + permission semantics* remain stable in v1.4.0. **Exception — three never-functional v2.0.0 abilities were removed** (see *Breaking changes*), a J-authorized Principle-10 named removal (no working contract existed to preserve). The cold-start fix sprint (below) additionally corrected behavior in many abilities **without** changing their released input/output schema or slug (callback-body and factually-corrective schema fixes only). Several previously-preserved v1.1.3 defects are now **resolved** by the fix sprint (see *Preserved v1.1.3 defects*).
+
+### Cold-start fix sprint (post-feature-wave, P1–P8) — 2026-05-15 → 2026-05-17
+
+After the feature wave, a cold-start re-test surfaced behavior defects across the new surface; the v1.4.0 fix sprint resolved them in eight reviewed packages (all merged to `integration/fluent-suite-registrar-v2` via parent PR [#97](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/pull/97); single-reviewer V1–V12 contract gate across all). No released `input_schema`/`output_schema`/slug changed except factually-corrective schema fixes (P-B `anyOf`, P-D type drift, P-H output-shape) that bring the schema into agreement with what the vendor handler actually accepts/returns.
+
+- **P1 [#82] — Safety (V7/V8):** `fluent-crm/update-contact-custom-fields` now requires explicit `confirm_full_replace` for the destructive empty-array full-replace (typed `WP_Error` otherwise); `fluent-crm/create-webhook` whitelists input to schema-declared keys before persistence (transport-envelope leak closed).
+- **P2 [#83] — Crash blockers (V5/V10):** one shared Collection→array coercion helper fixes the 11-site FluentBoards `array_map` `TypeError` (P-A); 8 CRM/Community/Bookings PHP fatals (P-K, incl. `update-privacy-settings`, `get-available-slots`) converted to typed `WP_Error`.
+- **P3 [#84/#85/#86/#88] — Write correctness (V2/V3/V9):** `create-course`/`update-course` + 8 cascade reads routed through the canonical `\FluentCommunity\Modules\Course\Model\Course` namespace; F-COM-03 Utility/NotificationPref namespace drift fixed; `send-message`/`add-booking-note` return the real persisted id (`insertGetId`); `add-booking-note` duplicate-write removed; `create-custom-order` totals, `list-attachable-users` filter, `update-order-address-id` typed precondition; `update-webhook` envelope whitelist (P3.5); `create-form` now persists `title`/`status` and returns a read-back, not an input echo (P3c); `update-customization-settings` made non-destructive (read-merge-write).
+- **P4 [#89/#90] — Response boundary (V5):** ~17 FluentCRM Eloquent/model leaks projected to plain arrays + 5 paginator responses unwrapped via one shared helper (P-G/P-J); ~24 P-H output-schema corrections (empty-state normalize vs union, vendor-source-verified per slug); `get-template` returns a typed `not_found` instead of a silent empty placeholder.
+- **P5 [#91] — Schema clarity (V4):** ~70 `input_schema` description / vendor-`Source:` citation corrections; FluentBoards `oneOf`→`anyOf` (P-B, installed-handler truth) and integer/string type-drift fixes (P-D); FluentPlayer P-C/P-D editorial.
+- **P7.1 [#94] — Schema-output boundary (V5/V10):** a schema-construction defect that fataled WP-core `validate_output()` on *populated* responses across 19 FluentCRM list/collection read abilities (empty-site passed, populated-site fataled — the cold-start signature) fixed via an item-schema discriminator.
+- **P8 [#95] — FluentPlayer behavior:** shared status-aware proxy (vendor `success:true` wrapping an inner failure → typed `WP_Error` from the framework HTTP status); V10 crash/precondition guards; P-L write-correctness; P-H/serialization output fixes. (FluentPlayer was scoped into v1.4.0 once its Phase-7 test set was ready; J-authorized.)
+
+Per-finding provenance: dispatch brief + ledger Addenda 1–35 (`[[DISPATCH BRIEF — v1.4.0 Fix Sprint 2026-05-15]]`, `[[SPRINT BRIEF CAPTURE — v1.4.0 Cold-Start Re-test]]`).
 
 ### FluentCRM
 
@@ -90,7 +104,7 @@ All notable changes to Abilities for Fluent Plugins will be documented in this f
 
 ### Preserved v1.1.3 defects (queued for a future v1.x hotfix lane)
 
-Per Principle 10 Stable Contracts, the following v1.1.3 defects are preserved as-is in v1.4.0 and tracked for separate v1.x hotfix resolution. None block v1.4.0 release.
+Per Principle 10 Stable Contracts, the canonical v1.1.3 known-defects ledger ([`docs/V1.1.3-KNOWN-DEFECTS.md`](docs/V1.1.3-KNOWN-DEFECTS.md)) defines **KD-1 … KD-7**, all disposition **PRESERVE** for v1.4.0 — they ship unchanged and are tracked for a separate v1.x hotfix lane (issues [#45](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/45)–[#51](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/51)). KD-1 (`create-product` wrong CPT, #45) is the F-CART-01 J-approved defer; KD-2 (8 FluentCart schema/CPT drifts, #46) likewise remains preserved. The cold-start fix sprint (above) resolved a number of **distinct cold-start re-test findings that are not v1.1.3 known defects** — e.g. `fluent-cart/get-customer` `user_id` union (P4/P7.1), `fluent-booking/create-event` fatal→typed `WP_Error` (P2), `fluent-messaging/send-message` real persisted id (P3); those are described by package in the fix-sprint section above, **not** as KD-ledger entries. KD-3 (always-false `CourseLesson` dead branches, #47) remains PRESERVE — distinct from the P3a `create-course` *write-namespace* fix (F-COM-01); P3 did not remove the KD-3 dead branches. *(Prior revisions of this changelog carried non-canonical "KD-8…KD-12" rows absent from the canonical ledger on this branch — removed here to reconcile.)* None block v1.4.0 release.
 
 | KD | Plugin | Symptom | Issue |
 |---|---|---|---|
@@ -101,11 +115,6 @@ Per Principle 10 Stable Contracts, the following v1.1.3 defects are preserved as
 | KD-5 | Fluent Bookings | Status enum drift (`no-show` read vs `no_show` write) | [#49](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/49) |
 | KD-6 | Fluent Boards | Cross-board `move-task` is destructive (documentation gap) | [#50](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/50) |
 | KD-7 | Fluent Boards | `Board::boot` global scope excludes sales-pipeline (vendor design quirk) | [#51](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/51) |
-| KD-8 | FluentCRM | `delete-automation` capability override drift | [#62](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/62) |
-| KD-9 | FluentCRM | `get-funnel-conversion` schema/callback shape mismatch | [#63](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/63) |
-| KD-10 | FluentCart | `get-customer user_id` schema-strict null bug | [#64](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/64) |
-| KD-11 | Fluent Bookings | `create-event` TypeError on non-simple calendars (vendor filter null reset) | [#69](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/69) |
-| KD-12 | FluentMessaging | `send-message` returns phantom `message_id` (`wpFluent->insert` returns boolean-as-int 1) | [#71](https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins/issues/71) |
 
 ### Known follow-up work (not release blockers)
 
@@ -121,7 +130,9 @@ Adapter-side (different repo, separate hygiene):
 
 ### Breaking changes
 
-**None.** All v1.1.3 abilities preserved contract-identical. Operator integrations that rely on `permission_callback` strict bool return-type checks should accept `WP_Error` as a valid denial (compatibility note above) — semantically the same denial signal.
+**Three abilities removed (J-authorized, Principle-10 named removal — v1.4.0 P7-close [#93]):** `fluent-crm/get-report-top-campaigns`, `fluent-crm/set-global-email-style`, `fluent-crm/list-subscribers-prev-next-ids`. All three were **never-functional since their v2.0.0 introduction** (a non-existent vendor route → 404; input forwarded to the wrong vendor key → silently discarded; a required field the handler never reads → 100% rejection). They are **not in v1.1.3**, so no working released contract existed to preserve; removal is the correct disposition (shipping callable-but-dead abilities is the defect). Verified absent at tag `v1.1.3`; named removal version recorded; no aliasing (no working contract to alias).
+
+All **v1.1.3** abilities remain contract-identical (slug + input_schema + output_schema + permission semantics). Operator integrations that rely on `permission_callback` strict bool return-type checks should accept `WP_Error` as a valid denial (compatibility note above) — semantically the same denial signal.
 
 ## [1.1.3] - 2026-05-10
 
