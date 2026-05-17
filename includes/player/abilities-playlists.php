@@ -161,12 +161,42 @@ function fluent_abilities_player_register_playlists_abilities() {
 				return $result;
 			}
 			$row = fluent_abilities_safe_array( is_array( $result ) ? ( $result['playlist'] ?? $result ) : array() );
+			// V3/V9/P-L: vendor PlaylistController::store does NOT reload the
+			// model (contrast update(), which does Playlist::find($id)) — the
+			// serialized $playlist often carries no top-level `ID` (→ the
+			// pre-P8 `ID:0`, settings:null). Resolve the real persisted id
+			// (accept ID|id|post_id from the model) and, if still unresolved,
+			// READ BACK the newest matching playlist via the vendor model, so
+			// the returned id is the actually-persisted record (V3 read-back).
+			$pid = (int) ( $row['ID'] ?? ( $row['id'] ?? ( $row['post_id'] ?? 0 ) ) );
+			$persisted = array();
+			if ( class_exists( '\FluentPlayerPro\App\Models\Playlist' ) ) {
+				try {
+					if ( $pid > 0 ) {
+						$found = \FluentPlayerPro\App\Models\Playlist::find( $pid );
+					} else {
+						$found = \FluentPlayerPro\App\Models\Playlist::query()
+							->where( 'post_title', $title )
+							->orderBy( 'ID', 'DESC' )
+							->first();
+					}
+					if ( $found ) {
+						$persisted = method_exists( $found, 'toArray' ) ? $found->toArray() : (array) $found;
+						$pid       = (int) ( $persisted['ID'] ?? ( $persisted['id'] ?? $pid ) );
+					}
+				} catch ( \Throwable $e ) {
+					$persisted = array();
+				}
+			}
+			if ( $pid < 1 ) {
+				return fluent_abilities_error( 'ability_execution_failed', 'Playlist create did not return a persisted id (vendor store() returned no resolvable ID and read-back found no matching playlist).' );
+			}
 			return array(
 				'success'     => true,
-				'ID'          => (int) ( $row['ID'] ?? 0 ),
-				'post_title'  => $row['post_title'] ?? $title,
-				'post_status' => $row['post_status'] ?? 'publish',
-				'settings'    => $row['settings'] ?? null,
+				'ID'          => $pid,
+				'post_title'  => (string) ( $persisted['post_title'] ?? ( $row['post_title'] ?? $title ) ),
+				'post_status' => (string) ( $persisted['post_status'] ?? ( $row['post_status'] ?? 'publish' ) ),
+				'settings'    => $persisted['settings'] ?? ( $row['settings'] ?? null ),
 			);
 		},
 	) );
@@ -193,6 +223,18 @@ function fluent_abilities_player_register_playlists_abilities() {
 			if ( ! $id ) {
 				return fluent_abilities_error( 'ability_invalid_input', 'id is required.' );
 			}
+			// V10/P-L: vendor PlaylistController::update does NOT 404 on a
+			// nonexistent id — preparePlaylist() does `new Playlist(); $p->id
+			// = $id; ->save()` (an upsert-by-id) then `Playlist::find($id)`,
+			// so a bogus id previously returned success:true with a null
+			// playlist. Validate existence first → typed not_found, never a
+			// false success on a nonexistent playlist.
+			if ( ! class_exists( '\FluentPlayerPro\App\Models\Playlist' ) ) {
+				return fluent_abilities_error( 'missing_class', 'FluentPlayerPro Playlist model not found.' );
+			}
+			if ( ! \FluentPlayerPro\App\Models\Playlist::find( $id ) ) {
+				return fluent_abilities_error( 'not_found', 'Playlist not found: ' . $id );
+			}
 			if ( isset( $input['title'] ) ) {
 				$input['title'] = sanitize_text_field( $input['title'] );
 			}
@@ -208,7 +250,7 @@ function fluent_abilities_player_register_playlists_abilities() {
 			$row = fluent_abilities_safe_array( is_array( $result ) ? ( $result['playlist'] ?? $result ) : array() );
 			return array(
 				'success'  => true,
-				'ID'       => (int) ( $row['ID'] ?? $id ),
+				'ID'       => (int) ( $row['ID'] ?? ( $row['id'] ?? $id ) ),
 				'settings' => $row['settings'] ?? null,
 			);
 		},

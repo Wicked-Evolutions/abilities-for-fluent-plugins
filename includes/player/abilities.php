@@ -165,6 +165,89 @@ if ( ! function_exists( 'fluent_abilities_player_loose_collection_schema' ) ) {
 	}
 }
 
+if ( ! function_exists( 'fluent_abilities_player_vendor_error' ) ) {
+	/**
+	 * Map a vendor sendError() response (HTTP >= 400) to a typed WP_Error.
+	 * v1.4.0 P8 SHARED-ROOT (Addendum 28). Status is the only reliable
+	 * discriminator — the wpfluent base controller adds no top-level
+	 * `success` boolean (verified: framework Controller.php:128-141 +
+	 * Response/Response.php:102-120; sendError forces code >= 422).
+	 *
+	 * @param int   $status HTTP status from the vendor WP_REST_Response.
+	 * @param array $data   Vendor response body.
+	 * @return WP_Error
+	 */
+	function fluent_abilities_player_vendor_error( $status, array $data ) {
+		$message = '';
+		if ( isset( $data['message'] ) && is_string( $data['message'] ) && '' !== $data['message'] ) {
+			$message = $data['message'];
+		} elseif ( isset( $data['errors'] ) ) {
+			$flat = array();
+			foreach ( (array) $data['errors'] as $field => $msgs ) {
+				$flat[] = $field . ': ' . implode( ' ', (array) $msgs );
+			}
+			$message = implode( ' | ', $flat );
+		}
+		if ( '' === $message ) {
+			$message = sprintf( 'Vendor returned HTTP %d.', $status );
+		}
+		if ( 404 === $status ) {
+			$code = 'not_found';
+		} elseif ( 403 === $status || 401 === $status ) {
+			$code = 'forbidden';
+		} elseif ( 422 === $status || 400 === $status ) {
+			$code = 'vendor_precondition_failed';
+		} else {
+			$code = 'vendor_error';
+		}
+		return fluent_abilities_error( $code, $message );
+	}
+}
+
+if ( ! function_exists( 'fluent_abilities_player_detect_disabled_leak' ) ) {
+	/**
+	 * Secondary, tightly-bounded discriminator for the HTTP-200 disabled-state
+	 * leak: Bunny Stream / Mux controllers `return $serviceArray;` raw (no
+	 * sendError) when the integration service returns a plain
+	 * {message:"...not enabled"} array — so status stays 200 and the status
+	 * rule above cannot catch it. Only fires when the body carries NO domain
+	 * entity and its sole signal is a not-enabled / not-configured message
+	 * (incl. the Mux handleWebhook {success:true,result:{message}} wrap).
+	 * Genuine successes always carry a domain entity key, so this cannot
+	 * misfire on them. Returns the message string, or null if not a leak.
+	 *
+	 * @param array $data Vendor response body.
+	 * @return string|null
+	 */
+	function fluent_abilities_player_detect_disabled_leak( $data ) {
+		if ( ! is_array( $data ) ) {
+			return null;
+		}
+		$probe = $data;
+		if ( isset( $data['result'] ) && is_array( $data['result'] )
+			&& ( isset( $data['success'] ) ? true === $data['success'] : true ) ) {
+			$probe = $data['result'];
+		}
+		$msg = isset( $probe['message'] ) && is_string( $probe['message'] ) ? $probe['message'] : '';
+		if ( '' === $msg || ! preg_match( '/not enabled|not configured|not active|is disabled/i', $msg ) ) {
+			return null;
+		}
+		// A real success always carries a domain entity alongside/instead of
+		// the message. Treat as a leak ONLY when no such entity is present.
+		$entity_keys = array( 'id', 'ID', 'data', 'item', 'items', 'video', 'videos',
+			'collection', 'collections', 'asset', 'assets', 'upload', 'track',
+			'tracks', 'file', 'files', 'current_path', 'directories', 'libraries',
+			'live_stream', 'playlist', 'media', 'subtitle', 'captions', 'forms',
+			'restrictions', 'signing_key', 'usage' );
+		foreach ( $entity_keys as $k ) {
+			if ( array_key_exists( $k, $probe ) && ! empty( $probe[ $k ] ) ) {
+				return null;
+			}
+		}
+		return $msg;
+	}
+}
+
 if ( ! function_exists( 'fluent_abilities_player_invoke_controller' ) ) {
 	function fluent_abilities_player_invoke_controller( $controller_class, $method, array $input = array(), array $extra_params = array() ) {
 		if ( ! class_exists( $controller_class ) ) {
@@ -183,12 +266,43 @@ if ( ! function_exists( 'fluent_abilities_player_invoke_controller' ) ) {
 			$app->instance( \FluentPlayer\Framework\Http\Request\Request::class, $request );
 			$controller = new $controller_class();
 			$result     = $app->call( array( $controller, $method ), $extra_params );
-			// Normalize WP_REST_Response → underlying data array.
+			// Normalize WP_REST_Response → underlying data array, AND surface
+			// vendor-signalled failure (v1.4.0 P8 SHARED-ROOT, Addendum 28).
+			//
+			// The wpfluent framework base controller (vendor
+			// fluent-player/vendor/wpfluent/framework/src/WPFluent/Http/
+			// Controller.php:128-141 + Response/Response.php:102-120) guarantees:
+			//   sendSuccess($data)        -> WP_REST_Response($data, 200)
+			//   sendError($data,$code)    -> WP_REST_Response($data, max($code,422))
+			// i.e. HTTP status >= 400 IFF the vendor controller called
+			// sendError(). The pre-P8 proxy discarded the status (get_data()
+			// only), so every vendor sendError() — Bunny/Mux "integration not
+			// enabled" (422), Media/Subtitle/TimedContent "Media not found"
+			// (404), validation (422), Layer "Form plugin not active" (400) —
+			// reached the callbacks as a bare body that the write callbacks
+			// then wrapped in success:true. Preserving the status and mapping
+			// >=400 to a typed WP_Error is the single shared root for the
+			// ~30 success:true-envelope, the P-L not-found false-successes,
+			// and the P-H error-string-in-array reproductions where the
+			// vendor used sendError(). Reviewer-gated shared-root claim.
 			if ( $result instanceof \WP_REST_Response ) {
-				$data = $result->get_data();
-				return is_array( $data ) ? $data : array( 'data' => $data );
+				$data   = $result->get_data();
+				$status = (int) $result->get_status();
+				$data   = is_array( $data ) ? $data : array( 'data' => $data );
+				if ( $status >= 400 ) {
+					return fluent_abilities_player_vendor_error( $status, $data );
+				}
+				$leak = fluent_abilities_player_detect_disabled_leak( $data );
+				if ( null !== $leak ) {
+					return fluent_abilities_error( 'integration_not_configured', $leak );
+				}
+				return $data;
 			}
 			if ( is_array( $result ) ) {
+				$leak = fluent_abilities_player_detect_disabled_leak( $result );
+				if ( null !== $leak ) {
+					return fluent_abilities_error( 'integration_not_configured', $leak );
+				}
 				return fluent_abilities_safe_array( $result );
 			}
 			if ( is_object( $result ) && method_exists( $result, 'toArray' ) ) {
