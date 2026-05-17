@@ -175,8 +175,42 @@ bridge do **not** "Connection closed" — they return a graceful typed
 vendor tables provisioned = site state). The Phase-7 "Connection closed" was
 an **MCP-adapter / bridge transport artifact** (the tester noted it
 self-heals on the next call), **not a registrar-side code defect**. No
-registrar fix; no abilities-mcp-adapter ticket warranted (transport, already
-self-healing). Documented.
+registrar fix. Orchestrator filed **abilities-mcp-adapter#122** for the
+transport-side investigation; tracked there, not a P8 merge blocker.
+
+## Unit coverage (reviewer ruling: live-only NOT sufficient for the shared-root)
+
+The shared-root is two plain, directly-callable functions — analogous to
+P7.1's discriminator (gated on unit coverage); the P2 anonymous-closure
+precedent does **not** transfer to them. `tests/Unit/Player/PlayerSharedRootTest.php`
+(18 cases, in the 1015-green Unit suite):
+
+- **(a) `fluent_abilities_player_vendor_error($status,$data)`** — status→typed
+  code per class: 404→`not_found`, 403/401→`forbidden`,
+  422/400→`vendor_precondition_failed`, 500/other→`vendor_error`; plus
+  `errors`-map flattening and the synthesised-message fallback.
+- **(b) `fluent_abilities_player_detect_disabled_leak($data)`** — fires on a
+  true HTTP-200 leak (bare `{message:"…not enabled"}`; Mux
+  `{success:true,result:{message}}` wrap; each marker phrase); returns null
+  on non-array / non-marker message / no-message.
+- **(c) RISK EDGE (the pinned prose claim):** a genuine success carrying a
+  domain entity **plus** a coincidental "not enabled"-ish string → detector
+  returns `null` (**no misfire**) — top-level and `result`-wrapped; an empty
+  placeholder entity is correctly still treated as a leak.
+
+**Per-slug guard triggerability (stated per-slug, not a blanket waiver):**
+- `update-playlist`, `update-media` existence guards — the guard branches on
+  `\FluentPlayerPro\App\Models\Playlist::find` / `\FluentPlayer\App\Models\Media::find`,
+  invoked only inside the ability's **anonymous `$reg->write` closure**. Both
+  the vendor model classes and the closure are absent/uninvokable in the unit
+  env (P2 anonymous-closure rationale). **Live-only**, verified in the
+  per-family table (`{id:999999}` → `WP_ERROR[not_found]`).
+- `create-playlist` / `create-media-tag` read-back, `analytics-performance-over-time`
+  scope mapping — same: vendor-controller-dependent logic inside anonymous
+  closures, not unit-triggerable. **Live-only**, verified above (create-media-tag
+  V3 round-trip 0 residue; analytics scope=global → vendor-grounded shape).
+  The generic failure→typed-error path these rely on **is** unit-covered via
+  the shared-root helpers above.
 
 ## V11
 - **(a) input** — analytics: added `metric` enum + clarified `scope`/dates
@@ -213,4 +247,10 @@ self-healing). Documented.
   `abilities-playlists.php` `99cdacfc…`, `abilities-media.php` `418d06bb…`,
   `abilities-presets.php` `b0c09d06…`. Opcache cycled. All probe temp files
   + the vendor-source pull (`/tmp/fpv`) removed (local + remote). 0 residue.
-- Unit suite **997 green** (only pre-existing PHPUnit deprecations).
+- Unit suite **1015 green** (997 + 18 new `PlayerSharedRootTest` cases;
+  only pre-existing-style PHPUnit deprecations). `docs/vendor-map/fluent-player.json`
+  **11 (P5) → 26** rows (`create-media-tag` merged in place — no duplicate;
+  `VendorMapCoverageTest` CI-green). Restore receipts == base `1565911`
+  (md5s above). V3 read-back YAML (create-media-tag round-trip, 0 residue)
+  and the V11 (a)–(e) table are recorded above — reviewer path-to-approve
+  items all present.
