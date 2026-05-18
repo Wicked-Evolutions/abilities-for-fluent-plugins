@@ -31,7 +31,6 @@ class FluentCRMTemplatesAndPatternsAbilitiesTest extends TestCase {
 		'fluent-crm/list-built-in-templates'          => 'read',
 		'fluent-crm/do-bulk-action-templates'         => 'write',
 		// §5.7 Email patterns
-		'fluent-crm/list-email-patterns'              => 'read',
 		'fluent-crm/create-email-pattern'             => 'write',
 		'fluent-crm/get-email-pattern'                => 'read',
 		'fluent-crm/update-email-pattern'             => 'write',

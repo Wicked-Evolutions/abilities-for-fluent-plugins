@@ -20,7 +20,6 @@ class FluentCRMSubscribersAbilitiesTest extends TestCase {
 		'fluent-crm/get-contact-purchase-history'    => 'read',
 		'fluent-crm/get-contact-form-submissions'    => 'read',
 		'fluent-crm/get-contact-support-tickets'     => 'read',
-		'fluent-crm/get-contact-info-widgets'        => 'read',
 		'fluent-crm/get-contact-dynamic-item-view'   => 'read',
 		'fluent-crm/get-contact-external-view'       => 'write',
 		'fluent-crm/get-contact-url-metrics'         => 'read',
@@ -28,12 +27,8 @@ class FluentCRMSubscribersAbilitiesTest extends TestCase {
 		// fluent-crm/list-subscribers-prev-next-ids REMOVED in v1.4.0 P7
 		// close (vendor handler never reads the only schema-required field;
 		// rejected 100% of valid input since v2.0.0). see docs/P7-CLOSE.md
-		'fluent-crm/search-contacts-fast'            => 'read',
 		// §5.2
 		'fluent-crm/update-subscribers-property'     => 'write',
-		'fluent-crm/sync-subscribers-segments'       => 'write',
-		'fluent-crm/do-bulk-action-contacts'         => 'write',
-		'fluent-crm/bulk-add-update-contacts'        => 'write',
 		'fluent-crm/export-subscribers'              => 'read',
 	);
 
@@ -68,13 +63,6 @@ class FluentCRMSubscribersAbilitiesTest extends TestCase {
 		}
 	}
 
-	public function test_write_permission_rejects_user_without_write_cap() {
-		$abilities                  = wp_get_abilities();
-		$GLOBALS['_test_user_caps'] = array( 'fluent_crm_read' );
-		$cb                         = $abilities['fluent-crm/bulk-add-update-contacts']['permission_callback'];
-		$this->assertFalse( $cb() );
-	}
-
 	public function test_id_required_on_extension_reads() {
 		$abilities = wp_get_abilities();
 		foreach ( array(
@@ -84,18 +72,6 @@ class FluentCRMSubscribersAbilitiesTest extends TestCase {
 		) as $slug ) {
 			$this->assertContains( 'id', $abilities[ $slug ]['input_schema']['required'], "{$slug} should require id" );
 		}
-	}
-
-	public function test_bulk_add_update_requires_subscribers() {
-		$abilities = wp_get_abilities();
-		$this->assertContains( 'subscribers', $abilities['fluent-crm/bulk-add-update-contacts']['input_schema']['required'] );
-	}
-
-	public function test_do_bulk_action_requires_action_name_and_subscriber_ids() {
-		$abilities = wp_get_abilities();
-		$req       = $abilities['fluent-crm/do-bulk-action-contacts']['input_schema']['required'];
-		$this->assertContains( 'action_name', $req );
-		$this->assertContains( 'subscriber_ids', $req );
 	}
 
 	public function test_callbacks_all_invokable() {

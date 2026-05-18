@@ -101,38 +101,6 @@
       "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
     },
     {
-      "ability": "fluent-player/list-integrations",
-      "vendor": "fluent-player",
-      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
-      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
-      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
-      "direct_storage": false,
-      "destructive": false,
-      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
-      "principles": [
-        "V4"
-      ],
-      "package": "5",
-      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
-      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
-    },
-    {
-      "ability": "fluent-player/list-email-providers",
-      "vendor": "fluent-player",
-      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
-      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
-      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
-      "direct_storage": false,
-      "destructive": false,
-      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
-      "principles": [
-        "V4"
-      ],
-      "package": "5",
-      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
-      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
-    },
-    {
       "ability": "fluent-player/list-provider-resources",
       "vendor": "fluent-player",
       "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
@@ -375,38 +343,6 @@
       "package": "8",
       "pattern": "P-H error-string-in-array (shared-root)",
       "notes": "V5/P-H: vendor LayerService::getFormsByType (fluent-player/app/Services/LayerService.php:17-33) throws 'Form plugin is not active' -> LayerController::getForms catch -> sendError({message},400). Pre-P8 the dropped 400 surfaced as forms:['Form plugin is not active'],total:1. Shared-root: status 400 -> typed vendor_precondition_failed. LIVE 2026-05-17: type=fluentform -> WP_ERROR[vendor_precondition_failed] 'Form plugin is not active'."
-    },
-    {
-      "ability": "fluent-player/list-media",
-      "vendor": "fluent-player",
-      "vendor_version_checked": "FluentPlayer + FluentPlayer Pro installed on helenawillow (vendor source read live 2026-05-17); v1.4.0 P8",
-      "authority": "vendor handler (proxy) — v1.4.0 P8 registrar-side correctness; shared-root status-aware proxy (Addendum 28)",
-      "doc": "docs/P8-PLAYER.md",
-      "direct_storage": false,
-      "destructive": false,
-      "read_back": "N/A - P-E investigation (read).",
-      "principles": [
-        "V5"
-      ],
-      "package": "8",
-      "pattern": "P-E bridge (verified: not a registrar defect)",
-      "notes": "P-E result: via ability->execute() on the healthy bridge there is NO 'Connection closed' crash; the registrar path returns a graceful typed WP_Error (helenawillow has no wp_medias table provisioned -> execution_failed). The original Phase-7 'Connection closed' was an MCP-adapter/bridge transport artifact (tester noted it self-heals on the next call), NOT a registrar-side code defect. No registrar fix required; documented per the dispatch decision tree. Same conclusion for list-playlists."
-    },
-    {
-      "ability": "fluent-player/list-playlists",
-      "vendor": "fluent-player",
-      "vendor_version_checked": "FluentPlayer + FluentPlayer Pro installed on helenawillow (vendor source read live 2026-05-17); v1.4.0 P8",
-      "authority": "vendor handler (proxy) — v1.4.0 P8 registrar-side correctness; shared-root status-aware proxy (Addendum 28)",
-      "doc": "docs/P8-PLAYER.md",
-      "direct_storage": false,
-      "destructive": false,
-      "read_back": "N/A - P-E investigation (read).",
-      "principles": [
-        "V5"
-      ],
-      "package": "8",
-      "pattern": "P-E bridge (verified: not a registrar defect)",
-      "notes": "P-E result: ability->execute() on the healthy bridge -> graceful typed WP_Error (no wp_playlists table on helenawillow), no 'Connection closed'. P-E was an MCP-adapter transport artifact, not a registrar defect. No fix required."
     },
     {
       "ability": "fluent-player/update-settings",

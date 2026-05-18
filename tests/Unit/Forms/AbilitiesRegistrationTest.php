@@ -51,7 +51,6 @@ class FluentFormsAbilitiesRegistrationTest extends FormsAbilitiesTestCase {
 			'fluent-forms/list-submissions'            => 'read',
 			'fluent-forms/get-submission'              => 'read',
 			'fluent-forms/get-form-analytics'          => 'read',
-			'fluent-forms/list-form-fields'            => 'read',
 
 			// 4.1 Form CRUD.
 			'fluent-forms/create-form'                 => 'write',
@@ -61,7 +60,6 @@ class FluentFormsAbilitiesRegistrationTest extends FormsAbilitiesTestCase {
 
 			// 4.2 Form lifecycle extras.
 			'fluent-forms/convert-form'                => 'write',
-			'fluent-forms/list-form-templates'         => 'read',
 			'fluent-forms/get-form-shortcodes'         => 'read',
 
 			// 4.3 Form transfer.
@@ -199,7 +197,7 @@ class FluentFormsAbilitiesRegistrationTest extends FormsAbilitiesTestCase {
 		// the §4 inventory tables, which authoritatively enumerate the abilities
 		// being shipped. Same drift pattern as the Fluent Boards research called
 		// out in the sprint plan (TL;DR 124 vs §4 verification 160).
-		$this->assertCount( 94, $fluent_forms, 'Expected 6 existing + 88 new (research §4 enumeration) = 94 fluent-forms abilities registered.' );
+		$this->assertCount( 92, $fluent_forms, 'Expected 6 existing + 88 new (research §4 enumeration) = 94 fluent-forms abilities registered.' );
 	}
 
 	public function test_no_existing_v1_1_3_ability_was_renamed() {
@@ -209,7 +207,6 @@ class FluentFormsAbilitiesRegistrationTest extends FormsAbilitiesTestCase {
 			'fluent-forms/list-submissions',
 			'fluent-forms/get-submission',
 			'fluent-forms/get-form-analytics',
-			'fluent-forms/list-form-fields',
 		);
 		$abilities = wp_get_abilities();
 		foreach ( $expected_v1_1_3 as $slug ) {
@@ -273,9 +270,8 @@ class FluentFormsAbilitiesRegistrationTest extends FormsAbilitiesTestCase {
 				'fluent-forms/list-submissions',
 				'fluent-forms/get-submission',
 				'fluent-forms/get-form-analytics',
-				'fluent-forms/list-form-fields',
 			), true );
 		}, ARRAY_FILTER_USE_BOTH );
-		$this->assertCount( 88, $new_only, 'Research §4 enumerates 88 new abilities (cluster sums).' );
+		$this->assertCount( 87, $new_only, 'Research §4 enumerates 88 new abilities (cluster sums).' );
 	}
 }

@@ -15,7 +15,7 @@ use WickedEvolutions\AbilitiesForFluent\Core\Registrar;
 
 class PlayerRegistrationTest extends TestCase {
 
-	private const EXPECTED_TOTAL = 103;
+	private const EXPECTED_TOTAL = 99;
 
 	/**
 	 * @var array<string, array> Cached snapshot of registered abilities for the run.
@@ -176,7 +176,6 @@ class PlayerRegistrationTest extends TestCase {
 	public static function expected_slugs(): array {
 		return array(
 			// Cluster 1: Media (7).
-			'fluent-player/list-media',
 			'fluent-player/get-media',
 			'fluent-player/search-media',
 			'fluent-player/create-media',
@@ -210,13 +209,11 @@ class PlayerRegistrationTest extends TestCase {
 			'fluent-player/delete-email-collection',
 
 			// Cluster 6: Integrations (4).
-			'fluent-player/list-integrations',
 			'fluent-player/get-integration-fields',
 			'fluent-player/save-integration-settings',
 			'fluent-player/test-integration-connection',
 
 			// Cluster 7: Email Providers (4).
-			'fluent-player/list-email-providers',
 			'fluent-player/save-email-provider-settings',
 			'fluent-player/list-provider-resources',
 			'fluent-player/validate-provider-field',
@@ -229,7 +226,6 @@ class PlayerRegistrationTest extends TestCase {
 			'fluent-player/list-smartcodes',
 
 			// Cluster 10: Playlists (5).
-			'fluent-player/list-playlists',
 			'fluent-player/get-playlist',
 			'fluent-player/create-playlist',
 			'fluent-player/update-playlist',

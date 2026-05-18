@@ -117,7 +117,6 @@ class VendorMapCoverageTest extends TestCase {
 			'fluent-crm/get-company',                    // P4a P-G
 			'fluent-crm/list-recurring-campaigns',       // P4a P-J
 			'fluent-cart/get-coupon',                    // P4a P-H special (PENDING)
-			'fluent-crm/get-system-logs',                // P4b P-H normalize
 			'fluent-crm/get-template',                   // P4b Add.15(b)
 			'fluent-crm/get-report-top-campaigns',       // P4b separable-defect (PENDING)
 			'fluent-boards/upload-csv',                  // P5 P-B anyOf

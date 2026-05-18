@@ -116,27 +116,6 @@ function fluent_abilities_crm_register_extended_subscribers() {
 		},
 	) );
 
-	$reg->read( 'fluent-crm/get-contact-info-widgets', array(
-		'label'         => 'Get CRM Contact Sidebar Info Widgets',
-		'description'   => 'Sidebar info widgets rendered for a contact in the operator UI. Source: SubscriberController::getInfoWidgets (GET /subscribers/{id}/info-widgets).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'id' ),
-			'properties' => array( 'id' => array( 'type' => 'integer' ) ),
-		),
-		'output_schema' => fluent_abilities_schema_item_output( array(
-			// P4b item-union (vendor-source verified): SubscriberController::getInfoWidgets
-			// returns `widgets` as a structured object {top_widgets:[],other_widgets:[],
-			// widgets_count:int}; an alternate `widget` (singular) object is returned when
-			// ?by_widget is set. Union object|array; do not array-coerce.
-			'widgets' => array( 'type' => array( 'object', 'array' ), 'additionalProperties' => true ),
-		) ),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			$id = (int) ( $input['id'] ?? 0 );
-			return $proxy( 'GET', '/fluent-crm/v2/subscribers/' . $id . '/info-widgets' );
-		},
-	) );
 
 	$reg->read( 'fluent-crm/get-contact-dynamic-item-view', array(
 		'label'         => 'Get CRM Contact Dynamic Item View',
@@ -231,28 +210,6 @@ function fluent_abilities_crm_register_extended_subscribers() {
 	// ("filter_type and current_id are required"). No working contract to
 	// preserve; unregistered. See docs/vendor-map/fluent-crm.json + docs/P7-CLOSE.md.
 
-	$reg->read( 'fluent-crm/search-contacts-fast', array(
-		'label'         => 'Search CRM Contacts (Typeahead)',
-		'description'   => 'Typeahead-style contact search. Distinct from search-contacts-advanced (which is composed AND-filters). Research §7.6 documents the three contact-search surfaces. Source: SubscriberController::searchContacts (GET /subscribers/search-contacts).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'q' ),
-			'properties' => array(
-				'q'     => array( 'type' => 'string' ),
-				'limit' => array( 'type' => 'integer' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_collection_output( 'contacts', array(
-			'id'        => array( 'type' => 'integer' ),
-			'email'     => array( 'type' => 'string' ),
-			'full_name' => array( 'type' => array( 'string', 'null' ) ),
-			'status'    => array( 'type' => array( 'string', 'null' ) ),
-		) ),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return fluent_abilities_normalize_collection( $proxy( 'GET', '/fluent-crm/v2/subscribers/search-contacts', $input ), 'contacts' );
-		},
-	) );
 
 	// =========================================================================
 	// §5.2 — Subscriber bulk + property + sync operations (5)
@@ -279,91 +236,8 @@ function fluent_abilities_crm_register_extended_subscribers() {
 		},
 	) );
 
-	$reg->write( 'fluent-crm/sync-subscribers-segments', array(
-		'label'         => 'Sync CRM Subscribers Tags + Lists Atomically',
-		'description'   => 'Atomic add/remove of tags and lists across subscribers. Source: SubscriberController::syncSegments (POST /subscribers/sync-segments). Capability: fcrm_manage_contacts. V10: vendor controller may TypeError on validator/request shape when called via internal REST dispatch; registrar returns WP_Error instead of letting the fatal propagate.',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'subscriber_ids' ),
-			'properties' => array(
-				'subscriber_ids' => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
-				'add_tags'       => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
-				'remove_tags'    => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
-				'add_lists'      => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
-				'remove_lists'   => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output(),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			// V10: convert vendor-side TypeError into a typed WP_Error (P-K pattern).
-			try {
-				return $proxy( 'POST', '/fluent-crm/v2/subscribers/sync-segments', $input );
-			} catch ( \Throwable $e ) {
-				return new WP_Error( 'vendor_precondition_failed', 'FluentCRM sync-subscribers-segments failed: ' . $e->getMessage() );
-			}
-		},
-	) );
 
-	$reg->write( 'fluent-crm/do-bulk-action-contacts', array(
-		'label'         => 'Bulk Action On CRM Contacts',
-		'description'   => 'Apply bulk action across subscribers. Note: the installed handler accepts exactly these `action_name` values — add_to_tags, remove_from_tags, add_to_lists, remove_from_lists, delete_contacts, change_contact_status, add_to_automation, add_to_email_sequence, send_double_optin, add_to_company, remove_from_company, change_contact_type, update_custom_fields. The short forms add_tags/remove_tags/add_lists/remove_lists/change_status are NOT recognized (use the longer add_to_*/remove_from_*/change_contact_status forms); an unrecognized value returns a clean "Selected Action is not valid" error and performs nothing. Source: SubscriberController::handleBulkActions (POST /subscribers/do-bulk-action). Capability cascades per action: delete_contacts → fcrm_manage_contacts_delete; add_to_email_sequence → fcrm_manage_emails; add_to_automation → fcrm_write_funnels.',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'action_name', 'subscriber_ids' ),
-			'properties' => array(
-				'action_name'    => array(
-					'type'        => 'string',
-					'description' => 'Handler-accepted values: add_to_tags, remove_from_tags, add_to_lists, remove_from_lists, delete_contacts, change_contact_status, add_to_automation, add_to_email_sequence, send_double_optin, add_to_company, remove_from_company, change_contact_type, update_custom_fields. (The short forms add_tags/remove_tags/add_lists/remove_lists/change_status are not recognized by the installed handler.)',
-				),
-				'subscriber_ids' => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
-				'action_data'    => $obj,
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output( array(
-			'message' => array( 'type' => array( 'string', 'null' ) ),
-		) ),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/subscribers/do-bulk-action', $input );
-		},
-	) );
 
-	$reg->write( 'fluent-crm/bulk-add-update-contacts', array(
-		'label'         => 'Batch Upsert CRM Contacts',
-		'description'   => 'Batch upsert contacts by email. Source: SubscriberController::bulkAddUpdate (POST /subscribers/bulk-add-update). Capability: fcrm_manage_contacts.',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'subscribers' ),
-			'properties' => array(
-				'subscribers' => array(
-					'type'  => 'array',
-					'items' => array(
-						'type'                 => 'object',
-						'required'             => array( 'email' ),
-						'properties'           => array(
-							'email'         => array( 'type' => 'string' ),
-							'first_name'    => array( 'type' => 'string' ),
-							'last_name'     => array( 'type' => 'string' ),
-							'status'        => array( 'type' => 'string' ),
-							'tags'          => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
-							'lists'         => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
-							'custom_fields' => $obj,
-						),
-						'additionalProperties' => true,
-					),
-				),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output( array(
-			'created' => array( 'type' => 'integer' ),
-			'updated' => array( 'type' => 'integer' ),
-		) ),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/subscribers/bulk-add-update', $input );
-		},
-	) );
 
 	$reg->read( 'fluent-crm/export-subscribers', array(
 		'label'         => 'Export CRM Subscribers',

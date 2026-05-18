@@ -270,30 +270,6 @@ function fluent_abilities_player_register_email_abilities() {
 
 	// ─── Cluster 6: Integrations ───────────────────────────────────────────
 
-	$reg->read( 'fluent-player/list-integrations', array(
-		'label'         => 'List integrations',
-		'description'   => 'List FluentPlayer integration registry (YouTube/Bunny Stream/Bunny Storage/Mux) with enabled + configured status. Output note: each integration item carries no stable record ID — use the `slug` field to reference an integration in follow-up calls.',
-		'category'      => 'fluent-player',
-		'output_schema' => fluent_abilities_schema_collection_output( 'integrations', array(
-			'name'       => array( 'type' => 'string' ),
-			'slug'       => array( 'type' => 'string' ),
-			'enabled'    => array( 'type' => 'boolean' ),
-			'configured' => array( 'type' => 'boolean' ),
-		) ),
-		'callback'      => function ( $input ) {
-			$result = fluent_abilities_player_invoke_controller(
-				'\FluentPlayer\App\Http\Controllers\IntegrationController',
-				'getIntegrations',
-				is_array( $input ) ? $input : array()
-			);
-			if ( is_wp_error( $result ) ) {
-				return $result;
-			}
-			$items = is_array( $result ) ? ( $result['integrations'] ?? $result ) : array();
-			$items = is_array( $items ) ? array_values( $items ) : array();
-			return array( 'integrations' => $items, 'total' => count( $items ) );
-		},
-	) );
 
 	$reg->read( 'fluent-player/get-integration-fields', array(
 		'label'         => 'Get integration fields',
@@ -426,33 +402,6 @@ function fluent_abilities_player_register_email_abilities() {
 	// ─── Cluster 7: Email Providers ────────────────────────────────────────
 
 	// SECURITY NOTE: response includes stored provider API keys — flag for mcp.public=false + redaction in v1.2 meta-override.
-	$reg->read( 'fluent-player/list-email-providers', array(
-		'label'         => 'List email providers',
-		'description'   => 'List registered email providers with configuration status (returns API keys for configured providers). Output note: each provider item carries no stable record ID — use the `slug` field to reference a provider in follow-up calls.',
-		'category'      => 'fluent-player',
-		'output_schema' => fluent_abilities_schema_collection_output( 'providers', array(
-			'slug'       => array( 'type' => 'string' ),
-			'name'       => array( 'type' => 'string' ),
-			'enabled'    => array( 'type' => 'boolean' ),
-			'configured' => array( 'type' => 'boolean' ),
-			'logo'       => array( 'type' => array( 'string', 'null' ) ),
-			'settings'   => array( 'type' => array( 'object', 'null' ) ),
-		) ),
-		'callback'      => function ( $input ) {
-			$result = fluent_abilities_player_invoke_controller(
-				'\FluentPlayer\App\Http\Controllers\EmailProviderController',
-				'getProvidersSettings',
-				is_array( $input ) ? $input : array()
-			);
-			if ( is_wp_error( $result ) ) {
-				return $result;
-			}
-			$providers = is_array( $result ) ? ( $result['providers'] ?? $result ) : array();
-			$providers = is_array( $providers ) ? array_values( $providers ) : array();
-			// Each provider entry contains api_key / connectUrl / list_id — redact before returning.
-			return fluent_abilities_player_redact( array( 'providers' => $providers, 'total' => count( $providers ) ) );
-		},
-	) );
 
 	if ( defined( 'FLUENT_PLAYER_PRO_VERSION' ) ) {
 		// SECURITY NOTE: input contains email provider API keys — flag for mcp.public=false in v1.2 meta-override.

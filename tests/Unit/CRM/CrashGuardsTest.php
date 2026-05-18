@@ -41,7 +41,6 @@ class FluentCRMCrashGuardsTest extends TestCase {
 		'fluent-crm/list-funnel-templates',
 		'fluent-crm/list-dynamic-segment-custom-fields',
 		'fluent-crm/list-campaigns-pro-products',
-		'fluent-crm/sync-subscribers-segments',
 		'fluent-crm/create-company-note',
 	);
 
@@ -122,10 +121,6 @@ class FluentCRMCrashGuardsTest extends TestCase {
 			'list-campaigns-pro-products' => array(
 				'fluent-crm/list-campaigns-pro-products',
 				array(),
-			),
-			'sync-subscribers-segments' => array(
-				'fluent-crm/sync-subscribers-segments',
-				array( 'subscriber_ids' => array( 1 ), 'add_tags' => array() ),
 			),
 			'create-company-note' => array(
 				'fluent-crm/create-company-note',

@@ -22,7 +22,6 @@ class FluentCRMProSettingsAndCommerceAbilitiesTest extends TestCase {
 
 	private const SLUGS = array(
 		// §5.29
-		'fluent-crm/list-pro-managers'                       => 'read',
 		'fluent-crm/create-pro-manager'                      => 'write',
 		'fluent-crm/update-pro-manager'                      => 'write',
 		'fluent-crm/delete-pro-manager'                      => 'delete',

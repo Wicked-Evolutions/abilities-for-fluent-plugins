@@ -343,19 +343,6 @@ function fluent_abilities_crm_register_extended_misc_small() {
 	// §5.21 — Forms (FluentForms integration, 3)
 	// =========================================================================
 
-	$reg->read( 'fluent-crm/list-fluent-forms-templates', array(
-		'label'         => 'List CRM Fluent-Forms Templates',
-		'description'   => 'Bundled Fluent Forms templates. Source: FormController::templates (GET /forms/templates).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array( 'type' => 'object', 'properties' => array() ),
-		'output_schema' => fluent_abilities_schema_collection_output( 'templates', array(
-			'id'    => array( 'type' => 'integer' ),
-			'title' => array( 'type' => 'string' ),
-		) ),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return fluent_abilities_normalize_collection( $proxy( 'GET', '/fluent-crm/v2/forms/templates' ), 'templates' );
-		},
-	) );
 
 	$reg->read( 'fluent-crm/list-form-entries', array(
 		'label'         => 'List CRM Form Entries',
@@ -442,20 +429,6 @@ function fluent_abilities_crm_register_extended_misc_small() {
 		},
 	) );
 
-	$reg->read( 'fluent-crm/list-docs-addons', array(
-		'label'         => 'List CRM Known Addons',
-		'description'   => 'Known FluentCRM addons. Source: DocsController::addons (GET /docs/addons).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array( 'type' => 'object', 'properties' => array() ),
-		'output_schema' => fluent_abilities_schema_collection_output( 'addons', array(
-			'name'  => array( 'type' => 'string' ),
-			'label' => array( 'type' => 'string' ),
-			'url'   => array( 'type' => array( 'string', 'null' ) ),
-		) ),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return fluent_abilities_normalize_collection( $proxy( 'GET', '/fluent-crm/v2/docs/addons' ), 'addons' );
-		},
-	) );
 
 	// =========================================================================
 	// §5.31 — Global search (1; namespace-index is denylisted)

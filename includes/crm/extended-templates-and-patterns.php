@@ -293,24 +293,6 @@ function fluent_abilities_crm_register_extended_templates_and_patterns() {
 		'created_at'  => array( 'type' => array( 'string', 'null' ) ),
 	);
 
-	$reg->read( 'fluent-crm/list-email-patterns', array(
-		'label'         => 'List CRM Email Patterns',
-		'description'   => 'Paginated email-patterns (new since FCRM 3.0.0-beta.1). Source: EmailPatternController::index (GET /email-patterns).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'properties' => array_merge(
-				array(
-					'category_id' => array( 'type' => 'integer' ),
-				),
-				fluent_abilities_pagination_schema()
-			),
-		),
-		'output_schema' => fluent_abilities_schema_list_output( 'patterns', $pattern_item ),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return fluent_abilities_normalize_collection( $proxy( 'GET', '/fluent-crm/v2/email-patterns', $input ), 'patterns' );
-		},
-	) );
 
 	$reg->write( 'fluent-crm/create-email-pattern', array(
 		'label'         => 'Create CRM Email Pattern',

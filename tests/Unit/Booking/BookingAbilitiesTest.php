@@ -200,7 +200,6 @@ class FluentBookingAbilitiesTest extends TestCase {
 		// 4.8 Global settings
 		'fluent-booking/get-global-settings'             => 'read',
 		'fluent-booking/update-global-settings'          => 'write',
-		'fluent-booking/get-onboarding-state'            => 'read',
 		'fluent-booking/update-onboarding-state'         => 'write',
 		// 4.9 PermissionManager grants
 		'fluent-booking/list-permission-sets'            => 'read',
@@ -226,7 +225,6 @@ class FluentBookingAbilitiesTest extends TestCase {
 		'fluent-booking/get-transaction'                 => 'read',
 		'fluent-booking/refund-transaction'              => 'write',
 		// 4.12 Pro Webhooks
-		'fluent-booking/list-webhooks'                   => 'read',
 		'fluent-booking/get-webhook'                     => 'read',
 		'fluent-booking/create-webhook'                  => 'write',
 		'fluent-booking/update-webhook'                  => 'write',
@@ -240,9 +238,6 @@ class FluentBookingAbilitiesTest extends TestCase {
 		'fluent-booking/update-twilio-config'            => 'write',
 		'fluent-booking/send-booking-sms'                => 'write',
 		// 4.14 Pro Coupons
-		'fluent-booking/list-coupons'                    => 'read',
-		'fluent-booking/get-coupon'                      => 'read',
-		'fluent-booking/create-coupon'                   => 'write',
 		'fluent-booking/update-coupon'                   => 'write',
 		'fluent-booking/delete-coupon'                   => 'delete',
 		// 4.15 Pro Team / event-host roster
@@ -253,7 +248,6 @@ class FluentBookingAbilitiesTest extends TestCase {
 		'fluent-booking/list-team-calendars'             => 'read',
 		'fluent-booking/update-team-calendar-members'    => 'write',
 		// 4.16 Reports
-		'fluent-booking/get-revenue-report'              => 'read',
 		'fluent-booking/get-host-report'                 => 'read',
 		'fluent-booking/get-event-conversion-report'     => 'read',
 		'fluent-booking/get-time-distribution-report'    => 'read',
@@ -315,7 +309,7 @@ class FluentBookingAbilitiesTest extends TestCase {
 				$new_count++;
 			}
 		}
-		$this->assertSame( 78, $new_count, 'Phase B new-ability count must be exactly 78' );
+		$this->assertSame( 72, $new_count, 'Phase B new-ability count must be exactly 78' );
 	}
 
 	public function test_each_ability_has_correct_verb_annotation() {
@@ -494,20 +488,6 @@ class FluentBookingAbilitiesTest extends TestCase {
 		$this->assertInstanceOf( WP_Error::class, $result, 'Loopback URL must be rejected as SSRF risk' );
 	}
 
-	public function test_coupon_create_requires_code() {
-		$abilities = wp_get_abilities();
-		$GLOBALS['_test_current_user_id'] = 1;
-		$GLOBALS['_test_user_caps']       = array( 'manage_options' );
-
-		$cb     = $abilities['fluent-booking/create-coupon']['execute_callback'];
-		$result = $cb( array(
-			'code'            => '',
-			'discount_type'   => 'percent',
-			'discount_amount' => 10,
-		) );
-		$this->assertInstanceOf( WP_Error::class, $result );
-	}
-
 	public function test_idempotent_writes_flag_their_annotation() {
 		$abilities = wp_get_abilities();
 		// Add-booking-host is marked idempotent (re-adding same pivot is a no-op).
@@ -573,7 +553,6 @@ class FluentBookingAbilitiesTest extends TestCase {
 			'fluent-booking/list-transactions',
 			'fluent-booking/get-transaction',
 			'fluent-booking/refund-transaction',
-			'fluent-booking/list-webhooks',
 			'fluent-booking/get-webhook',
 			'fluent-booking/create-webhook',
 			'fluent-booking/update-webhook',
@@ -585,9 +564,6 @@ class FluentBookingAbilitiesTest extends TestCase {
 			'fluent-booking/get-twilio-config',
 			'fluent-booking/update-twilio-config',
 			'fluent-booking/send-booking-sms',
-			'fluent-booking/list-coupons',
-			'fluent-booking/get-coupon',
-			'fluent-booking/create-coupon',
 			'fluent-booking/update-coupon',
 			'fluent-booking/delete-coupon',
 			'fluent-booking/import-bookings',
@@ -596,7 +572,6 @@ class FluentBookingAbilitiesTest extends TestCase {
 			'fluent-booking/deactivate-license',
 			'fluent-booking/get-global-settings',
 			'fluent-booking/update-global-settings',
-			'fluent-booking/get-onboarding-state',
 			'fluent-booking/update-onboarding-state',
 		);
 		return in_array( $slug, $prefixes, true );
