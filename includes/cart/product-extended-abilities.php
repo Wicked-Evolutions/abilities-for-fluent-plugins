@@ -58,6 +58,30 @@ add_action( 'wp_abilities_api_init', function() {
 				$detail->default_variation_id = (int) $input['default_variation_id'];
 			}
 			$detail->save();
+			// FluentCart's authoritative sellable price is ProductVariation
+			// .item_price (ProductDetail.min/max is the vendor-derived
+			// aggregate). Write the price to the product's default/first
+			// variation so get-product and storefront reads reflect it; the
+			// detail aggregate above stays in sync. Source: ProductVariation
+			// .item_price (vendor-source verified).
+			if ( isset( $input['min_price'] ) ) {
+				$variation = null;
+				if ( $detail->default_variation_id ) {
+					$variation = \FluentCart\App\Models\ProductVariation::where( 'post_id', $post_id )
+						->where( 'id', (int) $detail->default_variation_id )->first();
+				}
+				if ( ! $variation ) {
+					$variation = \FluentCart\App\Models\ProductVariation::where( 'post_id', $post_id )
+						->orderBy( 'serial_index' )->first();
+				}
+				if ( $variation ) {
+					$variation->item_price = (int) $input['min_price'];
+					if ( isset( $input['max_price'] ) ) {
+						$variation->compare_price = (int) $input['max_price'];
+					}
+					$variation->save();
+				}
+			}
 			return array(
 				'success'   => true,
 				'post_id'   => $post_id,
