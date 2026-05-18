@@ -32,13 +32,11 @@ class FluentCRMMiscSmallAbilitiesTest extends TestCase {
 		'fluent-crm/list-users-for-fluent-crm'  => 'read',
 		'fluent-crm/list-user-roles'            => 'read',
 		// §5.21 Forms
-		'fluent-crm/list-fluent-forms-templates' => 'read',
 		'fluent-crm/list-form-entries'          => 'read',
 		'fluent-crm/get-form-entry-detail'      => 'read',
 		// §5.22 Docs
 		'fluent-crm/list-docs'                  => 'read',
 		'fluent-crm/get-doc'                    => 'read',
-		'fluent-crm/list-docs-addons'           => 'read',
 		// §5.31 Global search
 		'fluent-crm/global-search'              => 'read',
 	);

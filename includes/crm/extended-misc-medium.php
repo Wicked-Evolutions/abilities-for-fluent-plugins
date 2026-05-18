@@ -121,24 +121,6 @@ function fluent_abilities_crm_register_extended_misc_medium() {
 	// Capability inferred per surface placement.
 	// =========================================================================
 
-	$reg->read( 'fluent-crm/list-abandon-carts', array(
-		'label'         => 'List CRM Abandoned Carts',
-		'description'   => 'Paginated abandoned-cart records. Source: AbandonCartController::index (GET /abandon-carts).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'properties' => array_merge(
-				array(
-					'status' => array( 'type' => 'string' ),
-				),
-				fluent_abilities_pagination_schema()
-			),
-		),
-		'output_schema' => fluent_abilities_schema_list_output( 'carts', $obj ),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/abandon-carts', $input );
-		},
-	) );
 
 	$reg->delete( 'fluent-crm/bulk-delete-abandon-carts', array(
 		'label'         => 'Bulk Delete CRM Abandoned Carts',
@@ -159,22 +141,6 @@ function fluent_abilities_crm_register_extended_misc_medium() {
 		},
 	) );
 
-	$reg->read( 'fluent-crm/get-abandon-cart-report-summary', array(
-		'label'         => 'Get CRM Abandoned-Cart Report Summary',
-		'description'   => 'Date-ranged abandoned-cart aggregate. Source: AbandonCartController::reportSummary (GET /abandon-carts/report-summary).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'properties' => array(
-				'date_from' => array( 'type' => 'string' ),
-				'date_to'   => array( 'type' => 'string' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_item_output(),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/abandon-carts/report-summary', $input );
-		},
-	) );
 
 	// =========================================================================
 	// §5.16 — Custom-fields management (3)
@@ -354,19 +320,6 @@ function fluent_abilities_crm_register_extended_misc_medium() {
 		},
 	) );
 
-	$reg->read( 'fluent-crm/list-import-drivers', array(
-		'label'         => 'List CRM Registered Import Drivers',
-		'description'   => 'Registered importer drivers (ConvertKit/Mailchimp/AWeber/etc.). Source: ImportController::drivers (GET /import/drivers). Read-only — driver discovery.',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array( 'type' => 'object', 'properties' => array() ),
-		'output_schema' => fluent_abilities_schema_collection_output( 'drivers', array(
-			'name'  => array( 'type' => 'string' ),
-			'label' => array( 'type' => 'string' ),
-		) ),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return fluent_abilities_normalize_collection( $proxy( 'GET', '/fluent-crm/v2/import/drivers' ), 'drivers' );
-		},
-	) );
 
 	$reg->write( 'fluent-crm/run-import-driver', array(
 		'label'         => 'Run CRM Import Driver',

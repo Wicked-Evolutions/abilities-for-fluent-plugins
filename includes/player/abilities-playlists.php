@@ -24,67 +24,6 @@ function fluent_abilities_player_register_playlists_abilities() {
 
 	// ─── Cluster 10: Playlists ─────────────────────────────────────────────
 
-	$reg->read( 'fluent-player/list-playlists', array(
-		'label'         => 'List playlists',
-		'description'   => 'Paginated list of FluentPlayer Pro playlists (CPT fluent_playlist).',
-		'category'      => 'fluent-player',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'properties' => array(
-				'per_page' => array( 'type' => 'integer', 'default' => 10 ),
-				'page'     => array( 'type' => 'integer', 'default' => 1 ),
-				'status'   => array( 'type' => 'string' ),
-				'query'    => array( 'type' => 'string', 'description' => 'Search query.' ),
-				'orderby'  => array( 'type' => 'string', 'enum' => array( 'ID', 'post_title', 'post_date', 'post_status', 'post_name' ) ),
-				'order'    => array( 'type' => 'string', 'enum' => array( 'ASC', 'DESC' ) ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_list_output( 'playlists', array(
-			'ID'          => array( 'type' => 'integer' ),
-			'post_title'  => array( 'type' => 'string' ),
-			'post_status' => array( 'type' => 'string' ),
-			'post_date'   => array( 'type' => 'string' ),
-			'post_name'   => array( 'type' => 'string' ),
-			'settings'    => array( 'type' => array( 'object', 'null' ) ),
-		) ),
-		'callback'      => function ( $input ) {
-			if ( ! class_exists( '\FluentPlayerPro\App\Models\Playlist' ) ) {
-				return fluent_abilities_error( 'missing_class', 'FluentPlayerPro Playlist model not found.' );
-			}
-			$pg = fluent_abilities_pagination( $input, 10 );
-			try {
-				$query = \FluentPlayerPro\App\Models\Playlist::query();
-				if ( ! empty( $input['status'] ) ) {
-					$query->where( 'post_status', sanitize_text_field( $input['status'] ) );
-				}
-				if ( ! empty( $input['query'] ) ) {
-					$search = sanitize_text_field( $input['query'] );
-					$query->where( function ( $q ) use ( $search ) {
-						$q->where( 'post_title', 'LIKE', '%' . $search . '%' )
-							->orWhere( 'post_content', 'LIKE', '%' . $search . '%' );
-					} );
-				}
-				$orderby = ! empty( $input['orderby'] ) ? sanitize_key( $input['orderby'] ) : 'ID';
-				$order   = ( ! empty( $input['order'] ) && strtoupper( $input['order'] ) === 'ASC' ) ? 'ASC' : 'DESC';
-				$total   = (int) ( clone $query )->count();
-				$rows    = $query->orderBy( $orderby, $order )->limit( $pg['per_page'] )->offset( $pg['offset'] )->get();
-				$items   = array();
-				foreach ( $rows as $r ) {
-					$arr           = method_exists( $r, 'toArray' ) ? $r->toArray() : (array) $r;
-					$arr['ID']     = (int) ( $arr['ID'] ?? 0 );
-					$items[]       = $arr;
-				}
-				return array(
-					'total'     => $total,
-					'page'      => $pg['page'],
-					'per_page'  => $pg['per_page'],
-					'playlists' => $items,
-				);
-			} catch ( \Throwable $e ) {
-				return fluent_abilities_error( 'execution_failed', $e->getMessage() );
-			}
-		},
-	) );
 
 	$reg->read( 'fluent-player/get-playlist', array(
 		'label'         => 'Get playlist',

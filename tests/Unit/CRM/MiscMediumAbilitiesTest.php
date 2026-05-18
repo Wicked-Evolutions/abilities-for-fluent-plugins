@@ -28,9 +28,7 @@ class FluentCRMMiscMediumAbilitiesTest extends TestCase {
 		'fluent-crm/test-ai-connection'                     => 'write',
 		'fluent-crm/generate-ai-content'                    => 'write',
 		// §5.15 Abandoned-cart ops
-		'fluent-crm/list-abandon-carts'                     => 'read',
 		'fluent-crm/bulk-delete-abandon-carts'              => 'delete',
-		'fluent-crm/get-abandon-cart-report-summary'        => 'read',
 		// §5.16 Custom fields
 		'fluent-crm/get-contact-custom-fields'              => 'read',
 		'fluent-crm/update-contact-custom-fields'           => 'write',
@@ -39,7 +37,6 @@ class FluentCRMMiscMediumAbilitiesTest extends TestCase {
 		'fluent-crm/upload-import-csv'                      => 'write',
 		'fluent-crm/run-import-csv'                         => 'write',
 		'fluent-crm/import-from-wp-users'                   => 'write',
-		'fluent-crm/list-import-drivers'                    => 'read',
 		'fluent-crm/run-import-driver'                      => 'write',
 	);
 

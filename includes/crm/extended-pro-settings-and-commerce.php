@@ -34,21 +34,6 @@ function fluent_abilities_crm_register_extended_pro_settings_and_commerce() {
 	// §5.29 — Pro settings — managers + sms (7)
 	// =========================================================================
 
-	$reg->read( 'fluent-crm/list-pro-managers', array(
-		'label'         => 'List CRM Pro Sub-Admin Managers',
-		'description'   => 'Sub-admin users with FCRM Pro access. Source: CampaignProSettingController::listManagers (GET /campaign-pro-settings/managers). Capability: fcrm_manage_settings.',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array( 'type' => 'object', 'properties' => array() ),
-		'output_schema' => fluent_abilities_schema_collection_output( 'managers', array(
-			'id'           => array( 'type' => 'integer' ),
-			'user_id'      => array( 'type' => 'integer' ),
-			'display_name' => array( 'type' => 'string' ),
-			'permissions'  => array( 'type' => 'array', 'items' => array( 'type' => 'string' ) ),
-		) ),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return fluent_abilities_normalize_collection( $proxy( 'GET', '/fluent-crm/v2/campaign-pro-settings/managers' ), 'managers' );
-		},
-	) );
 
 	$reg->write( 'fluent-crm/create-pro-manager', array(
 		'label'         => 'Create CRM Pro Sub-Admin Manager',

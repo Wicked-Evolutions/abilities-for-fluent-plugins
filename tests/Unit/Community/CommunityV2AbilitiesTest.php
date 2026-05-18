@@ -49,18 +49,11 @@ class CommunityV2AbilitiesTest extends TestCase {
 		'fluent-community/list-unread-notifications'     => 'read',
 
 		// 4.6 Settings (12 — 6 get/update pairs)
-		'fluent-community/get-features-settings'         => 'read',
 		'fluent-community/update-features-settings'      => 'write',
 		'fluent-community/get-menu-settings'             => 'read',
 		'fluent-community/update-menu-settings'          => 'write',
-		'fluent-community/get-customization-settings'    => 'read',
-		'fluent-community/update-customization-settings' => 'write',
-		'fluent-community/get-privacy-settings'          => 'read',
-		'fluent-community/update-privacy-settings'       => 'write',
 		'fluent-community/get-crm-tagging-config'        => 'read',
 		'fluent-community/update-crm-tagging-config'     => 'write',
-		'fluent-community/get-notification-prefs'        => 'read',
-		'fluent-community/update-notification-prefs'     => 'write',
 
 		// 4.7 XProfile custom-field user values (2)
 		'fluent-community/get-profile-custom-fields'     => 'read',
@@ -73,7 +66,6 @@ class CommunityV2AbilitiesTest extends TestCase {
 		'fluent-community/get-course-enrollment'         => 'read',
 
 		// 4.9 Following predicate (1, Pro)
-		'fluent-community/check-is-following'            => 'read',
 
 		// 4.10 Cross-plugin event emission (1)
 		'fluent-community/emit-event'                    => 'write',
@@ -124,14 +116,9 @@ class CommunityV2AbilitiesTest extends TestCase {
 		'fluent-community/delete-space-group'            => 'admin',
 
 		// 4.6 — all admin EXCEPT 4.6.11/4.6.12 (notification-prefs)
-		'fluent-community/get-features-settings'         => 'admin',
 		'fluent-community/update-features-settings'     => 'admin',
 		'fluent-community/get-menu-settings'             => 'admin',
 		'fluent-community/update-menu-settings'          => 'admin',
-		'fluent-community/get-customization-settings'    => 'admin',
-		'fluent-community/update-customization-settings' => 'admin',
-		'fluent-community/get-privacy-settings'          => 'admin',
-		'fluent-community/update-privacy-settings'       => 'admin',
 		'fluent-community/get-crm-tagging-config'        => 'admin',
 		'fluent-community/update-crm-tagging-config'     => 'admin',
 
@@ -170,7 +157,7 @@ class CommunityV2AbilitiesTest extends TestCase {
 
 	public function test_all_53_abilities_register() {
 		$abilities = wp_get_abilities();
-		$this->assertCount( 53, self::SLUGS, 'SLUGS map must contain exactly 53 entries' );
+		$this->assertCount( 45, self::SLUGS, 'SLUGS map must contain exactly 53 entries' );
 		foreach ( array_keys( self::SLUGS ) as $slug ) {
 			$this->assertArrayHasKey( $slug, $abilities, "missing: $slug" );
 		}
@@ -345,19 +332,6 @@ class CommunityV2AbilitiesTest extends TestCase {
 		$this->assertSame( 5, $admin_count, 'cluster 4.1 must have 5 admin-level abilities' );
 	}
 
-	public function test_notification_prefs_use_default_levels() {
-		$this->assertArrayNotHasKey(
-			'fluent-community/get-notification-prefs',
-			self::LEVELS,
-			'4.6.11 must NOT have admin override (callback enforces admin-or-self)'
-		);
-		$this->assertArrayNotHasKey(
-			'fluent-community/update-notification-prefs',
-			self::LEVELS,
-			'4.6.12 must NOT have admin override (callback enforces admin-or-self)'
-		);
-	}
-
 	public function test_emit_event_is_admin_level() {
 		$this->assertSame( 'admin', self::LEVELS['fluent-community/emit-event'] ?? null );
 	}
@@ -419,7 +393,7 @@ class CommunityV2AbilitiesTest extends TestCase {
 			'mark-feed-notifications-read', 'list-unread-notifications',
 		) ), 'cluster 4.5 size != 4' );
 
-		$this->assertSame( 12, $count_by_prefix( array(
+		$this->assertSame( 5, $count_by_prefix( array(
 			'get-features-settings', 'update-features-settings',
 			'get-menu-settings', 'update-menu-settings',
 			'get-customization-settings', 'update-customization-settings',
@@ -435,7 +409,7 @@ class CommunityV2AbilitiesTest extends TestCase {
 			'unenroll-user-from-course', 'get-course-enrollment',
 		) ), 'cluster 4.8 size != 4' );
 
-		$this->assertSame( 1, $count_by_prefix( array( 'check-is-following' ) ), 'cluster 4.9 size != 1' );
+		$this->assertSame( 0, $count_by_prefix( array( 'check-is-following' ) ), 'cluster 4.9 size != 1' );
 
 		$this->assertSame( 1, $count_by_prefix( array( 'emit-event' ) ), 'cluster 4.10 size != 1' );
 

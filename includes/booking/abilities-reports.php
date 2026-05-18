@@ -32,68 +32,6 @@ function fluent_booking_register_reports_abilities() {
 	// 4.16.1 — REVENUE REPORT
 	// =========================================================================
 
-	$reg->read( 'fluent-booking/get-revenue-report', array(
-		'label'       => 'Get Revenue Report',
-		'description' => 'Aggregate paid-booking revenue for a date window. Returns total + per-day breakdown. Requires Pro orders table (fcal_orders).',
-		'level'       => 'admin',
-		'input_schema' => array(
-			'type'       => 'object',
-			'properties' => $date_window_schema,
-		),
-		'output_schema' => fluent_abilities_schema_item_output( array(
-			'total_revenue' => array( 'type' => 'number' ),
-			'currency'      => array( 'type' => array( 'string', 'null' ) ),
-			'order_count'   => array( 'type' => 'integer' ),
-			'by_day'        => array( 'type' => 'array', 'items' => array( 'type' => 'object' ) ),
-		) ),
-		'callback' => function( $input ) {
-			$from = isset( $input['date_from'] ) ? sanitize_text_field( $input['date_from'] ) : '';
-			$to   = isset( $input['date_to'] ) ? sanitize_text_field( $input['date_to'] ) : '';
-
-			$query = wpFluent()->table( 'fcal_orders' );
-			if ( $from !== '' ) {
-				$query->where( 'created_at', '>=', $from . ' 00:00:00' );
-			}
-			if ( $to !== '' ) {
-				$query->where( 'created_at', '<=', $to . ' 23:59:59' );
-			}
-
-			try {
-				$rows = $query->select( 'created_at', 'total', 'currency', 'status' )->get();
-			} catch ( \Exception $e ) {
-				return fluent_abilities_error( 'orders_table_missing', 'fcal_orders table not present (Pro plugin not installed?)' );
-			}
-
-			$total = 0.0;
-			$count = 0;
-			$by_day = array();
-			$currency = null;
-			foreach ( $rows as $row ) {
-				if ( ! in_array( (string) ( $row->status ?? '' ), array( 'paid', 'completed' ), true ) ) {
-					continue;
-				}
-				$amount = (float) ( $row->total ?? 0 );
-				$total += $amount;
-				$count++;
-				$day = substr( (string) $row->created_at, 0, 10 );
-				if ( ! isset( $by_day[ $day ] ) ) {
-					$by_day[ $day ] = array( 'date' => $day, 'revenue' => 0.0, 'orders' => 0 );
-				}
-				$by_day[ $day ]['revenue'] += $amount;
-				$by_day[ $day ]['orders']++;
-				if ( $currency === null && ! empty( $row->currency ) ) {
-					$currency = (string) $row->currency;
-				}
-			}
-
-			return array(
-				'total_revenue' => round( $total, 2 ),
-				'currency'      => $currency,
-				'order_count'   => $count,
-				'by_day'        => array_values( $by_day ),
-			);
-		},
-	) );
 
 	// =========================================================================
 	// 4.16.2 — HOST REPORT

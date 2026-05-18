@@ -60,23 +60,6 @@
       "read_back": "N/A — P-A V5 response-shape boundary coerce only (no state-change write / carry-forward)"
     },
     {
-      "ability": "fluent-boards/list-top-tasks-for-boards",
-      "vendor": "fluent-boards",
-      "vendor_version_checked": "1.5.0",
-      "authority": "direct_storage",
-      "direct_storage": true,
-      "direct_storage_rationale": "Read-side aggregate built from wpFluent table joins; no vendor REST list-top-tasks-for-boards equivalent.",
-      "destructive": false,
-      "principles": [
-        "V5"
-      ],
-      "package": 2,
-      "pattern": "P-A",
-      "notes": "Package 2 V5 fix: relation-rows Collection coerced before array_map (4 of 11 P-A sites).",
-      "doc": "installed vendor source on helenawillow probe (incidental test surface); see notes",
-      "rationale": "Vendor wpFluent Collection result is consumed directly (no documented vendor REST/service wrapper at this level); registrar coerces the Collection via fluent_abilities_to_array() before array_map (V5 boundary), so raw storage access is the existing vendor-source path, unchanged by this fix."
-    },
-    {
       "ability": "fluent-boards/list-board-assignees",
       "vendor": "fluent-boards",
       "vendor_version_checked": "1.5.0",

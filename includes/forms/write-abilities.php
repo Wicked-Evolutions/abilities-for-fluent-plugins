@@ -394,55 +394,6 @@ add_action( 'wp_abilities_api_init', function() {
 		},
 	) );
 
-	$reg->read( 'fluent-forms/list-form-templates', array(
-		'label'       => 'List Form Templates',
-		'description' => 'List predefined form templates available via Form::getPredefinedForms() that may be used as a seed for create-form (template_id input).',
-		'input_schema' => array(
-			'type'       => 'object',
-			'properties' => new stdClass(),
-		),
-		'output_schema' => fluent_abilities_schema_collection_output( 'templates', array(
-			'id'              => array( 'type' => array( 'string', 'integer' ) ),
-			'name'            => array( 'type' => 'string' ),
-			'category'        => array( 'type' => array( 'string', 'null' ) ),
-			'description'     => array( 'type' => array( 'string', 'null' ) ),
-			'fields_preview'  => array( 'type' => array( 'array', 'object', 'null' ) ),
-		) ),
-		'callback' => function( $input ) {
-			if ( ! fluent_abilities_user_can( 'forms', 'read' ) ) {
-				return fluent_abilities_error( 'rest_forbidden', 'You do not have permission to read form templates' );
-			}
-
-			$templates = array();
-			if ( class_exists( '\\FluentForm\\App\\Services\\Form\\FormService' ) ) {
-				try {
-					$service  = new \FluentForm\App\Services\Form\FormService();
-					$response = $service->templates();
-					if ( is_array( $response ) ) {
-						$templates = $response;
-					} elseif ( is_array( $response['templates'] ?? null ) ) {
-						$templates = $response['templates'];
-					}
-				} catch ( \Throwable $e ) {
-					return fluent_abilities_error( 'ability_execution_failed', $e->getMessage() );
-				}
-			}
-
-			$items = array();
-			foreach ( $templates as $key => $tpl ) {
-				$tpl = (array) $tpl;
-				$items[] = array(
-					'id'             => $tpl['id'] ?? $key,
-					'name'           => (string) ( $tpl['name'] ?? $tpl['title'] ?? '' ),
-					'category'       => $tpl['category'] ?? null,
-					'description'    => $tpl['description'] ?? null,
-					'fields_preview' => $tpl['fields'] ?? $tpl['preview'] ?? null,
-				);
-			}
-
-			return array( 'templates' => $items, 'total' => count( $items ) );
-		},
-	) );
 
 	$reg->read( 'fluent-forms/get-form-shortcodes', array(
 		'label'       => 'Get Form Shortcodes',

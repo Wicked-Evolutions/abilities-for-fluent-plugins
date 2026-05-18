@@ -89,7 +89,6 @@ class FluentBoardsPhase2RegistrationTest extends TestCase {
 		'fluent-boards/list-member-boards',
 		'fluent-boards/list-member-tasks',
 		'fluent-boards/list-member-associated-users',
-		'fluent-boards/list-top-tasks-for-boards',
 		'fluent-boards/get-org-managers',
 		'fluent-boards/add-org-manager',
 		'fluent-boards/remove-org-manager',

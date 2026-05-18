@@ -503,50 +503,6 @@ $reg->read( 'fluent-boards/list-member-associated-users', array(
 // =========================================================================
 // §4.7.12 — list-top-tasks-for-boards (free)
 // =========================================================================
-$reg->read( 'fluent-boards/list-top-tasks-for-boards', array(
-	'label'       => 'List Top Tasks For Member',
-	'description' => 'List a user\'s highest-priority or most-recent tasks across all boards they have access to.',
-	'category'    => 'fluent-boards',
-	'input_schema' => array(
-		'type'       => 'object',
-		'required'   => array( 'user_id' ),
-		'properties' => array(
-			'user_id' => array( 'type' => 'integer' ),
-			'limit'   => array( 'type' => 'integer', 'default' => 10 ),
-		),
-	),
-	'output_schema' => fluent_abilities_schema_collection_output( 'tasks', array(
-		'id'       => array( 'type' => 'integer' ),
-		'board_id' => array( 'type' => 'integer' ),
-		'title'    => array( 'type' => array( 'string', 'null' ) ),
-		'priority' => array( 'type' => array( 'string', 'null' ) ),
-		'due_at'   => array( 'type' => array( 'string', 'null' ) ),
-	) ),
-	'callback' => function( $input ) {
-		$user_id = (int) $input['user_id'];
-		$limit   = max( 1, min( 50, (int) ( $input['limit'] ?? 10 ) ) );
-		$rels    = wpFluent()->table( 'fbs_relations' )->where( 'object_type', 'task_assignee' )->where( 'foreign_id', $user_id )->select( 'object_id' )->get();
-		// V5: coerce vendor Collection to array before array_map (P-A pattern).
-		$ids     = array_map( function( $r ) { return (int) $r->object_id; }, fluent_abilities_to_array( $rels ) );
-		if ( empty( $ids ) ) {
-			return array( 'tasks' => array(), 'total' => 0 );
-		}
-		$rows  = wpFluent()->table( 'fbs_tasks' )->whereIn( 'id', $ids )->whereNull( 'archived_at' )->where( 'status', 'open' )
-			->orderByRaw( 'FIELD(priority,"high","medium","low") DESC, updated_at DESC' )
-			->limit( $limit )->get();
-		$items = array();
-		foreach ( $rows as $t ) {
-			$items[] = array(
-				'id'       => (int) $t->id,
-				'board_id' => (int) $t->board_id,
-				'title'    => $t->title ?? '',
-				'priority' => $t->priority ?? null,
-				'due_at'   => $t->due_at ?? null,
-			);
-		}
-		return array( 'tasks' => $items, 'total' => count( $items ) );
-	},
-) );
 
 // =========================================================================
 // §4.8 — Org-Wide Managers (6 abilities; pro). Stored as fbs_metas with

@@ -109,16 +109,12 @@ class PlayerCallbackTest extends TestCase {
 
 	public static function read_sample_provider(): iterable {
 		// One read per cluster (covering all 17 clusters).
-		yield 'media:list-media'                          => array( 'fluent-player/list-media', array() );
 		yield 'media-tags:list-media-tags'                => array( 'fluent-player/list-media-tags', array() );
 		yield 'presets:list-presets'                      => array( 'fluent-player/list-presets', array() );
 		yield 'settings:get-settings'                     => array( 'fluent-player/get-settings', array() );
 		yield 'email-collections:list-email-collections'  => array( 'fluent-player/list-email-collections', array() );
-		yield 'integrations:list-integrations'            => array( 'fluent-player/list-integrations', array() );
-		yield 'email-providers:list-email-providers'      => array( 'fluent-player/list-email-providers', array() );
 		yield 'youtube:get-youtube-channel-info'          => array( 'fluent-player/get-youtube-channel-info', array() );
 		yield 'smartcodes:list-smartcodes'                => array( 'fluent-player/list-smartcodes', array() );
-		yield 'playlists:list-playlists'                  => array( 'fluent-player/list-playlists', array() );
 		yield 'subtitles:get-youtube-captions'            => array( 'fluent-player/get-youtube-captions', array( 'media_id' => 1 ) );
 		yield 'analytics:analytics-stats'                 => array( 'fluent-player/analytics-stats', array() );
 		yield 'bunny-stream:bunny-stream-list-libraries'  => array( 'fluent-player/bunny-stream-list-libraries', array() );

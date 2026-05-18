@@ -495,40 +495,6 @@ add_action( 'wp_abilities_api_init', function() {
 		},
 	) );
 
-	$reg->read( 'fluent-cart/search-variants-by-name', array(
-		'label'       => 'Search Variants By Name',
-		'description' => 'Search product variants by title LIKE. Mirrors GET /products/searchVariantByName.',
-		'input_schema' => array(
-			'type'     => 'object',
-			'required' => array( 'q' ),
-			'properties' => array(
-				'q'     => array( 'type' => 'string' ),
-				'limit' => array( 'type' => 'integer' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_collection_output( 'variants', array(
-			'id'         => array( 'type' => 'integer' ),
-			'title'      => array( 'type' => 'string' ),
-			'post_id'    => array( 'type' => 'integer' ),
-			'item_price' => array( 'type' => 'number' ),
-		) ),
-		'callback' => function( $input ) {
-			$q     = sanitize_text_field( $input['q'] );
-			$limit = min( 100, max( 1, (int) ( $input['limit'] ?? 20 ) ) );
-			$rows  = \FluentCart\App\Models\ProductVariation::where( 'title', 'LIKE', "%{$q}%" )
-				->limit( $limit )->get();
-			$items = array();
-			foreach ( $rows as $v ) {
-				$items[] = array(
-					'id'         => (int) $v->id,
-					'title'      => (string) ( $v->title ?? '' ),
-					'post_id'    => (int) ( $v->post_id ?? 0 ),
-					'item_price' => fluent_cart_format_money( $v->item_price ),
-				);
-			}
-			return array( 'variants' => $items, 'total' => count( $items ) );
-		},
-	) );
 
 	$reg->read( 'fluent-cart/get-related-products', array(
 		'label'       => 'Get Related Products',

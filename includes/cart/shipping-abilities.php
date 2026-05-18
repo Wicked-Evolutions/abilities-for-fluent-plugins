@@ -90,41 +90,6 @@ add_action( 'wp_abilities_api_init', function() {
 		},
 	) );
 
-	$reg->write( 'fluent-cart/update-shipping-zone', array(
-		'label'       => 'Update Shipping Zone',
-		'description' => 'Update a shipping zone. Mirrors PUT /shipping/zones/{id}.',
-		'input_schema' => array(
-			'type'     => 'object',
-			'required' => array( 'id' ),
-			'properties' => array(
-				'id'      => array( 'type' => 'integer' ),
-				'title'   => array( 'type' => 'string' ),
-				'regions' => array( 'type' => 'array', 'items' => array( 'type' => 'string' ) ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output( array(
-			'id' => array( 'type' => 'integer' ),
-		) ),
-		'capability' => 'manage_options',
-		'callback'   => function( $input ) {
-			$model = '\\FluentCart\\App\\Models\\ShippingZone';
-			if ( ! class_exists( $model ) ) {
-				return fluent_abilities_error( 'not_found', 'ShippingZone model not available.' );
-			}
-			$row = $model::find( (int) $input['id'] );
-			if ( ! $row ) {
-				return fluent_abilities_error( 'not_found', 'Shipping zone not found.' );
-			}
-			if ( isset( $input['title'] ) ) {
-				$row->title = sanitize_text_field( $input['title'] );
-			}
-			if ( isset( $input['regions'] ) ) {
-				$row->regions = wp_json_encode( array_map( 'sanitize_text_field', (array) $input['regions'] ) );
-			}
-			$row->save();
-			return array( 'success' => true, 'id' => (int) $row->id );
-		},
-	) );
 
 	$reg->delete( 'fluent-cart/delete-shipping-zone', array(
 		'label'       => 'Delete Shipping Zone',

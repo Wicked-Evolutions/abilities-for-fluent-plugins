@@ -86,21 +86,6 @@ function fluent_booking_register_global_settings_abilities() {
 	// 4.8.3 — GET ONBOARDING STATE
 	// =========================================================================
 
-	$reg->read( 'fluent-booking/get-onboarding-state', array(
-		'label'       => 'Get FluentBooking Onboarding State',
-		'description' => 'Return the per-install onboarding state (step, completed, skipped).',
-		'capability'  => 'manage_options',
-		'output_schema' => fluent_abilities_schema_item_output( array(
-			'state' => array( 'type' => array( 'object', 'array', 'null' ) ),
-		) ),
-		'callback' => function( $input ) {
-			$state = get_option( '__fluent_booking_pro_onboarding_state', null );
-			if ( $state === null ) {
-				$state = get_option( '__fluent_booking_onboarding_state', null );
-			}
-			return array( 'state' => $state === null ? null : fluent_abilities_safe_array( $state ) );
-		},
-	) );
 
 	// =========================================================================
 	// 4.8.4 — UPDATE ONBOARDING STATE
