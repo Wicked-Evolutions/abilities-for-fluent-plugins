@@ -32,11 +32,21 @@ function fluent_booking_register_global_settings_abilities() {
 		'capability'  => 'manage_options',
 		'output_schema' => fluent_abilities_schema_item_object_output(),
 		'callback' => function( $input ) {
-			$settings = get_option( '__fluent_booking_global_settings', array() );
-			if ( ! is_array( $settings ) ) {
-				$settings = array();
+			// Data-missing root: the `__fluent_booking_global_settings` option
+			// is unused/empty — FluentBooking persists settings in
+			// `_fluent_booking_settings` and exposes them through the documented
+			// vendor accessor Helper::getGlobalSettings(), which merges the
+			// stored option with the full default object (currency/emailing/
+			// administration/time_format/theme). Installed source:
+			// fluent-booking/app/Services/Helper.php:2092 (reads
+			// get_option('_fluent_booking_settings') at :2123). Route through
+			// the vendor accessor rather than the wrong raw option.
+			if ( ! class_exists( '\FluentBooking\App\Services\Helper' )
+				|| ! method_exists( '\FluentBooking\App\Services\Helper', 'getGlobalSettings' ) ) {
+				return fluent_abilities_error( 'vendor_helper_unavailable', 'FluentBooking Helper::getGlobalSettings is not available. FluentBooking must be active for this ability.' );
 			}
-			return array( 'settings' => fluent_abilities_safe_array( $settings ) );
+			$settings = \FluentBooking\App\Services\Helper::getGlobalSettings();
+			return array( 'settings' => fluent_abilities_safe_array( is_array( $settings ) ? $settings : array() ) );
 		},
 	) );
 
