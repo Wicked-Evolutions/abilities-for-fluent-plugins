@@ -50,7 +50,12 @@ function fluent_booking_load_event_settings( $event_id ) {
  */
 function fluent_booking_merge_event_settings( $event, $current_settings, $partial ) {
 	$merged = array_replace_recursive( $current_settings, $partial );
-	$event->settings = maybe_serialize( $merged );
+	// V3: plain array — vendor CalendarSlot::setSettingsAttribute()
+	// maybe_serialize()s on set / getSettingsAttribute() maybe_unserialize()s
+	// on read (installed app/Models/CalendarSlot.php:62-77). Pre-serializing
+	// here double-serialized via the mutator — the #106 crash class (vendor
+	// count() on a string → PHP 8.3 fatal → FluentBooking calendar 500).
+	$event->settings = $merged;
 	$event->save();
 	return $merged;
 }
