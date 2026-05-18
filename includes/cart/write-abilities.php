@@ -325,12 +325,49 @@ add_action( 'wp_abilities_api_init', function() {
 				'post_status'  => sanitize_text_field( $input['status'] ?? 'draft' ),
 				'post_type'    => 'fct_product',
 			) );
-			\FluentCart\App\Models\ProductDetail::create( array(
+			$fulfillment = sanitize_text_field( $input['product_type'] ?? 'digital' );
+			$detail      = \FluentCart\App\Models\ProductDetail::create( array(
 				'post_id'          => $product->ID,
 				'min_price'        => $price,
 				'max_price'        => $price,
-				'fulfillment_type' => sanitize_text_field( $input['product_type'] ?? 'digital' ),
+				'fulfillment_type' => $fulfillment,
 			) );
+			// FluentCart's real sellable price lives on a default ProductVariation
+			// row (item_price), NOT on ProductDetail.min/max (which the vendor
+			// derives from variations). Vendor ProductController::create always
+			// creates this default variation; replicate that exact contract so
+			// get-product (reads variants + detail) and update-product-pricing
+			// (targets the variation) land. Source: FluentCart\App\Http\
+			// Controllers\ProductController::create (vendor-source verified).
+			$variation = \FluentCart\App\Models\ProductVariation::create( array(
+				'post_id'          => $product->ID,
+				'serial_index'     => 1,
+				'variation_title'  => $product->post_title,
+				'stock_status'     => 'in-stock',
+				'payment_type'     => 'onetime',
+				'total_stock'      => 1,
+				'available'        => 1,
+				'fulfillment_type' => $fulfillment,
+				'item_price'       => $price,
+				'compare_price'    => $price,
+				'other_info'       => array(
+					'description'        => '',
+					'payment_type'       => 'onetime',
+					'times'              => '',
+					'repeat_interval'    => '',
+					'trial_days'         => '',
+					'billing_summary'    => '',
+					'manage_setup_fee'   => 'no',
+					'signup_fee_name'    => '',
+					'signup_fee'         => '',
+					'setup_fee_per_item' => 'no',
+					'is_bundle_product'  => 'no',
+				),
+			) );
+			if ( $detail && $variation ) {
+				$detail->default_variation_id = (int) $variation->id;
+				$detail->save();
+			}
 			return array( 'success' => true, 'id' => (int) $product->ID, 'title' => $product->post_title );
 		},
 	) );
