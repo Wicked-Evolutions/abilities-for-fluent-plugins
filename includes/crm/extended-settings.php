@@ -289,6 +289,33 @@ function fluent_abilities_crm_register_extended_settings() {
 	// =========================================================================
 	// 5.13.15 — get-system-logs
 	// =========================================================================
+	$reg->read( 'fluent-crm/get-system-logs', array(
+		'label'         => 'Get CRM System Logs',
+		'description'   => 'Paginated FluentCRM system logs. Source: SettingController::systemLogs (GET /setting/system-logs).',
+		'category'      => 'fluent-crm',
+		'input_schema'  => array(
+			'type'       => 'object',
+			'properties' => array_merge(
+				array(
+					'level' => array(
+						'type'        => 'string',
+						'description' => 'Filter by level (info, warning, error).',
+					),
+				),
+				fluent_abilities_pagination_schema()
+			),
+		),
+		'output_schema' => fluent_abilities_schema_list_output( 'logs', array(
+			'id'         => array( 'type' => 'integer' ),
+			'level'      => array( 'type' => 'string' ),
+			'title'      => array( 'type' => 'string' ),
+			'message'    => array( 'type' => array( 'string', 'null' ) ),
+			'created_at' => array( 'type' => array( 'string', 'null' ) ),
+		) ),
+		'callback'      => function ( $input ) use ( $proxy_get ) {
+			return fluent_abilities_normalize_collection( $proxy_get( '/fluent-crm/v2/setting/system-logs', $input ), 'logs' );
+		},
+	) );
 
 	// =========================================================================
 	// 5.13 paired — get-cron-status

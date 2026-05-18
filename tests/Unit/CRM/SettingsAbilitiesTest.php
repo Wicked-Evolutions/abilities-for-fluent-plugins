@@ -30,6 +30,7 @@ class FluentCRMSettingsAbilitiesTest extends TestCase {
 		'fluent-crm/get-experiments-config'             => 'read',
 		'fluent-crm/update-experiments-config'          => 'write',
 		'fluent-crm/list-experiments-campaigns'         => 'read',
+		'fluent-crm/get-system-logs'                    => 'read',
 		'fluent-crm/get-cron-status'                    => 'read',
 		'fluent-crm/get-old-logs'                       => 'read',
 		'fluent-crm/get-abandon-cart-settings'          => 'read',

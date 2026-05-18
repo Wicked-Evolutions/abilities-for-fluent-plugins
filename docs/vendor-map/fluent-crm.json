@@ -863,6 +863,23 @@
       "doc": "installed vendor source: TemplateController::template (route GET /templates/{id}; registrar cited 'getTemplate' = V4 drift; vendor Template::find() silent-null source)"
     },
     {
+      "ability": "fluent-crm/get-system-logs",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "SystemLogController::index (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (logs (paginator))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe).",
+      "doc": "installed vendor source: SystemLogController::index (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)"
+    },
+    {
       "ability": "fluent-crm/get-report-top-campaigns",
       "vendor": "fluent-crm",
       "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
