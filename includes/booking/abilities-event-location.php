@@ -129,7 +129,16 @@ function fluent_booking_register_event_location_abilities() {
 
 			if ( isset( $input['location_settings'] ) ) {
 				$settings = is_array( $input['location_settings'] ) ? $input['location_settings'] : (array) $input['location_settings'];
-				$update['location_settings'] = maybe_serialize( $settings );
+				// V3: assign the plain array. Vendor CalendarSlot::
+				// setLocationSettingsAttribute() maybe_serialize()s on set and
+				// getLocationSettingsAttribute() maybe_unserialize()s on read
+				// (installed FluentBooking app/Models/CalendarSlot.php:80-87).
+				// Pre-serializing here passed an already-serialized string into
+				// the mutator → double-serialize; the vendor read then returned
+				// a string and vendor count( $this->location_settings ) fataled
+				// (PHP 8.3) → FluentBooking front-end calendar 500. Let the
+				// vendor mutator perform the single canonical serialization.
+				$update['location_settings'] = $settings;
 			}
 
 			$event->fill( $update );

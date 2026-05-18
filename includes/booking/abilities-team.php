@@ -171,7 +171,12 @@ function fluent_booking_register_team_abilities() {
 			if ( ! in_array( $user_id, $existing_ids, true ) ) {
 				$members[] = $user_id;
 				$settings['team_members'] = $members;
-				$event->settings = maybe_serialize( $settings );
+				// V3: plain array — vendor CalendarSlot::setSettingsAttribute()
+				// maybe_serialize()s on set / getSettingsAttribute()
+				// maybe_unserialize()s on read. Pre-serializing double-serialized
+				// via the mutator (same class as the location_settings #106
+				// crash: vendor count() on a string → PHP 8.3 fatal / 500).
+				$event->settings = $settings;
 				$event->save();
 			}
 
@@ -231,7 +236,9 @@ function fluent_booking_register_team_abilities() {
 			}
 
 			$settings['team_members'] = $filtered;
-			$event->settings = maybe_serialize( $settings );
+			// V3: plain array — vendor CalendarSlot::setSettingsAttribute()
+			// serializes on set (see #106 crash class).
+			$event->settings = $settings;
 			$event->save();
 
 			return array(
@@ -328,7 +335,10 @@ function fluent_booking_register_team_abilities() {
 			$settings = maybe_unserialize( $calendar->settings ?? '' );
 			$settings = is_array( $settings ) ? $settings : array();
 			$settings['team_hosts'] = $user_ids;
-			$calendar->settings = maybe_serialize( $settings );
+			// V3: plain array — vendor Calendar::setSettingsAttribute()
+			// maybe_serialize()s on set / getSettingsAttribute() on read
+			// (#106 crash class). Pre-serializing double-serialized.
+			$calendar->settings = $settings;
 			$calendar->save();
 
 			return array(

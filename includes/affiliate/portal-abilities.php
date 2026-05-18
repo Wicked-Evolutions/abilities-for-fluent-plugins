@@ -326,7 +326,16 @@ add_action( 'wp_abilities_api_init', function() {
 				$settings['disable_new_ref_email'] = ! empty( $input['disable_new_ref_email'] ) ? 'yes' : 'no';
 			}
 
-			$affiliate->settings = maybe_serialize( $settings );
+			// V3: assign the plain array. Vendor Affiliate::
+			// setSettingsAttribute() wp_parse_args()+maybe_serialize()s an
+			// array on set and getSettingsAttribute() unserializes on read
+			// (installed FluentAffiliate app/Models/Affiliate.php:35-68).
+			// Pre-serializing passed a STRING into the mutator → its
+			// is_array() guard failed → the else branch discarded every
+			// submitted value and stored defaults only (silent settings
+			// data-loss); same V3 vendor-mutator-bypass root cause as the
+			// #106 location_settings double-serialize crash class.
+			$affiliate->settings = $settings;
 			$affiliate->save();
 
 			return array(
