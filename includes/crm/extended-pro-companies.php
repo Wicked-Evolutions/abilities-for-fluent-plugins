@@ -286,10 +286,24 @@ function fluent_abilities_crm_register_extended_pro_companies() {
 		'output_schema' => fluent_abilities_schema_item_output(),
 		'callback'      => function ( $input ) use ( $proxy ) {
 			$id = (int) ( $input['id'] ?? 0 );
-			unset( $input['id'] );
+			// Vendor CompanyController::addNote validates $request->get('note')
+			// with title|description|type all `required` (installed source:
+			// fluent-crm/app/Http/Controllers/CompanyController.php:730-737;
+			// route api.php:497 POST companies/{id}/notes -> addNote, not the
+			// stale `createNote` citation). A flat body made
+			// $request->get('note') === null -> Validator::__construct(null)
+			// TypeError. Wrap the documented `note` payload; the vendor
+			// Sanitize::contactNote() sanitises it server-side. Defaults keep
+			// the existing input contract (only id+description required) while
+			// satisfying the vendor's required title/type.
+			$note = array(
+				'title'       => ( isset( $input['title'] ) && '' !== (string) $input['title'] ) ? (string) $input['title'] : 'Note',
+				'description' => isset( $input['description'] ) ? (string) $input['description'] : '',
+				'type'        => ( isset( $input['type'] ) && '' !== (string) $input['type'] ) ? (string) $input['type'] : 'note',
+			);
 			// V10: convert vendor-side TypeError into a typed WP_Error (P-K pattern).
 			try {
-				return $proxy( 'POST', '/fluent-crm/v2/companies/' . $id . '/notes', $input );
+				return $proxy( 'POST', '/fluent-crm/v2/companies/' . $id . '/notes', array( 'note' => $note ) );
 			} catch ( \Throwable $e ) {
 				return new WP_Error( 'vendor_precondition_failed', 'FluentCRM create-company-note failed: ' . $e->getMessage() );
 			}
