@@ -319,11 +319,23 @@ add_action( 'wp_abilities_api_init', function() {
 		'annotations' => array( 'idempotent' => false ),
 		'callback'    => function( $input ) {
 			$price = intval( $input['price'] );
+			// The vendor ProductController::create persists via wp_insert_post(),
+			// which stamps post_date/post_date_gmt. Eloquent Product::create()
+			// does not, leaving the WP posts row at the MySQL zero-date — which
+			// get-product surfaces as created_at "0000-00-00 00:00:00" (#100
+			// item 8). Set the post dates explicitly to match the vendor's
+			// wp_insert_post behaviour.
+			$now     = current_time( 'mysql' );
+			$now_gmt = current_time( 'mysql', true );
 			$product = \FluentCart\App\Models\Product::create( array(
-				'post_title'   => sanitize_text_field( $input['title'] ),
-				'post_content' => isset( $input['description'] ) ? sanitize_textarea_field( $input['description'] ) : '',
-				'post_status'  => sanitize_text_field( $input['status'] ?? 'draft' ),
-				'post_type'    => 'fct_product',
+				'post_title'    => sanitize_text_field( $input['title'] ),
+				'post_content'  => isset( $input['description'] ) ? sanitize_textarea_field( $input['description'] ) : '',
+				'post_status'   => sanitize_text_field( $input['status'] ?? 'draft' ),
+				'post_type'     => 'fct_product',
+				'post_date'     => $now,
+				'post_date_gmt' => $now_gmt,
+				'post_modified' => $now,
+				'post_modified_gmt' => $now_gmt,
 			) );
 			$fulfillment = sanitize_text_field( $input['product_type'] ?? 'digital' );
 			$detail      = \FluentCart\App\Models\ProductDetail::create( array(
