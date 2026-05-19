@@ -125,8 +125,55 @@ execution, NOT in this docs change):**
 - `wp_bridge_health` **resolves** dev2.
 
 STOP + report if any fails (Layer 2 is invalid on a non-parity /
-unlicensed / unreachable staging). Layer 2 remains non-gating; v1.4.0
+unreachable staging). Layer 2 remains non-gating; v1.4.0
 proceeds independently on Layer 1 (#111 merged).
+
+### 4.1 §4 license precondition — REVIEWER RATIFIED + AMENDED (issue #110, effective 2026-05-19)
+
+The literal "Fluent Pro suite license **ACTIVATED**" precondition is
+**superseded** by the following reviewer ruling (recorded J directive
+→ reviewer-ratified; Addendum 26 / 2026-05-18 #102 auth / #69
+ship-evidence lineage). This section is verbatim-faithful to the #110
+reviewer ruling.
+
+**(a) "Functional Pro = satisfied" — RATIFIED (ability/data surface only).**
+GATE-0 §4 "Fluent Pro suite ACTIVATED on dev2" is satisfied by (i)
+Pro add-on plugins active across the suite, AND (ii) functional proof
+— a Pro-surface read-back **through the vendor model** returns the
+persisted entity per product. This is RATIFIED **only because
+verification reads back THROUGH THE VENDOR MODEL**: that read-back IS
+the stub-vs-real discriminator. A license-stub / early-return persists
+nothing, so the vendor-model round-trip assertion fails honestly
+rather than false-greening. **Binding consequence:** any "ability
+returned `success` but the vendor-model read-back shows nothing
+persisted" is a **FAIL** (license-stub masking), never a pass.
+License-**key** registration (Fluent's updates/support gate, not
+feature execution) is NOT required for Layer-2 staging corroboration.
+The §4 STOP no longer includes an "unlicensed" condition; it remains
+STOP on non-parity / unreachable staging.
+
+**(b) External-action abilities — EXCLUDED from Layer 2 entirely (NOT
+license-gated).** Any ability whose callback reaches an **outbound
+third-party transport** is excluded from the staging round-trip:
+
+- SMS / voice gateway send;
+- payment processor charge / capture / refund;
+- live external calendar / CRM write-sync;
+- real email to a non-controlled address;
+- webhook delivery to a non-test endpoint.
+
+**Fail-safe default:** uncertain classification → **EXCLUDED** (do not
+fire a maybe-Stripe-charge to find out). Each excluded ability is
+recorded in the run report as **skipped-with-reason** — never silently
+omitted. Their registration / schema / crash-class is already covered
+by Layer 1 (#111); that suffices for release. Any future behavioral
+coverage of external-action abilities is a **separate, J-authorized
+sandboxed / provider-test-mode mechanism** — never the staging
+round-trip.
+
+This amendment pertains solely to the Layer-2 staging precondition.
+Layer 2 remains **non-gating** with **zero bearing on the Layer-1
+deterministic release gate (#111)**.
 
 ## 5. Explicit STOP (state of this docs change)
 
