@@ -126,10 +126,11 @@ verification, enumerated+recorded, not "any CRM state").
 | Field | Value (recorded at creation) |
 |---|---|
 | WP User ID | **174** (condition-6 fail-fast key) |
-| Login / email | `sprint_v2_canonical` / `sprint-v2-canonical@example.com` (RFC 2606 reserved → non-deliverable; `send_notification:false`) |
+| Login / email | `sprint_v2_canonical` / **`jacob+sprintv2canonical@willow.se`** (recorded condition-6 deliberate update — see rationale below; `send_notification:false` at create) |
 | Display name / marker | `[SPRINT-V2-TEST] canonical` |
-| WP user core attrs | id 174; username `sprint_v2_canonical`; email `sprint-v2-canonical@example.com`; display_name `[SPRINT-V2-TEST] canonical`; first_name `SPRINT-V2-TEST`; last_name `canonical`; roles `["subscriber"]`; registered `2026-05-19 06:26:09` |
-| FluentCRM contact (vendor auto-sync, deterministic at creation) | **id 720**; email `sprint-v2-canonical@example.com`; status `subscribed`; contact_type `lead` |
+| WP user core attrs | id 174; username `sprint_v2_canonical`; email `jacob+sprintv2canonical@willow.se`; display_name `[SPRINT-V2-TEST] canonical`; first_name `SPRINT-V2-TEST`; last_name `canonical`; roles `["subscriber"]`; registered `2026-05-19 06:26:09` |
+| FluentCRM contact (vendor auto-sync, deterministic at creation) | **id 720**; email `jacob+sprintv2canonical@willow.se` (cascaded by vendor auto-sync from the WP-user email change); status `subscribed`; contact_type `lead` |
+| **Canonical email rationale (J directive, recorded condition-6 update)** | Created at `sprint-v2-canonical@example.com` (non-deliverable), then deliberately updated to `jacob+sprintv2canonical@willow.se` per **J directive** — test emails delivered to J's controlled inbox; permitted under **§4(b) controlled-address criterion** (`willow.se` is J-controlled). Plus-addressed because `jacob@willow.se` itself is owned by admin user 48 on dev2 (WP unique-email); the plus-tag is unique yet delivers to the same J-controlled inbox. This is a **deliberate recorded GATE-0 update (condition 6)**, NOT a test-absorbed mutation; the new email IS the condition-3 baseline going forward. |
 | user_id ↔ contact link (field + value) | FluentCRM contact 720 `wp_user.id` **== 174** (the recorded link invariant) |
 | Auto-enrolled list | FluentCRM **list 5** "Introduction Willow Women Community" (slug `introduction-willow-women-community`) |
 | Host | `dev2.helenawillow.com` |
