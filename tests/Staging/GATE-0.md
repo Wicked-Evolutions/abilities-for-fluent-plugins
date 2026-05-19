@@ -109,6 +109,57 @@ this table becomes the run-start invariant for conditions 3 & 6:
 | Residue rule | Identity: whitelisted-of-one. Its associations: **strict** (condition 5). All other fixtures: **strict**. |
 | Recreate policy | **NO auto-recreate.** Missing/drifted at run start = setup failure; recreation = deliberate GATE-0 update only (condition 6). |
 
+### 3.1 Canonical FILLED provenance + vendor-auto footprint — REVIEWER DISPOSED (issue #110, 2026-05-19)
+
+The canonical fixture was created at Layer-2 execution and the
+reviewer **disposed** the vendor-auto footprint question: the
+FluentCRM contact + list membership that FluentCRM's WP-user→contact
+auto-sync deterministically spawns at creation instant (zero test
+action, respawns on any WP-user touch, IS the CRM representation the
+carve-out exists to provide) is **part of the declared baseline**, not
+residue to sweep. F-CRM-01 0-residue targets test-produced /
+accumulating / corruptible state — a vendor-deterministic 1:1 record
+is none. Folded into conditions 2/3/6 as a verified invariant, bounded
+exactly as the original carve-out (exempt from deletion, **never** from
+verification, enumerated+recorded, not "any CRM state").
+
+| Field | Value (recorded at creation) |
+|---|---|
+| WP User ID | **174** (condition-6 fail-fast key) |
+| Login / email | `sprint_v2_canonical` / `sprint-v2-canonical@example.com` (RFC 2606 reserved → non-deliverable; `send_notification:false`) |
+| Display name / marker | `[SPRINT-V2-TEST] canonical` |
+| WP user core attrs | id 174; username `sprint_v2_canonical`; email `sprint-v2-canonical@example.com`; display_name `[SPRINT-V2-TEST] canonical`; first_name `SPRINT-V2-TEST`; last_name `canonical`; roles `["subscriber"]`; registered `2026-05-19 06:26:09` |
+| FluentCRM contact (vendor auto-sync, deterministic at creation) | **id 720**; email `sprint-v2-canonical@example.com`; status `subscribed`; contact_type `lead` |
+| user_id ↔ contact link (field + value) | FluentCRM contact 720 `wp_user.id` **== 174** (the recorded link invariant) |
+| Auto-enrolled list | FluentCRM **list 5** "Introduction Willow Women Community" (slug `introduction-willow-women-community`) |
+| Host | `dev2.helenawillow.com` |
+| Created via | `users/create` (MCP ability, abilities-first, no SSH); contact 720 + list-5 = FluentCRM WP-user→contact auto-sync |
+| Created at | `2026-05-19 06:26:09` (WP) / `2026-05-19T07:26:09+01:00` (contact) |
+
+**Baseline-invariant snapshot** = `{user 174 core attrs}` ∪ `{contact
+720: email, linked user_id (==174), status}` ∪ `{list-5 membership
+present}`.
+
+- **Condition 2 (whitelist — now a CLOSED SET, not whitelist-of-one):**
+  `{WP user 174, FluentCRM contact 720, FluentCRM list-5 membership}`.
+  The residue sweep asserts **exactly these present + nothing else
+  persists** (every non-canonical fixture still swept to 0 residue).
+- **Condition 3 (positive integrity assertion, every run end):** user
+  174 attrs == baseline **AND** contact 720 exists + linked-to-174 +
+  core (email/linked user_id/status) == baseline **AND** list-5
+  present. Any mutation = **run failure** (F-CRM-01 class caught
+  deterministically).
+- **Condition 6 (fail-fast, NO auto-recreate):** contact 720 missing /
+  link drifted / list-5 absent / auto-sync produced a **different
+  id** at run start ⇒ **setup failure**. No silent recreate. A
+  vendor-upgrade-driven change is a deliberate recorded §3 update only.
+- **Condition 5 (reaffirmed, unchanged):** any list / sequence /
+  automation / segment / tag a **test** attaches to contact 720 is
+  **test-deliberate** → marker-scoped, detached-in-test,
+  residue-swept. The closed-set baseline covers only the
+  vendor-deterministic auto footprint, never test-produced
+  associations.
+
 ## 4. dev2 resolution + GATE-0 parity/license/bridge precondition
 
 dev2 is resolved: **`dev2.helenawillow.com`**, staging stood up and
