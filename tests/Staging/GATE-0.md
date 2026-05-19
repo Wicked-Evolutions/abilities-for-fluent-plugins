@@ -223,6 +223,42 @@ coverage of external-action abilities is a **separate, J-authorized
 sandboxed / provider-test-mode mechanism** — never the staging
 round-trip.
 
+#### 4.1(b).i Google-conditional — REVIEWER RATIFIED + BOUND (issue #110, effective 2026-05-19)
+
+The reviewer **RATIFIED** the Google-sync conditional as the §4(b)
+"separate per-provider J-authorized controlled-target mechanism"
+instantiated, and **BOUND** it with conditions 1–6 (F-CRM-01 /
+prod-touch lineage at **MAX severity** — a real client Google-calendar
+write is uncleanable). Verbatim-faithful to #110:
+
+1. **Controlled-test-Google-workspace-only** — Google writes only
+   against OUR controlled test Google workspace, marker-scoped
+   throwaway calendar/event fixtures; never the production /
+   client-facing workspace.
+2. **NEVER a real client booking — throwaway-fixture subjects only.**
+   If a Google-sync ability's scope can't be proven throwaway-only
+   (syncs "all" / date-range / unscoped) → **EXCLUDED, not run**;
+   uncertain → **excluded** (fail-safe). Do not fire a
+   maybe-real-client-calendar-write to discover scope.
+3. **Skip-with-reason recorded**, never silent, never an implicit
+   pass ("Google-conditional not exercised: <reason>").
+4. **Bidirectional containment** — the controlled test Google
+   workspace must be genuine isolated test infra that neither holds
+   nor mirrors real client calendar data inbound.
+5. **External-side teardown** — marker-scoped test events in the
+   controlled Google calendar are torn down; **0-residue extends
+   across the boundary** (the external test calendar is NOT a residue
+   exemption).
+6. **Google-only, no generalization** — Outlook / any other calendar /
+   every other external-action class stay categorically **excluded**
+   under unchanged §4(b).
+
+**(c) AFFIRMED:** in-scope = Fluent-suite + staging-DB behavior (the
+§4(a) functional-Pro surface); the exclusion set is unchanged verbatim
+(license / Twilio SMS-voice / Stripe-payment charge-capture-refund /
+webhooks-to-non-test / real-email-to-non-controlled); **Google is the
+sole contained boundary-crossing**, only under conditions 1–6.
+
 This amendment pertains solely to the Layer-2 staging precondition.
 Layer 2 remains **non-gating** with **zero bearing on the Layer-1
 deterministic release gate (#111)**.
