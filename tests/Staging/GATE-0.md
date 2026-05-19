@@ -89,6 +89,11 @@ read-back-absent + 0-residue as an explicit test postcondition.
 
 ## 3. Declared standing fixture (provenance) — VALUES PENDING CREATION
 
+> **SUPERSEDED by §3.1.** The generic TBD template below is retained for
+> history only. The operative condition-3 / condition-6 baseline is the
+> **filled, reviewer-disposed record in §3.1** (issue #110, 2026-05-19) —
+> not this placeholder table.
+
 The canonical user is **not yet created** in this docs change. On
 creation (via an MCP ability — abilities-first, no SSH user create) it
 is recorded here in the same commit as the first round-trip test, and
