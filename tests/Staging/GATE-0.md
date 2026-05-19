@@ -109,6 +109,58 @@ this table becomes the run-start invariant for conditions 3 & 6:
 | Residue rule | Identity: whitelisted-of-one. Its associations: **strict** (condition 5). All other fixtures: **strict**. |
 | Recreate policy | **NO auto-recreate.** Missing/drifted at run start = setup failure; recreation = deliberate GATE-0 update only (condition 6). |
 
+### 3.1 Canonical FILLED provenance + vendor-auto footprint — REVIEWER DISPOSED (issue #110, 2026-05-19)
+
+The canonical fixture was created at Layer-2 execution and the
+reviewer **disposed** the vendor-auto footprint question: the
+FluentCRM contact + list membership that FluentCRM's WP-user→contact
+auto-sync deterministically spawns at creation instant (zero test
+action, respawns on any WP-user touch, IS the CRM representation the
+carve-out exists to provide) is **part of the declared baseline**, not
+residue to sweep. F-CRM-01 0-residue targets test-produced /
+accumulating / corruptible state — a vendor-deterministic 1:1 record
+is none. Folded into conditions 2/3/6 as a verified invariant, bounded
+exactly as the original carve-out (exempt from deletion, **never** from
+verification, enumerated+recorded, not "any CRM state").
+
+| Field | Value (recorded at creation) |
+|---|---|
+| WP User ID | **174** (condition-6 fail-fast key) |
+| Login / email | `sprint_v2_canonical` / **`jacob+sprintv2canonical@willow.se`** (recorded condition-6 deliberate update — see rationale below; `send_notification:false` at create) |
+| Display name / marker | `[SPRINT-V2-TEST] canonical` |
+| WP user core attrs | id 174; username `sprint_v2_canonical`; email `jacob+sprintv2canonical@willow.se`; display_name `[SPRINT-V2-TEST] canonical`; first_name `SPRINT-V2-TEST`; last_name `canonical`; roles `["subscriber"]`; registered `2026-05-19 06:26:09` |
+| FluentCRM contact (vendor auto-sync, deterministic at creation) | **id 720**; email `jacob+sprintv2canonical@willow.se` (cascaded by vendor auto-sync from the WP-user email change); status `subscribed`; contact_type `lead` |
+| **Canonical email rationale (J directive, recorded condition-6 update)** | Created at `sprint-v2-canonical@example.com` (non-deliverable), then deliberately updated to `jacob+sprintv2canonical@willow.se` per **J directive** — test emails delivered to J's controlled inbox; permitted under **§4(b) controlled-address criterion** (`willow.se` is J-controlled). Plus-addressed because `jacob@willow.se` itself is owned by admin user 48 on dev2 (WP unique-email); the plus-tag is unique yet delivers to the same J-controlled inbox. This is a **deliberate recorded GATE-0 update (condition 6)**, NOT a test-absorbed mutation; the new email IS the condition-3 baseline going forward. |
+| user_id ↔ contact link (field + value) | FluentCRM contact 720 `wp_user.id` **== 174** (the recorded link invariant) |
+| Auto-enrolled list | FluentCRM **list 5** "Introduction Willow Women Community" (slug `introduction-willow-women-community`) |
+| Host | `dev2.helenawillow.com` |
+| Created via | `users/create` (MCP ability, abilities-first, no SSH); contact 720 + list-5 = FluentCRM WP-user→contact auto-sync |
+| Created at | `2026-05-19 06:26:09` (WP) / `2026-05-19T07:26:09+01:00` (contact) |
+
+**Baseline-invariant snapshot** = `{user 174 core attrs}` ∪ `{contact
+720: email, linked user_id (==174), status}` ∪ `{list-5 membership
+present}`.
+
+- **Condition 2 (whitelist — now a CLOSED SET, not whitelist-of-one):**
+  `{WP user 174, FluentCRM contact 720, FluentCRM list-5 membership}`.
+  The residue sweep asserts **exactly these present + nothing else
+  persists** (every non-canonical fixture still swept to 0 residue).
+- **Condition 3 (positive integrity assertion, every run end):** user
+  174 attrs == baseline **AND** contact 720 exists + linked-to-174 +
+  core (email/linked user_id/status) == baseline **AND** list-5
+  present. Any mutation = **run failure** (F-CRM-01 class caught
+  deterministically).
+- **Condition 6 (fail-fast, NO auto-recreate):** contact 720 missing /
+  link drifted / list-5 absent / auto-sync produced a **different
+  id** at run start ⇒ **setup failure**. No silent recreate. A
+  vendor-upgrade-driven change is a deliberate recorded §3 update only.
+- **Condition 5 (reaffirmed, unchanged):** any list / sequence /
+  automation / segment / tag a **test** attaches to contact 720 is
+  **test-deliberate** → marker-scoped, detached-in-test,
+  residue-swept. The closed-set baseline covers only the
+  vendor-deterministic auto footprint, never test-produced
+  associations.
+
 ## 4. dev2 resolution + GATE-0 parity/license/bridge precondition
 
 dev2 is resolved: **`dev2.helenawillow.com`**, staging stood up and
@@ -125,8 +177,91 @@ execution, NOT in this docs change):**
 - `wp_bridge_health` **resolves** dev2.
 
 STOP + report if any fails (Layer 2 is invalid on a non-parity /
-unlicensed / unreachable staging). Layer 2 remains non-gating; v1.4.0
+unreachable staging). Layer 2 remains non-gating; v1.4.0
 proceeds independently on Layer 1 (#111 merged).
+
+### 4.1 §4 license precondition — REVIEWER RATIFIED + AMENDED (issue #110, effective 2026-05-19)
+
+The literal "Fluent Pro suite license **ACTIVATED**" precondition is
+**superseded** by the following reviewer ruling (recorded J directive
+→ reviewer-ratified; Addendum 26 / 2026-05-18 #102 auth / #69
+ship-evidence lineage). This section is verbatim-faithful to the #110
+reviewer ruling.
+
+**(a) "Functional Pro = satisfied" — RATIFIED (ability/data surface only).**
+GATE-0 §4 "Fluent Pro suite ACTIVATED on dev2" is satisfied by (i)
+Pro add-on plugins active across the suite, AND (ii) functional proof
+— a Pro-surface read-back **through the vendor model** returns the
+persisted entity per product. This is RATIFIED **only because
+verification reads back THROUGH THE VENDOR MODEL**: that read-back IS
+the stub-vs-real discriminator. A license-stub / early-return persists
+nothing, so the vendor-model round-trip assertion fails honestly
+rather than false-greening. **Binding consequence:** any "ability
+returned `success` but the vendor-model read-back shows nothing
+persisted" is a **FAIL** (license-stub masking), never a pass.
+License-**key** registration (Fluent's updates/support gate, not
+feature execution) is NOT required for Layer-2 staging corroboration.
+The §4 STOP no longer includes an "unlicensed" condition; it remains
+STOP on non-parity / unreachable staging.
+
+**(b) External-action abilities — EXCLUDED from Layer 2 entirely (NOT
+license-gated).** Any ability whose callback reaches an **outbound
+third-party transport** is excluded from the staging round-trip:
+
+- SMS / voice gateway send;
+- payment processor charge / capture / refund;
+- live external calendar / CRM write-sync;
+- real email to a non-controlled address;
+- webhook delivery to a non-test endpoint.
+
+**Fail-safe default:** uncertain classification → **EXCLUDED** (do not
+fire a maybe-Stripe-charge to find out). Each excluded ability is
+recorded in the run report as **skipped-with-reason** — never silently
+omitted. Their registration / schema / crash-class is already covered
+by Layer 1 (#111); that suffices for release. Any future behavioral
+coverage of external-action abilities is a **separate, J-authorized
+sandboxed / provider-test-mode mechanism** — never the staging
+round-trip.
+
+#### 4.1(b).i Google-conditional — REVIEWER RATIFIED + BOUND (issue #110, effective 2026-05-19)
+
+The reviewer **RATIFIED** the Google-sync conditional as the §4(b)
+"separate per-provider J-authorized controlled-target mechanism"
+instantiated, and **BOUND** it with conditions 1–6 (F-CRM-01 /
+prod-touch lineage at **MAX severity** — a real client Google-calendar
+write is uncleanable). Verbatim-faithful to #110:
+
+1. **Controlled-test-Google-workspace-only** — Google writes only
+   against OUR controlled test Google workspace, marker-scoped
+   throwaway calendar/event fixtures; never the production /
+   client-facing workspace.
+2. **NEVER a real client booking — throwaway-fixture subjects only.**
+   If a Google-sync ability's scope can't be proven throwaway-only
+   (syncs "all" / date-range / unscoped) → **EXCLUDED, not run**;
+   uncertain → **excluded** (fail-safe). Do not fire a
+   maybe-real-client-calendar-write to discover scope.
+3. **Skip-with-reason recorded**, never silent, never an implicit
+   pass ("Google-conditional not exercised: <reason>").
+4. **Bidirectional containment** — the controlled test Google
+   workspace must be genuine isolated test infra that neither holds
+   nor mirrors real client calendar data inbound.
+5. **External-side teardown** — marker-scoped test events in the
+   controlled Google calendar are torn down; **0-residue extends
+   across the boundary** (the external test calendar is NOT a residue
+   exemption).
+6. **Google-only, no generalization** — Outlook / any other calendar /
+   every other external-action class stay categorically **excluded**
+   under unchanged §4(b).
+
+**(c) AFFIRMED:** in-scope = Fluent-suite + staging-DB behavior (the
+§4(a) functional-Pro surface); the exclusion set is unchanged verbatim
+(license / Twilio SMS-voice / Stripe-payment charge-capture-refund /
+webhooks-to-non-test / real-email-to-non-controlled); **Google is the
+sole contained boundary-crossing**, only under conditions 1–6.
+
+This amendment pertains solely to the Layer-2 staging precondition.
+Layer 2 remains **non-gating** with **zero bearing on the Layer-1
+deterministic release gate (#111)**.
 
 ## 5. Explicit STOP (state of this docs change)
 
