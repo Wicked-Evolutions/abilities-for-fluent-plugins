@@ -398,7 +398,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-crm/attach-tag', array(
 		'label'       => 'Attach Tag to Contact',
-		'description' => 'Attach one or more tags to a contact.',
+		'description' => 'Attach one or more tags to a contact. Note: `tag_ids` must be a comma-separated string (e.g. "5,8,12"), not a JSON array — the handler splits it via explode(",", ...).',
 		'category'    => 'fluent-crm',
 		'input_schema' => array(
 			'type'       => 'object',
@@ -427,7 +427,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-crm/detach-tag', array(
 		'label'       => 'Detach Tag from Contact',
-		'description' => 'Remove one or more tags from a contact.',
+		'description' => 'Remove one or more tags from a contact. Note: `tag_ids` must be a comma-separated string (e.g. "5,8,12"), not a JSON array — the handler splits it via explode(",", ...).',
 		'category'    => 'fluent-crm',
 		'input_schema' => array(
 			'type'       => 'object',
@@ -562,7 +562,7 @@ add_action( 'wp_abilities_api_init', function() {
 			'subject'      => array( 'type' => array( 'string', 'null' ) ),
 			'status'       => array( 'type' => 'string' ),
 			'type'         => array( 'type' => 'string' ),
-			'scheduled_at' => array( 'type' => 'string' ),
+			'scheduled_at' => array( 'type' => array( 'string', 'null' ) ),
 			'created_at'   => array( 'type' => 'string' ),
 		) ),
 		'callback' => function( $input ) {
@@ -675,7 +675,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-crm/update-campaign', array(
 		'label'       => 'Update CRM Campaign',
-		'description' => 'Update a draft campaign title, subject, body, or UTM parameters. Only draft campaigns can be updated — live/scheduled campaigns will be rejected.',
+		'description' => 'Update a draft campaign title, subject, body, or UTM parameters. Only draft campaigns can be updated — live/scheduled campaigns will be rejected. Note: the identifying field is `campaign_id` (not `id`). Source: \FluentCrm\App\Models\Campaign::find/fill/save.',
 		'category'    => 'fluent-crm',
 		'input_schema' => array(
 			'type'       => 'object',
@@ -2519,160 +2519,6 @@ add_action( 'wp_abilities_api_init', function() {
 	// JOURNEY & FUNNEL ANALYTICS
 	// =========================================================================
 
-	$reg->read( 'fluent-crm/get-contact-journey', array(
-		'label'       => 'Get Contact Journey',
-		'description' => 'Get a unified timeline of a contact\'s journey: tag applications, list assignments, email sends/opens/clicks, automation steps, custom events, and notes. Sorted chronologically.',
-		'category'    => 'fluent-crm',
-		'input_schema' => array(
-			'type'       => 'object',
-			'required'   => array( 'contact_id' ),
-			'properties' => array(
-				'contact_id' => array( 'type' => 'integer', 'description' => 'Contact/subscriber ID' ),
-				'limit'      => array( 'type' => 'integer', 'description' => 'Max events to return (default: 100)' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_item_output( array(
-			'contact_id'    => array( 'type' => 'integer' ),
-			'email'         => array( 'type' => 'string' ),
-			'journey'       => array( 'type' => 'array', 'items' => array( 'type' => 'object' ) ),
-			'total_entries' => array( 'type' => 'integer' ),
-		) ),
-		'callback' => function( $input ) {
-			$contact_id = intval( $input['contact_id'] );
-			$limit      = isset( $input['limit'] ) ? min( intval( $input['limit'] ), 500 ) : 100;
-
-			global $wpdb;
-			$events = array();
-
-			// 1. Tag/list applications from pivot table
-			$pivot_table = $wpdb->prefix . 'fc_subscriber_pivot';
-			$pivots = $wpdb->get_results( $wpdb->prepare(
-				"SELECT p.object_type, p.object_id, p.created_at,
-					CASE
-						WHEN p.object_type LIKE '%%Tag' THEN t.title
-						WHEN p.object_type LIKE '%%Lists' THEN l.title
-						ELSE NULL
-					END as object_title
-				FROM {$pivot_table} p
-				LEFT JOIN {$wpdb->prefix}fc_tags t ON p.object_type LIKE '%%Tag' AND p.object_id = t.id
-				LEFT JOIN {$wpdb->prefix}fc_lists l ON p.object_type LIKE '%%Lists' AND p.object_id = l.id
-				WHERE p.subscriber_id = %d
-				ORDER BY p.created_at DESC",
-				$contact_id
-			) );
-
-			foreach ( $pivots as $p ) {
-				$type = strpos( $p->object_type, 'Tag' ) !== false ? 'tag_applied' : 'list_added';
-				$events[] = array(
-					'type'       => $type,
-					'title'      => $p->object_title,
-					'object_id'  => (int) $p->object_id,
-					'created_at' => (string) $p->created_at,
-				);
-			}
-
-			// 2. Email sends/opens/clicks
-			$emails_table = $wpdb->prefix . 'fc_campaign_emails';
-			$emails = $wpdb->get_results( $wpdb->prepare(
-				"SELECT campaign_id, email_type, email_subject, status, is_open, click_counter, scheduled_at, created_at
-				FROM {$emails_table}
-				WHERE subscriber_id = %d
-				ORDER BY created_at DESC",
-				$contact_id
-			) );
-
-			foreach ( $emails as $e ) {
-				$events[] = array(
-					'type'         => 'email_' . $e->status,
-					'title'        => $e->email_subject,
-					'campaign_id'  => (int) $e->campaign_id,
-					'email_type'   => $e->email_type,
-					'is_open'      => (bool) $e->is_open,
-					'click_counter'  => (int) $e->click_counter,
-					'created_at'   => (string) $e->created_at,
-				);
-			}
-
-			// 3. Automation/funnel steps
-			$funnel_table = $wpdb->prefix . 'fc_funnel_metrics';
-			if ( $wpdb->get_var( "SHOW TABLES LIKE '{$funnel_table}'" ) ) {
-				$funnel_steps = $wpdb->get_results( $wpdb->prepare(
-					"SELECT fm.funnel_id, fm.action_id, fm.status, fm.created_at, f.title as funnel_title
-					FROM {$funnel_table} fm
-					LEFT JOIN {$wpdb->prefix}fc_funnels f ON fm.funnel_id = f.id
-					WHERE fm.subscriber_id = %d
-					ORDER BY fm.created_at DESC",
-					$contact_id
-				) );
-
-				foreach ( $funnel_steps as $fs ) {
-					$events[] = array(
-						'type'        => 'automation_' . $fs->status,
-						'title'       => $fs->funnel_title,
-						'funnel_id'   => (int) $fs->funnel_id,
-						'action_id'   => (int) $fs->action_id,
-						'created_at'  => (string) $fs->created_at,
-					);
-				}
-			}
-
-			// 4. Custom events
-			$event_table = $wpdb->prefix . 'fc_event_tracking';
-			if ( $wpdb->get_var( "SHOW TABLES LIKE '{$event_table}'" ) ) {
-				$custom_events = $wpdb->get_results( $wpdb->prepare(
-					"SELECT event_key, title, value, counter, provider, created_at
-					FROM {$event_table}
-					WHERE subscriber_id = %d
-					ORDER BY created_at DESC",
-					$contact_id
-				) );
-
-				foreach ( $custom_events as $ce ) {
-					$events[] = array(
-						'type'       => 'custom_event',
-						'title'      => $ce->title,
-						'event_key'  => $ce->event_key,
-						'value'      => $ce->value,
-						'counter'    => (int) $ce->counter,
-						'provider'   => $ce->provider,
-						'created_at' => (string) $ce->created_at,
-					);
-				}
-			}
-
-			// 5. Notes
-			$notes_table = $wpdb->prefix . 'fc_subscriber_notes';
-			$notes = $wpdb->get_results( $wpdb->prepare(
-				"SELECT title, description, type, created_at
-				FROM {$notes_table}
-				WHERE subscriber_id = %d
-				ORDER BY created_at DESC",
-				$contact_id
-			) );
-
-			foreach ( $notes as $n ) {
-				$events[] = array(
-					'type'        => 'note_' . $n->type,
-					'title'       => $n->title,
-					'description' => $n->description,
-					'created_at'  => (string) $n->created_at,
-				);
-			}
-
-			// Sort all events by created_at descending
-			usort( $events, function( $a, $b ) {
-				return strcmp( $b['created_at'] ?? '', $a['created_at'] ?? '' );
-			});
-
-			$events = array_slice( $events, 0, $limit );
-
-			return array(
-				'contact_id'   => $contact_id,
-				'events'       => $events,
-				'total_events' => count( $events ),
-			);
-		},
-	));
 
 	$reg->read( 'fluent-crm/get-automation-metrics', array(
 		'label'       => 'Get Automation Metrics',

@@ -3,7 +3,7 @@
  * Plugin Name: Abilities for Fluent Plugins
  * Plugin URI:  https://github.com/Wicked-Evolutions/abilities-for-fluent-plugins
  * Description: WordPress Abilities API integration for the Fluent plugin ecosystem — CRM, Community, Forms, Support, Boards, Booking, SMTP, Auth, Snippets, Messaging, Cart, and Affiliate. Conditional module loading: only registers abilities for active Fluent products. This is an independent plugin and is not affiliated with or endorsed by WPManageNinja.
- * Version: 1.1.3
+ * Version: 1.4.0
  * Author: Wicked Evolutions
  * Author URI: https://wickedevolutions.com
  * License: GPL-2.0-or-later
@@ -17,7 +17,7 @@ defined( 'ABSPATH' ) || exit;
 
 // Plugin constants (guarded — WordPress updater can re-include this file).
 if ( ! defined( 'FLUENT_ABILITIES_VERSION' ) ) {
-	define( 'FLUENT_ABILITIES_VERSION', '1.1.3' );
+	define( 'FLUENT_ABILITIES_VERSION', '1.4.0' );
 }
 if ( ! defined( 'FLUENT_ABILITIES_PATH' ) ) {
 	define( 'FLUENT_ABILITIES_PATH', plugin_dir_path( __FILE__ ) );
@@ -118,6 +118,7 @@ add_action( 'plugins_loaded', function() {
 		'messaging'  => 'FLUENT_MESSAGING_CHAT_VERSION',
 		'cart'       => 'FLUENTCART_VERSION',
 		'affiliate'  => 'FLUENT_AFFILIATE_VERSION',
+		'player'     => 'FLUENT_PLAYER_VERSION',
 	);
 
 	// Get user-configured module toggles (Security Layer 1).
@@ -168,6 +169,33 @@ add_action( 'plugins_loaded', function() {
 						require_once $sub_file;
 					}
 				}
+
+				// Load extended Bookings ability sub-files (Phase B Bookings Registrar — v2.0.0).
+				foreach ( array(
+					'abilities-booking-meta',
+					'abilities-calendar-integrations',
+					'abilities-calendar-meta',
+					'abilities-coupons',
+					'abilities-event-config',
+					'abilities-event-location',
+					'abilities-global-settings',
+					'abilities-import',
+					'abilities-license',
+					'abilities-multi-host',
+					'abilities-orders',
+					'abilities-permissions',
+					'abilities-reports',
+					'abilities-reschedule',
+					'abilities-slots',
+					'abilities-team',
+					'abilities-webhooks',
+					'abilities-zoom-twilio',
+				) as $sub ) {
+					$sub_file = FLUENT_ABILITIES_PATH . "includes/booking/{$sub}.php";
+					if ( file_exists( $sub_file ) ) {
+						require_once $sub_file;
+					}
+				}
 			}
 
 			// Load cohort analysis abilities when CRM module is active.
@@ -183,6 +211,42 @@ add_action( 'plugins_loaded', function() {
 				$advanced_query_file = FLUENT_ABILITIES_PATH . 'includes/crm/advanced-query-abilities.php';
 				if ( file_exists( $advanced_query_file ) ) {
 					require_once $advanced_query_file;
+				}
+
+				// Load extended CRM ability sub-files (Phase B CRM Registrar — v2.0.0).
+				foreach ( array(
+					'extended-campaigns',
+					'extended-funnels',
+					'extended-misc-medium',
+					'extended-misc-small',
+					'extended-pro-companies',
+					'extended-pro-marketing',
+					'extended-pro-settings-and-commerce',
+					'extended-reports',
+					'extended-settings',
+					'extended-subscribers',
+					'extended-templates-and-patterns',
+				) as $sub ) {
+					$sub_file = FLUENT_ABILITIES_PATH . "includes/crm/{$sub}.php";
+					if ( file_exists( $sub_file ) ) {
+						require_once $sub_file;
+					}
+				}
+			}
+
+			// Load v2 ability sub-file when Community module is active (Phase B Community Registrar — v2.0.0).
+			if ( 'community' === $module ) {
+				$community_v2_file = FLUENT_ABILITIES_PATH . 'includes/community/abilities-v2.php';
+				if ( file_exists( $community_v2_file ) ) {
+					require_once $community_v2_file;
+				}
+			}
+
+			// Load v2 ability sub-file when Messaging module is active (Phase B Community Registrar — v2.0.0).
+			if ( 'messaging' === $module ) {
+				$messaging_v2_file = FLUENT_ABILITIES_PATH . 'includes/messaging/abilities-v2.php';
+				if ( file_exists( $messaging_v2_file ) ) {
+					require_once $messaging_v2_file;
 				}
 			}
 		}

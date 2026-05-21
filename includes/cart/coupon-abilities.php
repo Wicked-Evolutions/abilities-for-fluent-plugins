@@ -132,7 +132,7 @@ add_action( 'wp_abilities_api_init', function() {
 			'amount'           => array( 'type' => 'number' ),
 			'status'           => array( 'type' => 'string' ),
 			'priority'         => array( 'type' => array( 'integer', 'null' ) ),
-			'conditions'       => array( 'type' => array( 'string', 'null' ) ),
+			'conditions'       => array( 'type' => array( 'object', 'array', 'string', 'null' ) ),
 			'use_count'        => array( 'type' => array( 'integer', 'null' ) ),
 			'stackable'        => array( 'type' => 'string' ),
 			'show_on_checkout' => array( 'type' => 'string' ),

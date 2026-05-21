@@ -1,0 +1,377 @@
+{
+  "_doc": "FluentBoards vendor-map per PRINCIPLES-VENDOR.md V11. One row per touched ability. Populated incrementally as fix packages land. Drift detector, not a perfect proof.",
+  "vendor": "fluent-boards",
+  "abilities": [
+    {
+      "ability": "fluent-boards/delete-board",
+      "vendor": "fluent-boards",
+      "vendor_version_checked": "1.5.0",
+      "authority": "direct_storage",
+      "method": null,
+      "endpoint": null,
+      "canonical_handler": "wpFluent()->table('fbs_boards|fbs_tasks|fbs_relations|fbs_board_terms|fbs_activities|fbs_comments') cascade delete",
+      "direct_storage": true,
+      "direct_storage_rationale": "Vendor exposes no public delete-board service or REST handler; FluentBoards admin UI builds the same cascade in JS. Pre-existing Phase B decision; Package 2 only addresses the V5 Collection coercion at the array_map sites in the cascade.",
+      "destructive": true,
+      "principles": [
+        "V5"
+      ],
+      "package": 2,
+      "pattern": "P-A",
+      "notes": "Package 2 V5 fix: array_map on the wpFluent Collection result raised PHP TypeError. Registrar now coerces via fluent_abilities_to_array() before array_map (1 of 11 P-A sites).",
+      "doc": "installed vendor source: wpFluent()->table('fbs_boards|fbs_tasks|fbs_relations|fbs_board_terms|fbs_activities|fbs_comments') cascade delete",
+      "rationale": "Vendor wpFluent Collection result is consumed directly (no documented vendor REST/service wrapper at this level); registrar coerces the Collection via fluent_abilities_to_array() before array_map (V5 boundary), so raw storage access is the existing vendor-source path, unchanged by this fix.",
+      "read_back": "N/A — P-A V5 response-shape boundary coerce only (no state-change write / carry-forward)"
+    },
+    {
+      "ability": "fluent-boards/delete-task",
+      "vendor": "fluent-boards",
+      "vendor_version_checked": "1.5.0",
+      "authority": "direct_storage",
+      "direct_storage": true,
+      "direct_storage_rationale": "Same as delete-board — direct table cascade; no documented vendor service for task deletion in the installed source.",
+      "destructive": true,
+      "principles": [
+        "V5"
+      ],
+      "package": 2,
+      "pattern": "P-A",
+      "notes": "Package 2 V5 fix: subtask-id Collection coerced via fluent_abilities_to_array() before array_map (2 of 11 P-A sites).",
+      "doc": "installed vendor source on helenawillow probe (incidental test surface); see notes",
+      "rationale": "Vendor wpFluent Collection result is consumed directly (no documented vendor REST/service wrapper at this level); registrar coerces the Collection via fluent_abilities_to_array() before array_map (V5 boundary), so raw storage access is the existing vendor-source path, unchanged by this fix.",
+      "read_back": "N/A — P-A V5 response-shape boundary coerce only (no state-change write / carry-forward)"
+    },
+    {
+      "ability": "fluent-boards/bulk-delete-tasks",
+      "vendor": "fluent-boards",
+      "vendor_version_checked": "1.5.0",
+      "authority": "direct_storage",
+      "direct_storage": true,
+      "direct_storage_rationale": "Direct table cascade; same family as delete-task.",
+      "destructive": true,
+      "principles": [
+        "V5"
+      ],
+      "package": 2,
+      "pattern": "P-A",
+      "notes": "Package 2 V5 fix: existing-task Collection coerced before array_map (3 of 11 P-A sites).",
+      "doc": "installed vendor source on helenawillow probe (incidental test surface); see notes",
+      "rationale": "Vendor wpFluent Collection result is consumed directly (no documented vendor REST/service wrapper at this level); registrar coerces the Collection via fluent_abilities_to_array() before array_map (V5 boundary), so raw storage access is the existing vendor-source path, unchanged by this fix.",
+      "read_back": "N/A — P-A V5 response-shape boundary coerce only (no state-change write / carry-forward)"
+    },
+    {
+      "ability": "fluent-boards/list-board-assignees",
+      "vendor": "fluent-boards",
+      "vendor_version_checked": "1.5.0",
+      "authority": "direct_storage",
+      "direct_storage": true,
+      "direct_storage_rationale": "Read aggregate over fbs_tasks + fbs_relations.",
+      "destructive": false,
+      "principles": [
+        "V5"
+      ],
+      "package": 2,
+      "pattern": "P-A",
+      "notes": "Package 2 V5 fix: task-id Collection coerced before array_map (5 of 11 P-A sites).",
+      "doc": "installed vendor source on helenawillow probe (incidental test surface); see notes",
+      "rationale": "Vendor wpFluent Collection result is consumed directly (no documented vendor REST/service wrapper at this level); registrar coerces the Collection via fluent_abilities_to_array() before array_map (V5 boundary), so raw storage access is the existing vendor-source path, unchanged by this fix."
+    },
+    {
+      "ability": "fluent-boards/list-member-boards",
+      "vendor": "fluent-boards",
+      "vendor_version_checked": "1.5.0",
+      "authority": "direct_storage",
+      "direct_storage": true,
+      "direct_storage_rationale": "Read aggregate over fbs_relations + fbs_boards.",
+      "destructive": false,
+      "principles": [
+        "V5"
+      ],
+      "package": 2,
+      "pattern": "P-A",
+      "notes": "Package 2 V5 fix: relations Collection coerced before array_map (6 of 11 P-A sites).",
+      "doc": "installed vendor source on helenawillow probe (incidental test surface); see notes",
+      "rationale": "Vendor wpFluent Collection result is consumed directly (no documented vendor REST/service wrapper at this level); registrar coerces the Collection via fluent_abilities_to_array() before array_map (V5 boundary), so raw storage access is the existing vendor-source path, unchanged by this fix."
+    },
+    {
+      "ability": "fluent-boards/list-member-tasks",
+      "vendor": "fluent-boards",
+      "vendor_version_checked": "1.5.0",
+      "authority": "direct_storage",
+      "direct_storage": true,
+      "direct_storage_rationale": "Read aggregate over fbs_relations + fbs_tasks.",
+      "destructive": false,
+      "principles": [
+        "V5"
+      ],
+      "package": 2,
+      "pattern": "P-A",
+      "notes": "Package 2 V5 fix: relations Collection coerced before array_map (7 of 11 P-A sites).",
+      "doc": "installed vendor source on helenawillow probe (incidental test surface); see notes",
+      "rationale": "Vendor wpFluent Collection result is consumed directly (no documented vendor REST/service wrapper at this level); registrar coerces the Collection via fluent_abilities_to_array() before array_map (V5 boundary), so raw storage access is the existing vendor-source path, unchanged by this fix."
+    },
+    {
+      "ability": "fluent-boards/list-member-associated-users",
+      "vendor": "fluent-boards",
+      "vendor_version_checked": "1.5.0",
+      "authority": "direct_storage",
+      "direct_storage": true,
+      "direct_storage_rationale": "Read aggregate over fbs_relations (shared-board co-occurrence).",
+      "destructive": false,
+      "principles": [
+        "V5"
+      ],
+      "package": 2,
+      "pattern": "P-A",
+      "notes": "Package 2 V5 fix: relations Collection coerced before array_map (8 of 11 P-A sites).",
+      "doc": "installed vendor source on helenawillow probe (incidental test surface); see notes",
+      "rationale": "Vendor wpFluent Collection result is consumed directly (no documented vendor REST/service wrapper at this level); registrar coerces the Collection via fluent_abilities_to_array() before array_map (V5 boundary), so raw storage access is the existing vendor-source path, unchanged by this fix."
+    },
+    {
+      "ability": "fluent-boards/list-manager-team-users",
+      "vendor": "fluent-boards",
+      "vendor_version_checked": "1.5.0",
+      "authority": "direct_storage",
+      "direct_storage": true,
+      "direct_storage_rationale": "Read aggregate over fbs_metas (org_manager) + fbs_relations.",
+      "destructive": false,
+      "principles": [
+        "V5"
+      ],
+      "package": 2,
+      "pattern": "P-A",
+      "notes": "Package 2 V5 fix: manager-boards Collection coerced before array_map (9 of 11 P-A sites).",
+      "doc": "installed vendor source on helenawillow probe (incidental test surface); see notes",
+      "rationale": "Vendor wpFluent Collection result is consumed directly (no documented vendor REST/service wrapper at this level); registrar coerces the Collection via fluent_abilities_to_array() before array_map (V5 boundary), so raw storage access is the existing vendor-source path, unchanged by this fix."
+    },
+    {
+      "ability": "fluent-boards/list-crm-associated-boards",
+      "vendor": "fluent-boards",
+      "vendor_version_checked": "1.5.0",
+      "authority": "direct_storage",
+      "direct_storage": true,
+      "direct_storage_rationale": "Read aggregate over fbs_metas (crm_board_link).",
+      "destructive": false,
+      "principles": [
+        "V5"
+      ],
+      "package": 2,
+      "pattern": "P-A",
+      "notes": "Package 2 V5 fix: meta-rows Collection coerced before array_map (10 of 11 P-A sites).",
+      "doc": "installed vendor source on helenawillow probe (incidental test surface); see notes",
+      "rationale": "Vendor wpFluent Collection result is consumed directly (no documented vendor REST/service wrapper at this level); registrar coerces the Collection via fluent_abilities_to_array() before array_map (V5 boundary), so raw storage access is the existing vendor-source path, unchanged by this fix."
+    },
+    {
+      "ability": "fluent-boards/remove-board-member",
+      "vendor": "fluent-boards",
+      "vendor_version_checked": "1.5.0",
+      "authority": "direct_storage",
+      "direct_storage": true,
+      "direct_storage_rationale": "Direct table delete on fbs_relations + cascade through task-level assignments.",
+      "destructive": true,
+      "principles": [
+        "V5"
+      ],
+      "package": 2,
+      "pattern": "P-A",
+      "notes": "Package 2 V5 fix: task-ids Collection coerced before array_map (11 of 11 P-A sites).",
+      "doc": "installed vendor source on helenawillow probe (incidental test surface); see notes",
+      "rationale": "Vendor wpFluent Collection result is consumed directly (no documented vendor REST/service wrapper at this level); registrar coerces the Collection via fluent_abilities_to_array() before array_map (V5 boundary), so raw storage access is the existing vendor-source path, unchanged by this fix.",
+      "read_back": "N/A — P-A V5 response-shape boundary coerce only (no state-change write / carry-forward)"
+    },
+    {
+      "ability": "fluent-boards/list-tasks-by-stage",
+      "vendor": "fluent-boards",
+      "vendor_version_checked": "FluentBoards installed on helenawillow probe (incidental test surface; source read live 2026-05-16)",
+      "authority": "vendor handler",
+      "canonical_handler": "see notes",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4/V5 schema-clarity, no write",
+      "principles": [
+        "V4",
+        "V5"
+      ],
+      "package": "5",
+      "pattern": "P-D output type drift (factually-corrective)",
+      "notes": "Package 5 V4/V5: output_schema `position` widened ['number','null']->['number','string','null'] (vendor returns numeric string '0.00'; prevents false rejection; no behavior change). see docs/P5-SCHEMA-CLARITY.md",
+      "status": "VERIFIED-corrective (schema-only widen; probe incidental)",
+      "doc": "installed vendor source: see notes"
+    },
+    {
+      "ability": "fluent-boards/upload-board-background-image",
+      "vendor": "fluent-boards",
+      "vendor_version_checked": "FluentBoards installed on helenawillow probe (incidental test surface; source read live 2026-05-16)",
+      "authority": "vendor handler",
+      "canonical_handler": "see notes",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4/V5 schema-clarity, no write",
+      "principles": [
+        "V4",
+        "V5"
+      ],
+      "package": "5",
+      "pattern": "P-B at-least-one constraint (anyOf) — factually-corrective vs installed handler",
+      "notes": "Package 5 reviewer-directed correction. Installed handler precedence if($attachment_id) elseif($url) — BOTH accepted (attachment_id wins), only NEITHER rejected. Added input_schema `anyOf:[{required:[attachment_id]},{required:[<url>]}]` (NOT oneOf — oneOf would false-reject the handler-valid both-case, Principle-4 violation). Factually-corrective Principle-10: breaks no working call (neither already failed at handler), false-rejects no handler-valid input, handler untouched. Live-verified representative upload-board-background-image on helenawillow probe (incidental): both-supplied -> reached handler (schema accepted); neither-supplied -> typed schema anyOf rejection pre-handler. Probe restored to parent 44f3991, 0 residue. see docs/P5-SCHEMA-CLARITY.md",
+      "status": "RESOLVED in PR #91 (reviewer-directed; anyOf not oneOf; representative live-verified)",
+      "doc": "installed vendor source: see notes"
+    },
+    {
+      "ability": "fluent-boards/add-task-cover-image",
+      "vendor": "fluent-boards",
+      "vendor_version_checked": "FluentBoards installed on helenawillow probe (incidental test surface; source read live 2026-05-16)",
+      "authority": "vendor handler",
+      "canonical_handler": "see notes",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4/V5 schema-clarity, no write",
+      "principles": [
+        "V4",
+        "V5"
+      ],
+      "package": "5",
+      "pattern": "P-B at-least-one constraint (anyOf) — factually-corrective vs installed handler",
+      "notes": "Package 5 reviewer-directed correction. Installed handler precedence if($attachment_id) elseif($url) — BOTH accepted (attachment_id wins), only NEITHER rejected. Added input_schema `anyOf:[{required:[attachment_id]},{required:[<url>]}]` (NOT oneOf — oneOf would false-reject the handler-valid both-case, Principle-4 violation). Factually-corrective Principle-10: breaks no working call (neither already failed at handler), false-rejects no handler-valid input, handler untouched. Live-verified representative upload-board-background-image on helenawillow probe (incidental): both-supplied -> reached handler (schema accepted); neither-supplied -> typed schema anyOf rejection pre-handler. Probe restored to parent 44f3991, 0 residue. see docs/P5-SCHEMA-CLARITY.md",
+      "status": "RESOLVED in PR #91 (reviewer-directed; anyOf not oneOf; representative live-verified)",
+      "doc": "installed vendor source: see notes"
+    },
+    {
+      "ability": "fluent-boards/upload-comment-image",
+      "vendor": "fluent-boards",
+      "vendor_version_checked": "FluentBoards installed on helenawillow probe (incidental test surface; source read live 2026-05-16)",
+      "authority": "vendor handler",
+      "canonical_handler": "see notes",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4/V5 schema-clarity, no write",
+      "principles": [
+        "V4",
+        "V5"
+      ],
+      "package": "5",
+      "pattern": "P-B at-least-one constraint (anyOf) — factually-corrective vs installed handler",
+      "notes": "Package 5 reviewer-directed correction. Installed handler precedence if($attachment_id) elseif($url) — BOTH accepted (attachment_id wins), only NEITHER rejected. Added input_schema `anyOf:[{required:[attachment_id]},{required:[<url>]}]` (NOT oneOf — oneOf would false-reject the handler-valid both-case, Principle-4 violation). Factually-corrective Principle-10: breaks no working call (neither already failed at handler), false-rejects no handler-valid input, handler untouched. Live-verified representative upload-board-background-image on helenawillow probe (incidental): both-supplied -> reached handler (schema accepted); neither-supplied -> typed schema anyOf rejection pre-handler. Probe restored to parent 44f3991, 0 residue. see docs/P5-SCHEMA-CLARITY.md",
+      "status": "RESOLVED in PR #91 (reviewer-directed; anyOf not oneOf; representative live-verified)",
+      "doc": "installed vendor source: see notes"
+    },
+    {
+      "ability": "fluent-boards/add-task-attachment",
+      "vendor": "fluent-boards",
+      "vendor_version_checked": "FluentBoards installed on helenawillow probe (incidental test surface; source read live 2026-05-16)",
+      "authority": "vendor handler",
+      "canonical_handler": "see notes",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4/V5 schema-clarity, no write",
+      "principles": [
+        "V4",
+        "V5"
+      ],
+      "package": "5",
+      "pattern": "P-B at-least-one constraint (anyOf) — factually-corrective vs installed handler",
+      "notes": "Package 5 reviewer-directed correction. Installed handler precedence if($attachment_id) elseif($url) — BOTH accepted (attachment_id wins), only NEITHER rejected. Added input_schema `anyOf:[{required:[attachment_id]},{required:[<url>]}]` (NOT oneOf — oneOf would false-reject the handler-valid both-case, Principle-4 violation). Factually-corrective Principle-10: breaks no working call (neither already failed at handler), false-rejects no handler-valid input, handler untouched. Live-verified representative upload-board-background-image on helenawillow probe (incidental): both-supplied -> reached handler (schema accepted); neither-supplied -> typed schema anyOf rejection pre-handler. Probe restored to parent 44f3991, 0 residue. see docs/P5-SCHEMA-CLARITY.md",
+      "status": "RESOLVED in PR #91 (reviewer-directed; anyOf not oneOf; representative live-verified)",
+      "doc": "installed vendor source: see notes"
+    },
+    {
+      "ability": "fluent-boards/upload-csv",
+      "vendor": "fluent-boards",
+      "vendor_version_checked": "FluentBoards installed on helenawillow probe (incidental test surface; source read live 2026-05-16)",
+      "authority": "vendor handler",
+      "canonical_handler": "see notes",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4/V5 schema-clarity, no write",
+      "principles": [
+        "V4",
+        "V5"
+      ],
+      "package": "5",
+      "pattern": "P-B at-least-one constraint (anyOf) — factually-corrective vs installed handler",
+      "notes": "Package 5 reviewer-directed correction. Installed handler precedence if($attachment_id) elseif($url) — BOTH accepted (attachment_id wins), only NEITHER rejected. Added input_schema `anyOf:[{required:[attachment_id]},{required:[<url>]}]` (NOT oneOf — oneOf would false-reject the handler-valid both-case, Principle-4 violation). Factually-corrective Principle-10: breaks no working call (neither already failed at handler), false-rejects no handler-valid input, handler untouched. Live-verified representative upload-board-background-image on helenawillow probe (incidental): both-supplied -> reached handler (schema accepted); neither-supplied -> typed schema anyOf rejection pre-handler. Probe restored to parent 44f3991, 0 residue. see docs/P5-SCHEMA-CLARITY.md",
+      "status": "RESOLVED in PR #91 (reviewer-directed; anyOf not oneOf; representative live-verified)",
+      "doc": "installed vendor source: see notes"
+    },
+    {
+      "ability": "fluent-boards/delete-stage",
+      "vendor": "fluent-boards",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-boards/move-task",
+      "vendor": "fluent-boards",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-boards/update-subtask-position",
+      "vendor": "fluent-boards",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-boards/convert-task-to-subtask",
+      "vendor": "fluent-boards",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-boards/archive-task",
+      "vendor": "fluent-boards",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    }
+  ]
+}

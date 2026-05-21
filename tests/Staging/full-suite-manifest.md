@@ -1,0 +1,1686 @@
+# Full-suite exploratory manifest — dev2 (issue #116)
+
+> Generated from a LIVE dev2 discover-abilities (1573 abilities). Scope/order checklist for the full-suite campaign. The tester verifies each ability LIVE via get-ability-info before testing — this list is the scope+order source, NOT the live availability gate. Track progress in the per-ability results log; resume deterministically from there.
+
+**Totals:** 1573 discovered · **1360 TO TEST** · 155 already-tested (#110) · 58 excluded (3rd-party/license).
+
+**Mode (#116):** breakage = recorded finding → log what broke + user-caution implication → tell J restore → continue. Exclusions verbatim. One-at-a-time, build-prereqs-via-abilities, canonical `jacob+sprintv2canonical@willow.se` (user 174 / contact 720 / list-5) subject; closed-set invariant asserted end-of-run; never a destructive-path subject.
+
+
+## Prerequisite-chain crib (Layer-2 learnings — building via abilities IS the test)
+
+- **booking note:** create-calendar(host 174)→create-event→update-event-availability→create-booking(canonical email)→add-note→get-booking-activities read-back→cascade-delete
+- **campaign write (title/duplicate/schedule):** create draft-campaign + draft-campaign-recipients(532)→test→unschedule→delete (SMTP inactive + far-future = zero send)
+- **recurring-campaign quartet:** build fixture, NEVER activate, bulk-delete
+- **sequence/funnel clone:** create→clone→delete both
+- **community course:** create space→create course→test→delete-space cascade
+- **cart commerce:** create-product→create-customer→create-custom-order→test→delete-product/delete-coupon/cancel-order(+create-refund; orders no hard-delete by vendor design)→verify 0-residue
+- **template:** create fixture→test→delete
+
+
+## S1-Fluent-remaining — 1175 total (966 TO TEST)
+
+
+### fluent-affiliate
+- [ ] `fluent-affiliate/create-affiliate` — Create Affiliate
+- [ ] `fluent-affiliate/create-referral` — Create Manual Referral
+- [ ] `fluent-affiliate/delete-affiliate` — Delete Affiliate
+- [ ] `fluent-affiliate/delete-payout-transaction` — Delete Payout Transaction
+- [ ] `fluent-affiliate/delete-referral` — Delete Referral
+- [ ] `fluent-affiliate/get-affiliate` — Get Affiliate
+- [ ] `fluent-affiliate/get-affiliate-statistics` — Get Affiliate Chart Statistics
+- [ ] `fluent-affiliate/get-affiliate-stats` — Get Affiliate Stats
+- [ ] `fluent-affiliate/get-commerce-report` — Get Commerce Report
+- [ ] `fluent-affiliate/get-currencies` — Get Available Currencies
+- [ ] `fluent-affiliate/get-dashboard-chart` — Get Dashboard Chart Data
+- [ ] `fluent-affiliate/get-dashboard-stats` — Get Dashboard Stats
+- [ ] `fluent-affiliate/get-email-config` — Get Email Configuration
+- [ ] `fluent-affiliate/get-integration-config` — Get Integration Config
+- [ ] `fluent-affiliate/get-option` — Get FluentAffiliate Option
+- [ ] `fluent-affiliate/get-payout` — Get Payout
+- [ ] `fluent-affiliate/get-payout-referrals` — Get Payout Referrals
+- [ ] `fluent-affiliate/get-portal-referrals` — Get Affiliate Portal Referrals
+- [ ] `fluent-affiliate/get-portal-settings` — Get Affiliate Portal Settings
+- [ ] `fluent-affiliate/get-portal-stats` — Get Affiliate Portal Stats
+- [ ] `fluent-affiliate/get-portal-transactions` — Get Affiliate Portal Transactions
+- [ ] `fluent-affiliate/get-portal-visits` — Get Affiliate Portal Visits
+- [ ] `fluent-affiliate/get-referral` — Get Referral
+- [ ] `fluent-affiliate/get-referral-settings` — Get Referral Settings
+- [ ] `fluent-affiliate/get-registration-fields` — Get Registration Form Fields
+- [ ] `fluent-affiliate/list-affiliate-groups` — List Affiliate Groups
+- [ ] `fluent-affiliate/list-affiliate-referrals` — List Affiliate Referrals
+- [ ] `fluent-affiliate/list-affiliate-transactions` — List Affiliate Transactions
+- [ ] `fluent-affiliate/list-affiliate-visits` — List Affiliate Visits
+- [ ] `fluent-affiliate/list-affiliates` — List Affiliates
+- [ ] `fluent-affiliate/list-customers` — List Referred Customers
+- [ ] `fluent-affiliate/list-email-templates` — List Notification Email Templates
+- [ ] `fluent-affiliate/list-integrations` — List Integrations
+- [ ] `fluent-affiliate/list-payout-transactions` — List Payout Transactions
+- [ ] `fluent-affiliate/list-payouts` — List Payouts
+- [ ] `fluent-affiliate/list-referrals` — List Referrals
+- [ ] `fluent-affiliate/list-report-providers` — List Report Providers
+- [ ] `fluent-affiliate/list-visits` — List Visits
+- [ ] `fluent-affiliate/process-payout` — Process Affiliate Payout
+- [ ] `fluent-affiliate/recount-affiliate-earnings` — Recount Affiliate Earnings
+- [ ] `fluent-affiliate/update-affiliate` — Update Affiliate
+- [ ] `fluent-affiliate/update-affiliate-status` — Update Affiliate Status
+- [ ] `fluent-affiliate/update-email-config` — Update Email Configuration
+- [ ] `fluent-affiliate/update-integration-status` — Update Integration Status
+- [ ] `fluent-affiliate/update-payout` — Update Payout
+- [ ] `fluent-affiliate/update-payout-transaction` — Update Payout Transaction
+- [ ] `fluent-affiliate/update-portal-settings` — Update Affiliate Portal Settings
+- [ ] `fluent-affiliate/update-referral` — Update Referral
+- [ ] `fluent-affiliate/update-referral-settings` — Update Referral Settings
+- [ ] `fluent-affiliate/validate-payout-config` — Validate Payout Configuration
+
+### fluent-auth
+- [ ] `fluent-auth/get-auth-settings` — Get Auth Settings
+- [ ] `fluent-auth/get-security-stats` — Get Security Stats
+- [ ] `fluent-auth/list-login-hashes` — List Login Hashes
+- [ ] `fluent-auth/list-login-logs` — List Login Logs
+
+### fluent-boards
+- [x] `fluent-boards/activate-license` — Activate Fluent Boards Pro License (Pro) — **EXCLUDE (3rd-party/license)**
+- [ ] `fluent-boards/add-board-member` — Add Board Member
+- [ ] `fluent-boards/add-board-to-folder` — Add Board To Folder (Pro)
+- [ ] `fluent-boards/add-org-manager` — Add Org-Wide Manager (Pro)
+- [x] `fluent-boards/add-task-attachment` — Add Task Attachment (Pro) — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-boards/add-task-cover-image` — Add Task Cover Image — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-boards/archive-board` — Archive Board
+- [ ] `fluent-boards/archive-stage` — Archive Stage
+- [x] `fluent-boards/archive-task` — Archive Task — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-boards/assign-label` — Assign Label to Task
+- [ ] `fluent-boards/assign-task` — Assign User to Task
+- [ ] `fluent-boards/assign-yourself-to-task` — Assign Yourself To Task
+- [ ] `fluent-boards/associate-crm-contact-to-board` — Associate CRM Contact To Board
+- [ ] `fluent-boards/bulk-add-board-members` — Bulk Add Board Members
+- [ ] `fluent-boards/bulk-archive-tasks` — Bulk Archive Tasks
+- [x] `fluent-boards/bulk-delete-tasks` — Bulk Delete Tasks — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-boards/bulk-restore-tasks` — Bulk Restore Tasks
+- [ ] `fluent-boards/bulk-task-actions` — Bulk Task Actions
+- [ ] `fluent-boards/clone-subtask` — Clone Subtask
+- [ ] `fluent-boards/clone-task` — Clone Task
+- [ ] `fluent-boards/commit-time-track` — Commit Time Track (Pro)
+- [x] `fluent-boards/convert-task-to-subtask` — Convert Task To Subtask — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-boards/create-board` — Create Board
+- [ ] `fluent-boards/create-board-from-template` — Create Board From Template (Pro)
+- [ ] `fluent-boards/create-board-invitation` — Create Board Invitation (Pro)
+- [ ] `fluent-boards/create-custom-field` — Create Custom Field (Pro)
+- [ ] `fluent-boards/create-folder` — Create Folder (Pro)
+- [ ] `fluent-boards/create-incoming-webhook` — Create Incoming Webhook
+- [ ] `fluent-boards/create-label` — Create Label
+- [ ] `fluent-boards/create-outgoing-webhook` — Create Outgoing Webhook
+- [ ] `fluent-boards/create-repeat-task-rule` — Create Repeat Task Rule (Pro)
+- [ ] `fluent-boards/create-stage` — Create Stage
+- [ ] `fluent-boards/create-subtask` — Create Subtask
+- [ ] `fluent-boards/create-subtask-group` — Create Subtask Group
+- [ ] `fluent-boards/create-task` — Create Board Task
+- [ ] `fluent-boards/create-task-comment` — Create Task Comment
+- [ ] `fluent-boards/create-task-comment-reply` — Create Task Comment Reply
+- [x] `fluent-boards/deactivate-license` — Deactivate Fluent Boards Pro License (Pro) — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-boards/delete-board` — Delete Board — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-boards/delete-board-invitation` — Delete Board Invitation (Pro)
+- [ ] `fluent-boards/delete-custom-field` — Delete Custom Field (Pro)
+- [ ] `fluent-boards/delete-folder` — Delete Folder (Pro)
+- [ ] `fluent-boards/delete-incoming-webhook` — Delete Incoming Webhook
+- [ ] `fluent-boards/delete-label` — Delete Label
+- [ ] `fluent-boards/delete-notification` — Delete Notification
+- [ ] `fluent-boards/delete-outgoing-webhook` — Delete Outgoing Webhook
+- [x] `fluent-boards/delete-stage` — Delete Stage — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-boards/delete-subtask` — Delete Subtask
+- [ ] `fluent-boards/delete-subtask-group` — Delete Subtask Group
+- [x] `fluent-boards/delete-task` — Delete Board Task — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-boards/delete-task-attachment` — Delete Task Attachment (Pro)
+- [ ] `fluent-boards/delete-task-comment` — Delete Task Comment
+- [ ] `fluent-boards/delete-task-comment-reply` — Delete Task Comment Reply
+- [ ] `fluent-boards/detach-yourself-from-task` — Detach Yourself From Task
+- [ ] `fluent-boards/disassociate-crm-contact-from-board` — Disassociate CRM Contact From Board
+- [ ] `fluent-boards/drag-stage` — Drag Stage
+- [ ] `fluent-boards/duplicate-board` — Duplicate Board
+- [ ] `fluent-boards/duplicate-board-as-template` — Duplicate Board As Template (Pro)
+- [ ] `fluent-boards/get-active-time-track` — Get Active Time Track (Pro)
+- [ ] `fluent-boards/get-attachment-download-url` — Get Attachment Download URL (Pro)
+- [ ] `fluent-boards/get-board` — Get Board
+- [ ] `fluent-boards/get-board-currencies` — Get Board Currencies
+- [ ] `fluent-boards/get-board-image-templates` — Get Board Image Templates
+- [ ] `fluent-boards/get-board-menu-items` — Get Board Menu Items
+- [ ] `fluent-boards/get-board-notification-settings` — Get Board Notification Settings
+- [ ] `fluent-boards/get-crm-contact-on-board` — Get CRM Contact On Board
+- [ ] `fluent-boards/get-custom-report` — Get Custom Report (Pro)
+- [ ] `fluent-boards/get-dashboard-view-settings` — Get Dashboard View Settings
+- [ ] `fluent-boards/get-default-board-colors` — Get Default Board Colors
+- [ ] `fluent-boards/get-feature-modules` — Get Feature Modules
+- [ ] `fluent-boards/get-general-settings` — Get General Settings
+- [ ] `fluent-boards/get-global-options` — Get Global Options
+- [ ] `fluent-boards/get-license-status` — Get Fluent Boards Pro License Status (Pro)
+- [ ] `fluent-boards/get-member-info` — Get Member Info
+- [ ] `fluent-boards/get-notification-count` — Get Notification Count
+- [ ] `fluent-boards/get-org-managers` — Get Org-Wide Managers (Pro)
+- [ ] `fluent-boards/get-search-filters` — Get Search Filters
+- [ ] `fluent-boards/get-search-suggestions` — Get Search Suggestions
+- [ ] `fluent-boards/get-stage-report` — Get Stage Report
+- [x] `fluent-boards/get-storage-settings` — Get Storage Settings (Pro) — **EXCLUDE (3rd-party/license)**
+- [ ] `fluent-boards/get-task` — Get Board Task
+- [ ] `fluent-boards/get-task-custom-field-values` — Get Task Custom Field Values (Pro)
+- [ ] `fluent-boards/get-task-duration-stats` — Get Task Duration Stats (Pro)
+- [ ] `fluent-boards/get-task-time-report` — Get Task Time Report (Pro)
+- [ ] `fluent-boards/get-template-detail` — Get Template Detail (Pro)
+- [ ] `fluent-boards/get-user-notification-settings` — Get User Notification Settings
+- [ ] `fluent-boards/get-user-time-report` — Get User Time Report (Pro)
+- [ ] `fluent-boards/has-data-changed` — Has Board Data Changed
+- [ ] `fluent-boards/import-csv-to-board` — Import CSV To Board (Pro)
+- [ ] `fluent-boards/import-fluent-boards-export` — Import Fluent Boards Export (Pro)
+- [ ] `fluent-boards/import-from-board` — Import Stages/Tasks From Another Board
+- [ ] `fluent-boards/list-admin-pages` — List Admin Pages
+- [ ] `fluent-boards/list-archived-tasks` — List Archived Tasks
+- [ ] `fluent-boards/list-board-activities` — List Board Activities
+- [x] `fluent-boards/list-board-assignees` — List Board Assignees — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-boards/list-board-invitations` — List Board Invitations (Pro)
+- [ ] `fluent-boards/list-board-members` — List Board Members
+- [ ] `fluent-boards/list-board-tasks-summary` — List Board Tasks Summary
+- [ ] `fluent-boards/list-board-users` — List Board Users
+- [ ] `fluent-boards/list-boards` — List Boards
+- [ ] `fluent-boards/list-boards-by-type` — List Boards By Type
+- [ ] `fluent-boards/list-boards-summary` — List Boards Summary
+- [ ] `fluent-boards/list-comments-and-activities` — List Comments And Activities
+- [x] `fluent-boards/list-crm-associated-boards` — List CRM Associated Boards — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-boards/list-crm-associated-tasks` — List CRM Associated Tasks
+- [ ] `fluent-boards/list-custom-fields` — List Custom Fields (Pro)
+- [ ] `fluent-boards/list-folders` — List Folders (Pro)
+- [ ] `fluent-boards/list-incoming-webhooks` — List Incoming Webhooks
+- [ ] `fluent-boards/list-labels` — List Board Labels
+- [ ] `fluent-boards/list-manager-boards` — List Manager Boards (Pro)
+- [ ] `fluent-boards/list-manager-tasks` — List Manager Tasks (Pro)
+- [x] `fluent-boards/list-manager-team-users` — List Manager Team Users (Pro) — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-boards/list-member-activities` — List Member Activities
+- [x] `fluent-boards/list-member-associated-users` — List Member Associated Users — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-boards/list-member-boards` — List Member Boards — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-boards/list-member-tasks` — List Member Tasks — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-boards/list-outgoing-webhooks` — List Outgoing Webhooks
+- [ ] `fluent-boards/list-pinned-boards` — List Pinned Boards
+- [ ] `fluent-boards/list-recent-boards` — List Recent Boards
+- [ ] `fluent-boards/list-repeat-task-rules` — List Repeat Task Rules (Pro)
+- [ ] `fluent-boards/list-stage-default-assignees` — List Stage Default Assignees
+- [ ] `fluent-boards/list-stages` — List Board Stages
+- [ ] `fluent-boards/list-subtasks` — List Subtasks
+- [ ] `fluent-boards/list-task-activities` — List Task Activities
+- [ ] `fluent-boards/list-task-attachments` — List Task Attachments (Pro)
+- [ ] `fluent-boards/list-task-comments` — List Task Comments
+- [ ] `fluent-boards/list-task-duration` — List Task Duration By User (Pro)
+- [ ] `fluent-boards/list-tasks` — List Board Tasks
+- [x] `fluent-boards/list-tasks-by-stage` — List Tasks By Stage — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-boards/list-templates` — List Templates (Pro)
+- [ ] `fluent-boards/list-time-tracks` — List Time Tracks (Pro)
+- [ ] `fluent-boards/list-unread-notifications` — List Unread Notifications
+- [ ] `fluent-boards/list-user-accessible-boards` — List User-Accessible Boards
+- [ ] `fluent-boards/list-user-admin-boards` — List User Admin Boards
+- [ ] `fluent-boards/list-user-time-tracks` — List User Time Tracks (Pro)
+- [ ] `fluent-boards/make-board-manager` — Make Board Manager (Pro)
+- [ ] `fluent-boards/make-board-member` — Make Board Member (Pro)
+- [ ] `fluent-boards/make-board-viewer` — Make Board Viewer (Pro)
+- [ ] `fluent-boards/mark-all-notifications-as-read` — Mark All Notifications As Read
+- [ ] `fluent-boards/mark-notification-as-read` — Mark Notification As Read
+- [ ] `fluent-boards/move-subtask-to-board` — Move Subtask To Board (DESTRUCTIVE)
+- [ ] `fluent-boards/move-subtask-to-group` — Move Subtask To Group
+- [x] `fluent-boards/move-task` — Move Task — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-boards/move-task-to-next-stage` — Move Task To Next Stage
+- [ ] `fluent-boards/onboard-first-board` — Onboard First Board
+- [ ] `fluent-boards/pause-time-track` — Pause Time Track (Pro)
+- [ ] `fluent-boards/pin-board` — Pin Board
+- [ ] `fluent-boards/remove-board-from-folder` — Remove Board From Folder (Pro)
+- [ ] `fluent-boards/remove-board-manager` — Remove Board Manager (Pro)
+- [x] `fluent-boards/remove-board-member` — Remove Board Member — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-boards/remove-label` — Remove Label from Task
+- [ ] `fluent-boards/remove-org-manager` — Remove Org-Wide Manager (Pro)
+- [ ] `fluent-boards/remove-task-cover-image` — Remove Task Cover Image
+- [ ] `fluent-boards/reorder-stages` — Reorder Stages
+- [ ] `fluent-boards/reposition-stages` — Reposition Stages (Bulk)
+- [ ] `fluent-boards/restore-board` — Restore Board
+- [ ] `fluent-boards/restore-stage` — Restore Stage
+- [ ] `fluent-boards/restore-task` — Restore Task
+- [ ] `fluent-boards/resume-time-track` — Resume Time Track (Pro)
+- [ ] `fluent-boards/save-board-notification-settings` — Save Board Notification Settings
+- [ ] `fluent-boards/save-feature-modules` — Save Feature Modules
+- [ ] `fluent-boards/save-general-settings` — Save General Settings
+- [ ] `fluent-boards/save-task-custom-field-values` — Save Task Custom Field Values (Pro)
+- [ ] `fluent-boards/save-user-notification-settings` — Save User Notification Settings
+- [ ] `fluent-boards/search-boards-and-tasks` — Search Boards And Tasks
+- [ ] `fluent-boards/set-board-background` — Set Board Background
+- [ ] `fluent-boards/skip-onboarding` — Skip Onboarding
+- [ ] `fluent-boards/stage-archive-all-tasks` — Archive All Tasks In Stage (Pro)
+- [ ] `fluent-boards/start-time-track` — Start Time Track (Pro)
+- [ ] `fluent-boards/unassign-task` — Unassign User from Task
+- [ ] `fluent-boards/unpin-board` — Unpin Board
+- [ ] `fluent-boards/unset-stage-default-assignees` — Unset Stage Default Assignees
+- [ ] `fluent-boards/update-attachment-visibility` — Update Attachment Visibility (Pro)
+- [ ] `fluent-boards/update-board` — Update Board
+- [ ] `fluent-boards/update-board-properties` — Update Board Properties
+- [ ] `fluent-boards/update-comment-privacy` — Update Comment Privacy
+- [ ] `fluent-boards/update-custom-field` — Update Custom Field (Pro)
+- [ ] `fluent-boards/update-custom-field-position` — Update Custom Field Position (Pro)
+- [ ] `fluent-boards/update-dashboard-view-settings` — Update Dashboard View Settings
+- [ ] `fluent-boards/update-folder` — Update Folder (Pro)
+- [ ] `fluent-boards/update-incoming-webhook` — Update Incoming Webhook
+- [ ] `fluent-boards/update-label` — Update Label
+- [ ] `fluent-boards/update-outgoing-webhook` — Update Outgoing Webhook
+- [ ] `fluent-boards/update-stage` — Update Stage
+- [ ] `fluent-boards/update-stage-default-assignees` — Update Stage Default Assignees
+- [ ] `fluent-boards/update-stage-property` — Update Stage Property
+- [ ] `fluent-boards/update-storage-settings` — Update Storage Settings (Pro)
+- [ ] `fluent-boards/update-subtask-group` — Update Subtask Group
+- [x] `fluent-boards/update-subtask-position` — Update Subtask Position — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-boards/update-task` — Update Board Task
+- [ ] `fluent-boards/update-task-comment` — Update Task Comment
+- [ ] `fluent-boards/update-task-comment-reply` — Update Task Comment Reply
+- [ ] `fluent-boards/update-task-dates` — Update Task Dates
+- [ ] `fluent-boards/update-task-status` — Update Task Status
+- [x] `fluent-boards/upload-board-background-image` — Upload Board Background Image — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-boards/upload-comment-image` — Upload Comment Image — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-boards/upload-csv` — Upload CSV (Pro) — **ALREADY-TESTED (#110 Layer-2)**
+
+### fluent-booking
+- [x] `fluent-booking/activate-license` — Activate FluentBooking Pro License — **EXCLUDE (3rd-party/license)**
+- [ ] `fluent-booking/add-booking-host` — Add Booking Host
+- [x] `fluent-booking/add-booking-note` — Add Internal Note to Booking — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-booking/add-event-team-member` — Add Event Team Member
+- [ ] `fluent-booking/cancel-booking` — Cancel Booking
+- [ ] `fluent-booking/check-slot-availability` — Check Slot Availability
+- [ ] `fluent-booking/clone-availability` — Clone Availability Schedule
+- [ ] `fluent-booking/clone-event` — Clone Event
+- [ ] `fluent-booking/create-availability` — Create Availability Schedule
+- [ ] `fluent-booking/create-booking` — Create Booking
+- [ ] `fluent-booking/create-calendar` — Create Calendar
+- [x] `fluent-booking/create-event` — Create Event — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-booking/create-webhook` — Create FluentBooking Webhook
+- [x] `fluent-booking/deactivate-license` — Deactivate FluentBooking Pro License — **EXCLUDE (3rd-party/license)**
+- [ ] `fluent-booking/delete-availability` — Delete Availability Schedule
+- [ ] `fluent-booking/delete-booking` — Delete Booking
+- [ ] `fluent-booking/delete-booking-meta` — Delete Booking Meta
+- [ ] `fluent-booking/delete-calendar` — Delete Calendar
+- [ ] `fluent-booking/delete-calendar-meta` — Delete Calendar Meta
+- [ ] `fluent-booking/delete-coupon` — Delete FluentBooking Coupon
+- [ ] `fluent-booking/delete-event` — Delete Event
+- [ ] `fluent-booking/delete-webhook` — Delete FluentBooking Webhook
+- [ ] `fluent-booking/disable-payment-method` — Disable Payment Method
+- [ ] `fluent-booking/disconnect-calendar-integration` — Disconnect External Calendar Integration
+- [ ] `fluent-booking/disconnect-zoom-account` — Disconnect Zoom Account
+- [ ] `fluent-booking/enable-payment-method` — Enable Payment Method
+- [x] `fluent-booking/get-availability` — Get Availability Schedule — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-booking/get-available-slots` — Get Available Slots — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-booking/get-booking` — Get Booking
+- [x] `fluent-booking/get-booking-activities` — Get Booking Activities — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-booking/get-booking-host` — Get Booking Host Pivot
+- [x] `fluent-booking/get-booking-meta` — Get Booking Metadata — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-booking/get-booking-stats` — Booking Statistics
+- [ ] `fluent-booking/get-calendar` — Get Calendar
+- [x] `fluent-booking/get-calendar-integration` — Get External Calendar Integration — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-booking/get-calendar-landing-url` — Get Calendar Landing URL
+- [ ] `fluent-booking/get-calendar-meta` — Get Calendar Meta
+- [ ] `fluent-booking/get-current-user-permissions` — Get Current User FluentBooking Permissions
+- [ ] `fluent-booking/get-event` — Get Booking Event
+- [ ] `fluent-booking/get-event-availability` — Get Event Availability
+- [ ] `fluent-booking/get-event-booking-fields` — Get Event Booking Fields
+- [ ] `fluent-booking/get-event-buffers` — Get Event Buffer Config
+- [ ] `fluent-booking/get-event-conversion-report` — Get Event Conversion Report
+- [ ] `fluent-booking/get-event-location-config` — Get Event Location Config
+- [ ] `fluent-booking/get-event-notifications` — Get Event Notification Config
+- [ ] `fluent-booking/get-event-redirect` — Get Event Redirect Config
+- [ ] `fluent-booking/get-event-slot-config` — Get Event Slot Config
+- [ ] `fluent-booking/get-global-settings` — Get FluentBooking Global Settings
+- [ ] `fluent-booking/get-group-attendees` — Get Group Booking Attendees
+- [ ] `fluent-booking/get-host-report` — Get Host Report
+- [ ] `fluent-booking/get-license-info` — Get FluentBooking Pro License Info
+- [ ] `fluent-booking/get-order` — Get Order
+- [ ] `fluent-booking/get-payment-method` — Get Payment Method
+- [ ] `fluent-booking/get-time-distribution-report` — Get Time Distribution Report
+- [ ] `fluent-booking/get-transaction` — Get Transaction
+- [x] `fluent-booking/get-twilio-config` — Get Twilio SMS Config — **EXCLUDE (3rd-party/license)**
+- [ ] `fluent-booking/get-user-permissions` — Get User FluentBooking Permissions
+- [ ] `fluent-booking/get-webhook` — Get FluentBooking Webhook
+- [x] `fluent-booking/get-zoom-account` — Get Zoom Account — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-booking/import-bookings` — Import Bookings
+- [ ] `fluent-booking/list-availability` — List Availability Schedules
+- [x] `fluent-booking/list-booking-hosts` — List Booking Hosts — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-booking/list-bookings` — List Bookings
+- [x] `fluent-booking/list-calendar-conflicts` — List External-Calendar Conflicts for a Window — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-booking/list-calendar-integrations` — List External Calendar Integrations — **EXCLUDE (3rd-party/license)**
+- [ ] `fluent-booking/list-calendars` — List Booking Calendars
+- [ ] `fluent-booking/list-event-team-members` — List Event Team Members
+- [ ] `fluent-booking/list-events` — List Booking Events
+- [ ] `fluent-booking/list-hosts` — List All Hosts
+- [ ] `fluent-booking/list-orders` — List Orders
+- [ ] `fluent-booking/list-payment-methods` — List Payment Methods
+- [ ] `fluent-booking/list-permission-sets` — List FluentBooking Permission Sets
+- [x] `fluent-booking/list-remote-calendars` — List Remote Calendars — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-booking/list-team-calendars` — List Team Calendars
+- [ ] `fluent-booking/list-team-events` — List Team-Type Events
+- [ ] `fluent-booking/list-transactions` — List Transactions
+- [ ] `fluent-booking/list-upcoming` — List Upcoming Bookings
+- [ ] `fluent-booking/list-zoom-accounts` — List Zoom Accounts
+- [ ] `fluent-booking/refund-transaction` — Refund Transaction
+- [ ] `fluent-booking/remove-booking-host` — Remove Booking Host
+- [ ] `fluent-booking/remove-event-team-member` — Remove Event Team Member
+- [ ] `fluent-booking/reschedule-booking` — Reschedule Booking
+- [ ] `fluent-booking/revoke-user-permissions` — Revoke User FluentBooking Permissions
+- [x] `fluent-booking/send-booking-sms` — Send Booking SMS — **EXCLUDE (3rd-party/license)**
+- [ ] `fluent-booking/send-confirmation-email` — Resend Confirmation Email
+- [x] `fluent-booking/set-booking-meta` — Set Booking Meta — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-booking/set-calendar-meta` — Set Calendar Meta
+- [ ] `fluent-booking/set-user-permissions` — Set User FluentBooking Permissions
+- [ ] `fluent-booking/test-webhook` — Test FluentBooking Webhook
+- [ ] `fluent-booking/update-availability` — Update Availability Schedule
+- [ ] `fluent-booking/update-booking` — Update Booking
+- [ ] `fluent-booking/update-booking-host-status` — Update Booking Host Status
+- [x] `fluent-booking/update-booking-status` — Update Booking Status — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-booking/update-calendar` — Update Calendar
+- [ ] `fluent-booking/update-coupon` — Update FluentBooking Coupon
+- [ ] `fluent-booking/update-event` — Update Event
+- [ ] `fluent-booking/update-event-availability` — Update Event Availability
+- [ ] `fluent-booking/update-event-booking-fields` — Update Event Booking Fields
+- [ ] `fluent-booking/update-event-buffers` — Update Event Buffer Config
+- [ ] `fluent-booking/update-event-location-config` — Update Event Location Config
+- [ ] `fluent-booking/update-event-notifications` — Update Event Notification Config
+- [ ] `fluent-booking/update-event-redirect` — Update Event Redirect Config
+- [ ] `fluent-booking/update-event-status` — Update Event Status
+- [ ] `fluent-booking/update-global-settings` — Update FluentBooking Global Settings
+- [ ] `fluent-booking/update-onboarding-state` — Update FluentBooking Onboarding State
+- [x] `fluent-booking/update-payment-method-config` — Update Payment Method Config — **EXCLUDE (3rd-party/license)**
+- [ ] `fluent-booking/update-team-calendar-members` — Update Team Calendar Members
+- [x] `fluent-booking/update-twilio-config` — Update Twilio SMS Config — **EXCLUDE (3rd-party/license)**
+- [ ] `fluent-booking/update-webhook` — Update FluentBooking Webhook
+
+### fluent-cart
+- [ ] `fluent-cart/accept-dispute` — Accept Transaction Dispute
+- [x] `fluent-cart/activate-license-site` — Activate License Site — **EXCLUDE (3rd-party/license)**
+- [ ] `fluent-cart/add-order-item` — Add Order Item
+- [ ] `fluent-cart/add-order-note` — Add Order Note
+- [ ] `fluent-cart/apply-coupon` — Apply Coupon To Cart
+- [ ] `fluent-cart/assign-label` — Assign Label
+- [ ] `fluent-cart/attach-wp-user-to-customer` — Attach WP User To Customer
+- [ ] `fluent-cart/bulk-edit-data` — Get Bulk-Edit Field Definitions
+- [ ] `fluent-cart/bulk-insert-products` — Bulk Insert Products
+- [x] `fluent-cart/bulk-update-products` — Bulk Update Products — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-cart/cancel-coupon` — Cancel Coupon On Cart
+- [ ] `fluent-cart/cancel-order` — Cancel Order
+- [ ] `fluent-cart/cancel-subscription` — Cancel Subscription
+- [ ] `fluent-cart/cancel-subscription-auto-renew` — Cancel Subscription Auto-Renew
+- [ ] `fluent-cart/check-coupon-product-eligibility` — Check Coupon Product Eligibility
+- [ ] `fluent-cart/create-and-attach-customer-to-order` — Create Customer And Attach To Order
+- [ ] `fluent-cart/create-attribute-group` — Create Attribute Group
+- [ ] `fluent-cart/create-attribute-term` — Create Attribute Term
+- [ ] `fluent-cart/create-coupon` — Create Coupon
+- [x] `fluent-cart/create-custom-order` — Create Custom Order — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-cart/create-customer` — Create Customer
+- [ ] `fluent-cart/create-customer-address` — Create Customer Address
+- [ ] `fluent-cart/create-dummy-products` — Create Dummy Products
+- [ ] `fluent-cart/create-order` — Create Order
+- [ ] `fluent-cart/create-product` — Create Product
+- [ ] `fluent-cart/create-product-download` — Create Product Download
+- [ ] `fluent-cart/create-product-variation` — Create Product Variation
+- [ ] `fluent-cart/create-refund` — Create Refund
+- [ ] `fluent-cart/create-shipping-class` — Create Shipping Class
+- [ ] `fluent-cart/create-shipping-method` — Create Shipping Method
+- [ ] `fluent-cart/create-shipping-zone` — Create Shipping Zone
+- [ ] `fluent-cart/create-tax-class` — Create Tax Class
+- [ ] `fluent-cart/create-tax-rate` — Create Tax Rate
+- [ ] `fluent-cart/create-webhook` — Create Webhook
+- [x] `fluent-cart/deactivate-license-site` — Deactivate License Site — **EXCLUDE (3rd-party/license)**
+- [ ] `fluent-cart/delete-activity` — Delete Activity
+- [ ] `fluent-cart/delete-attribute-group` — Delete Attribute Group
+- [ ] `fluent-cart/delete-coupon` — Delete Coupon
+- [ ] `fluent-cart/delete-customer` — Delete Customer
+- [ ] `fluent-cart/delete-customer-address` — Delete Customer Address
+- [ ] `fluent-cart/delete-license` — Delete License
+- [ ] `fluent-cart/delete-order-item` — Delete Order Item
+- [ ] `fluent-cart/delete-product` — Delete Product
+- [ ] `fluent-cart/delete-product-download` — Delete Product Download
+- [ ] `fluent-cart/delete-product-variation` — Delete Product Variation
+- [ ] `fluent-cart/delete-shipping-zone` — Delete Shipping Zone
+- [ ] `fluent-cart/delete-tax-class` — Delete Tax Class
+- [ ] `fluent-cart/delete-tax-rate` — Delete Tax Rate
+- [ ] `fluent-cart/delete-webhook` — Delete Webhook
+- [ ] `fluent-cart/detach-wp-user-from-customer` — Detach WP User From Customer
+- [ ] `fluent-cart/do-product-bulk-action` — Run Product Bulk Action
+- [ ] `fluent-cart/duplicate-product` — Duplicate Product
+- [x] `fluent-cart/extend-license-validity` — Extend License Validity — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-cart/fetch-products-by-ids` — Fetch Products By IDs
+- [x] `fluent-cart/fetch-subscription-from-vendor` — Fetch Subscription From Vendor — **EXCLUDE (3rd-party/license)**
+- [ ] `fluent-cart/fetch-variations-by-ids` — Fetch Variations By IDs
+- [ ] `fluent-cart/generate-retention-snapshots` — Generate Retention Snapshots
+- [ ] `fluent-cart/generate-subscription-early-payment-link` — Generate Subscription Early-Payment Link
+- [ ] `fluent-cart/get-attribute-group` — Get Attribute Group
+- [ ] `fluent-cart/get-confirmation-settings` — Get Settings
+- [x] `fluent-cart/get-coupon` — Get Coupon — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-cart/get-coupon-settings` — Get Coupon Settings
+- [x] `fluent-cart/get-customer` — Get Customer — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-cart/get-customer-address` — Get Customer Address
+- [ ] `fluent-cart/get-customer-licenses` — Get Customer Licenses
+- [ ] `fluent-cart/get-customer-stats` — Get Customer Stats
+- [ ] `fluent-cart/get-dashboard-summary` — Get Dashboard Summary
+- [ ] `fluent-cart/get-eu-vat-rates` — Get EU VAT Rates
+- [ ] `fluent-cart/get-license` — Get License
+- [ ] `fluent-cart/get-module-settings` — Get Settings
+- [ ] `fluent-cart/get-order` — Get Order
+- [ ] `fluent-cart/get-order-addresses` — Get Order Addresses
+- [ ] `fluent-cart/get-order-transaction` — Get Order Transaction
+- [ ] `fluent-cart/get-permission-settings` — Get Settings
+- [ ] `fluent-cart/get-product` — Get Product
+- [ ] `fluent-cart/get-product-license-settings` — Get Product License Settings
+- [ ] `fluent-cart/get-product-performance` — Get Product Performance
+- [ ] `fluent-cart/get-product-pricing` — Get Product Pricing
+- [ ] `fluent-cart/get-related-products` — Get Related Products
+- [ ] `fluent-cart/get-revenue-report` — Get Revenue Report
+- [ ] `fluent-cart/get-sales-growth` — Get Sales Growth
+- [ ] `fluent-cart/get-settings` — Get FluentCart Settings
+- [ ] `fluent-cart/get-store-settings` — Get Settings
+- [ ] `fluent-cart/get-subscription` — Get Subscription
+- [ ] `fluent-cart/get-subscription-cohorts` — Get Subscription Cohorts
+- [ ] `fluent-cart/get-top-products-sold` — Get Top Products Sold
+- [ ] `fluent-cart/list-activities` — List Activities (global)
+- [x] `fluent-cart/list-attachable-users` — List Attachable WP Users — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-cart/list-attribute-groups` — List Attribute Groups
+- [ ] `fluent-cart/list-attribute-terms` — List Attribute Terms
+- [ ] `fluent-cart/list-coupons` — List Coupons
+- [ ] `fluent-cart/list-customer-addresses` — List Customer Addresses
+- [ ] `fluent-cart/list-customer-orders` — List Customer Orders
+- [ ] `fluent-cart/list-customers` — List Customers
+- [ ] `fluent-cart/list-labels` — List Labels
+- [ ] `fluent-cart/list-license-activations` — List License Activations
+- [ ] `fluent-cart/list-licenses` — List Licenses
+- [ ] `fluent-cart/list-order-activities` — List Order Activities
+- [ ] `fluent-cart/list-order-items` — List Order Items
+- [ ] `fluent-cart/list-order-transactions` — List Order Transactions
+- [ ] `fluent-cart/list-orders` — List Orders
+- [ ] `fluent-cart/list-payment-methods` — List Payment Methods
+- [ ] `fluent-cart/list-product-downloads` — List Product Downloads
+- [ ] `fluent-cart/list-product-variations` — List Product Variations
+- [ ] `fluent-cart/list-products` — List Products
+- [ ] `fluent-cart/list-shipping-classes` — List Shipping Classes
+- [ ] `fluent-cart/list-shipping-zones` — List Shipping Zones
+- [x] `fluent-cart/list-storage-drivers` — List Storage Drivers — **EXCLUDE (3rd-party/license)**
+- [ ] `fluent-cart/list-subscriptions` — List Subscriptions
+- [ ] `fluent-cart/list-tax-classes` — List Tax Classes
+- [ ] `fluent-cart/list-tax-rates` — List Tax Rates
+- [ ] `fluent-cart/list-transactions` — List Transactions
+- [ ] `fluent-cart/list-webhooks` — List Webhooks
+- [ ] `fluent-cart/make-address-primary` — Make Address Primary
+- [ ] `fluent-cart/mark-activity-read` — Mark Activity Read
+- [ ] `fluent-cart/mark-order-paid` — Mark Order Paid
+- [ ] `fluent-cart/pause-subscription` — Pause Subscription
+- [ ] `fluent-cart/reactivate-subscription` — Reactivate Subscription
+- [ ] `fluent-cart/reapply-coupon` — Re-apply Coupon
+- [ ] `fluent-cart/recalculate-customer-ltv` — Recalculate Customer LTV
+- [x] `fluent-cart/regenerate-license-key` — Regenerate License Key — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-cart/reorder-attribute-term` — Reorder Attribute Term — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-cart/resume-subscription` — Resume Subscription
+- [ ] `fluent-cart/search-products-by-name` — Search Products By Name
+- [ ] `fluent-cart/sync-order-statuses` — Sync Order Statuses
+- [ ] `fluent-cart/sync-product-downloadable-files` — Sync Product Downloadable Files
+- [ ] `fluent-cart/update-attribute-group` — Update Attribute Group
+- [ ] `fluent-cart/update-confirmation-settings` — Update Settings
+- [ ] `fluent-cart/update-coupon` — Update Coupon
+- [ ] `fluent-cart/update-customer` — Update Customer
+- [ ] `fluent-cart/update-customer-address` — Update Customer Address
+- [x] `fluent-cart/update-eu-vat-config` — Update EU VAT Configuration — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-cart/update-license-limit` — Update License Activation Limit
+- [x] `fluent-cart/update-license-status` — Update License Status — **EXCLUDE (3rd-party/license)**
+- [ ] `fluent-cart/update-module-settings` — Update Settings
+- [ ] `fluent-cart/update-order-address` — Update Order Address
+- [x] `fluent-cart/update-order-address-id` — Relink Order Address — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-cart/update-order-customer` — Reassign Order Customer
+- [ ] `fluent-cart/update-order-item` — Update Order Item
+- [ ] `fluent-cart/update-order-status` — Update Order Status
+- [x] `fluent-cart/update-payment-method` — Update Payment Method — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-cart/update-permission-settings` — Update Settings
+- [ ] `fluent-cart/update-product` — Update Product
+- [ ] `fluent-cart/update-product-manage-stock` — Toggle Product Manage Stock
+- [ ] `fluent-cart/update-product-pricing` — Update Product Pricing
+- [ ] `fluent-cart/update-product-variation` — Update Product Variation
+- [ ] `fluent-cart/update-shipping-method` — Update Shipping Method
+- [x] `fluent-cart/update-storage-driver` — Update Storage Driver — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-cart/update-store-settings` — Update Settings
+- [ ] `fluent-cart/update-subscription` — Update Subscription
+- [ ] `fluent-cart/update-tax-class` — Update Tax Class
+- [ ] `fluent-cart/update-transaction-status` — Update Transaction Status
+- [x] `fluent-cart/update-variant-inventory` — Update Variant Inventory — **ALREADY-TESTED (#110 Layer-2)**
+
+### fluent-community
+- [x] `fluent-community/add-reaction` — Add Reaction — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-community/add-space-member` — Add Space Member
+- [ ] `fluent-community/bulk-add-space-members` — Bulk Add Space Members
+- [ ] `fluent-community/bulk-remove-space-members` — Bulk Remove Space Members
+- [x] `fluent-community/cast-survey-vote` — Cast Survey Vote — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-community/create-comment` — Create Feed Comment — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-community/create-course` — Create Course — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-community/create-feed` — Create Community Post
+- [ ] `fluent-community/create-lesson` — Create Course Lesson
+- [ ] `fluent-community/create-member` — Create Community Member
+- [ ] `fluent-community/create-scheduled-post` — Create Scheduled Post
+- [ ] `fluent-community/create-space` — Create Community Space
+- [ ] `fluent-community/create-space-group` — Create Space Group
+- [ ] `fluent-community/create-topic` — Create Topic
+- [ ] `fluent-community/delete-comment` — Delete Feed Comment
+- [ ] `fluent-community/delete-course` — Delete Course
+- [ ] `fluent-community/delete-feed` — Delete Community Post
+- [ ] `fluent-community/delete-lesson` — Delete Lesson
+- [ ] `fluent-community/delete-media` — Delete Community Media
+- [ ] `fluent-community/delete-member` — Delete Community Member
+- [ ] `fluent-community/delete-scheduled-post` — Delete Scheduled Post
+- [x] `fluent-community/delete-space` — Delete Space — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-community/delete-space-group` — Delete Space Group
+- [ ] `fluent-community/delete-topic` — Delete Topic
+- [x] `fluent-community/emit-event` — Emit Cross-Plugin Event — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-community/enroll-user-in-course` — Enroll User In Course
+- [x] `fluent-community/follow-user` — Follow User — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-community/get-admin-courses` — Get Admin Courses
+- [ ] `fluent-community/get-course` — Get Course
+- [ ] `fluent-community/get-course-by-slug` — Get Course by Slug
+- [ ] `fluent-community/get-course-enrollment` — Get Course Enrollment
+- [ ] `fluent-community/get-course-progress` — Get Course Progress
+- [ ] `fluent-community/get-crm-tagging-config` — Get CRM Tagging Config
+- [ ] `fluent-community/get-feed` — Get Community Feed
+- [ ] `fluent-community/get-leaderboard` — Get Leaderboard
+- [x] `fluent-community/get-lesson` — Get Lesson Content — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-community/get-media` — Get Community Media
+- [ ] `fluent-community/get-menu-settings` — Get Menu Settings
+- [ ] `fluent-community/get-my-profile` — Get My Profile
+- [ ] `fluent-community/get-profile` — Get Member Profile
+- [ ] `fluent-community/get-profile-custom-fields` — Get Profile Custom Fields
+- [ ] `fluent-community/get-quiz-results` — Get Quiz Results
+- [ ] `fluent-community/get-scheduled-post` — Get Scheduled Post
+- [ ] `fluent-community/get-space` — Get Community Space
+- [ ] `fluent-community/get-space-groups` — Get Space Groups
+- [ ] `fluent-community/get-space-member` — Get Space Member
+- [ ] `fluent-community/get-survey-results` — Get Survey Results
+- [ ] `fluent-community/get-survey-voters` — Get Survey Voters
+- [ ] `fluent-community/get-top-commenters` — Get Top Commenters
+- [ ] `fluent-community/get-top-members` — Get Top Members
+- [ ] `fluent-community/get-top-post-starters` — Get Top Post Starters
+- [ ] `fluent-community/get-topic` — Get Topic
+- [ ] `fluent-community/list-comments` — List Feed Comments
+- [ ] `fluent-community/list-course-students` — List Course Students
+- [ ] `fluent-community/list-courses` — List Courses
+- [ ] `fluent-community/list-feeds` — List Community Feeds
+- [ ] `fluent-community/list-followers` — List Followers
+- [ ] `fluent-community/list-following` — List Following
+- [ ] `fluent-community/list-lessons` — List Course Lessons
+- [ ] `fluent-community/list-media` — List Community Media
+- [ ] `fluent-community/list-members` — List Community Members
+- [ ] `fluent-community/list-notifications` — List Notifications
+- [ ] `fluent-community/list-quiz-attempts` — List Quiz Attempts
+- [x] `fluent-community/list-reactions` — List Reactions — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-community/list-scheduled-posts` — List Scheduled Posts
+- [ ] `fluent-community/list-space-members` — List Space Members
+- [ ] `fluent-community/list-spaces` — List Community Spaces
+- [ ] `fluent-community/list-topics` — List Topics
+- [ ] `fluent-community/list-unread-notifications` — List Unread Notifications
+- [ ] `fluent-community/mark-all-notifications-read` — Mark All Notifications Read
+- [ ] `fluent-community/mark-feed-notifications-read` — Mark Feed Notifications Read
+- [ ] `fluent-community/mark-lesson-complete` — Mark Lesson Complete
+- [ ] `fluent-community/mark-lesson-incomplete` — Mark Lesson Incomplete
+- [ ] `fluent-community/mark-notification-read` — Mark Notification Read
+- [ ] `fluent-community/publish-scheduled-post` — Publish Scheduled Post
+- [x] `fluent-community/remove-reaction` — Remove Reaction — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-community/remove-space-member` — Remove Space Member
+- [x] `fluent-community/search-members-mention` — Search Members (Mention) — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-community/submit-quiz-attempt` — Submit Quiz Attempt
+- [ ] `fluent-community/sync-feed-topics` — Sync Feed Topics
+- [ ] `fluent-community/sync-space-topics` — Sync Space Topics
+- [ ] `fluent-community/unenroll-user-from-course` — Unenroll User From Course
+- [x] `fluent-community/unfollow-user` — Unfollow User — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-community/update-comment` — Update Feed Comment
+- [x] `fluent-community/update-course` — Update Course — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-community/update-crm-tagging-config` — Update CRM Tagging Config — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-community/update-features-settings` — Update Features Settings
+- [ ] `fluent-community/update-feed` — Update Community Post
+- [ ] `fluent-community/update-lesson` — Update Course Lesson
+- [ ] `fluent-community/update-media` — Update Media
+- [ ] `fluent-community/update-member-status` — Update Member Status
+- [ ] `fluent-community/update-menu-settings` — Update Menu Settings
+- [ ] `fluent-community/update-profile` — Update Member Profile
+- [ ] `fluent-community/update-profile-custom-fields` — Update Profile Custom Fields
+- [ ] `fluent-community/update-scheduled-post` — Update Scheduled Post
+- [x] `fluent-community/update-space` — Update Community Space — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-community/update-space-group` — Update Space Group
+- [ ] `fluent-community/update-space-member-role` — Update Space Member Role
+- [ ] `fluent-community/update-topic` — Update Topic
+- [ ] `fluent-community/upload-media-from-url` — Upload Media from URL
+
+### fluent-crm
+- [ ] `fluent-crm/activate-smart-link` — Activate CRM Smart Link (Pro)
+- [ ] `fluent-crm/add-automation-step` — Add Automation Step
+- [ ] `fluent-crm/add-contact-note` — Add Contact Note
+- [ ] `fluent-crm/add-contact-to-sequence` — Add Contact to Sequence
+- [ ] `fluent-crm/add-sequence-email` — Add Email to Sequence
+- [ ] `fluent-crm/advance-campaign-step` — Advance CRM Campaign Wizard Step
+- [ ] `fluent-crm/advance-funnel-subscriber` — Advance CRM Funnel Subscriber To Step
+- [ ] `fluent-crm/apply-segments-to-contacts` — Apply Tags/Lists Across Contacts
+- [ ] `fluent-crm/attach-list` — Attach Contact to List
+- [ ] `fluent-crm/attach-subscribers-to-company` — Attach Subscribers To CRM Company (Pro)
+- [x] `fluent-crm/attach-tag` — Attach Tag to Contact — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/bulk-delete-abandon-carts` — Bulk Delete CRM Abandoned Carts
+- [ ] `fluent-crm/bulk-delete-recurring-campaigns` — Bulk Delete CRM Recurring Campaigns (Pro)
+- [ ] `fluent-crm/bulk-upsert-contacts` — Bulk Create or Update Contacts
+- [ ] `fluent-crm/campaign-stats-summary` — Campaign Stats Summary
+- [ ] `fluent-crm/change-campaign-status` — Change Campaign Status
+- [ ] `fluent-crm/change-funnel-trigger` — Change CRM Funnel Trigger
+- [x] `fluent-crm/change-recurring-campaign-status` — Change CRM Recurring Campaign Status (Pro) — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-crm/clone-funnel` — Clone CRM Funnel — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/count-contacts-by-status` — Count Contacts by Status
+- [ ] `fluent-crm/create-automation` — Create Automation
+- [ ] `fluent-crm/create-campaign` — Create CRM Campaign
+- [x] `fluent-crm/create-company` — Create CRM Company (Pro) — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-crm/create-company-note` — Create CRM Company Note (Pro) — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/create-contact` — Create CRM Contact
+- [ ] `fluent-crm/create-dynamic-segment` — Create CRM Dynamic Segment (Pro)
+- [ ] `fluent-crm/create-editor-pattern` — Create CRM Editor Pattern
+- [ ] `fluent-crm/create-email-pattern` — Create CRM Email Pattern
+- [ ] `fluent-crm/create-funnel-from-template` — Create CRM Funnel From Template
+- [x] `fluent-crm/create-label` — Create CRM Label — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/create-list` — Create CRM List
+- [ ] `fluent-crm/create-note` — Create Contact Note
+- [ ] `fluent-crm/create-pro-manager` — Create CRM Pro Sub-Admin Manager
+- [ ] `fluent-crm/create-recurring-campaign` — Create CRM Recurring Campaign (Pro)
+- [ ] `fluent-crm/create-sequence` — Create CRM Sequence
+- [ ] `fluent-crm/create-smart-link` — Create Smart Link
+- [ ] `fluent-crm/create-tag` — Create CRM Tag
+- [ ] `fluent-crm/create-template` — Create CRM Email Template
+- [x] `fluent-crm/create-webhook` — Create CRM Webhook — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/dashboard-stats` — CRM Dashboard Stats
+- [ ] `fluent-crm/delete-automation` — Delete Automation
+- [ ] `fluent-crm/delete-campaign` — Delete CRM Campaign
+- [ ] `fluent-crm/delete-campaign-emails` — Delete CRM Campaign Per-Recipient Emails
+- [ ] `fluent-crm/delete-company` — Delete CRM Company (Pro)
+- [ ] `fluent-crm/delete-company-note` — Delete CRM Company Note (Pro)
+- [ ] `fluent-crm/delete-contact` — Delete Contact
+- [ ] `fluent-crm/delete-contact-note` — Delete Contact Note
+- [ ] `fluent-crm/delete-dynamic-segment` — Delete CRM Dynamic Segment (Pro)
+- [ ] `fluent-crm/delete-email-pattern` — Delete CRM Email Pattern
+- [ ] `fluent-crm/delete-email-pattern-category` — Delete CRM Email-Pattern Category
+- [ ] `fluent-crm/delete-funnel-subscribers` — Delete CRM Funnel Subscribers
+- [ ] `fluent-crm/delete-label` — Delete CRM Label
+- [ ] `fluent-crm/delete-list` — Delete CRM List
+- [ ] `fluent-crm/delete-note` — Delete CRM Note
+- [ ] `fluent-crm/delete-pro-manager` — Delete CRM Pro Sub-Admin Manager
+- [ ] `fluent-crm/delete-report-emails` — Delete CRM Per-Recipient Emails (Reports)
+- [ ] `fluent-crm/delete-sequence` — Delete CRM Sequence
+- [ ] `fluent-crm/delete-sequence-email` — Delete Sequence Email
+- [ ] `fluent-crm/delete-smart-link` — Delete Smart Link
+- [ ] `fluent-crm/delete-tag` — Delete CRM Tag
+- [ ] `fluent-crm/delete-template` — Delete CRM Email Template
+- [ ] `fluent-crm/delete-webhook` — Delete CRM Webhook
+- [ ] `fluent-crm/detach-list` — Detach Contact from List
+- [ ] `fluent-crm/detach-subscribers-from-company` — Detach Subscribers From CRM Company (Pro)
+- [x] `fluent-crm/detach-tag` — Detach Tag from Contact — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/disable-sms-provider` — Disable CRM Pro SMS Provider
+- [ ] `fluent-crm/do-bulk-action-campaigns` — Bulk Action On CRM Campaigns
+- [ ] `fluent-crm/do-bulk-action-companies` — Bulk Action On CRM Companies (Pro)
+- [x] `fluent-crm/do-bulk-action-funnels` — Bulk Action On CRM Funnels — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/do-bulk-action-recurring-campaigns` — Bulk Action On CRM Recurring Campaigns (Pro)
+- [ ] `fluent-crm/do-bulk-action-sequences` — Bulk Action On CRM Sequences (Pro)
+- [ ] `fluent-crm/do-bulk-action-tags` — Bulk Action On CRM Tags
+- [ ] `fluent-crm/do-bulk-action-templates` — Bulk Action On CRM Email Templates
+- [ ] `fluent-crm/draft-campaign-recipients` — Draft CRM Campaign Recipients
+- [ ] `fluent-crm/duplicate-automation` — Duplicate Automation Funnel
+- [x] `fluent-crm/duplicate-campaign` — Duplicate CRM Campaign — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/duplicate-dynamic-segment` — Duplicate CRM Dynamic Segment (Pro)
+- [x] `fluent-crm/duplicate-recurring-campaign` — Duplicate CRM Recurring Campaign (Pro) — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-crm/duplicate-sequence` — Duplicate CRM Sequence (Pro) — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/duplicate-sequence-email` — Duplicate CRM Sequence Email (Pro)
+- [ ] `fluent-crm/duplicate-template` — Duplicate CRM Email Template
+- [ ] `fluent-crm/estimate-campaign-contacts` — Estimate CRM Campaign Recipient Set
+- [ ] `fluent-crm/estimate-dynamic-segment` — Estimate Dynamic Segment
+- [ ] `fluent-crm/estimate-dynamic-segment-contacts` — Estimate CRM Dynamic Segment Contacts (Pro)
+- [x] `fluent-crm/export-subscribers` — Export CRM Subscribers — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/generate-ai-content` — Generate CRM AI Content
+- [ ] `fluent-crm/generate-smart-link-shortcode` — Generate Smart Link URL
+- [ ] `fluent-crm/get-abandon-cart-settings` — Get CRM Abandoned-Cart Settings
+- [ ] `fluent-crm/get-ai-settings` — Get CRM AI Provider Settings
+- [ ] `fluent-crm/get-auto-subscribe-settings` — Get CRM Auto-Subscribe Settings
+- [ ] `fluent-crm/get-automation` — Get Automation
+- [ ] `fluent-crm/get-automation-detail` — Get Automation Detail
+- [ ] `fluent-crm/get-automation-metrics` — Get Automation Metrics
+- [ ] `fluent-crm/get-bounce-configs` — Get CRM Bounce-Handler Configs
+- [ ] `fluent-crm/get-campaign` — Get Campaign
+- [x] `fluent-crm/get-campaign-contacts-by-segment` — Get CRM Campaign Contacts By Engagement Segment — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/get-campaign-estimated-recipient-count` — Get CRM Campaign Estimated Recipient Count
+- [ ] `fluent-crm/get-campaign-link-report` — Get CRM Campaign Per-URL Click Report
+- [ ] `fluent-crm/get-campaign-overview-stats` — Get CRM Campaign Overview Stats
+- [x] `fluent-crm/get-campaign-processing-stat` — Get CRM Campaign Real-Time Processing Stat — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/get-campaign-revenues` — Get CRM Campaign Revenue Attribution
+- [ ] `fluent-crm/get-campaign-share-url` — Get CRM Campaign Public Share URL
+- [ ] `fluent-crm/get-campaign-stats` — Get Campaign Email Stats
+- [x] `fluent-crm/get-campaign-status` — Get CRM Campaign Status (Lightweight) — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/get-cohort-journeys` — Get Cohort Journeys
+- [ ] `fluent-crm/get-cohort-patterns` — Get Cohort Patterns
+- [ ] `fluent-crm/get-commerce-report` — Get CRM Commerce Report (Pro)
+- [x] `fluent-crm/get-company` — Get CRM Company (Pro) — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/get-company-custom-fields` — Get Or Update CRM Company Custom Field Definitions (Pro)
+- [ ] `fluent-crm/get-company-custom-tab-view` — Get CRM Company Custom Tab View (Pro)
+- [ ] `fluent-crm/get-compliance-settings` — Get CRM Compliance Settings (GDPR)
+- [ ] `fluent-crm/get-contact` — Get Contact
+- [x] `fluent-crm/get-contact-custom-fields` — Get CRM Contact Custom Field Definitions — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/get-contact-dynamic-item-view` — Get CRM Contact Dynamic Item View
+- [ ] `fluent-crm/get-contact-emails` — Get Contact Email History
+- [ ] `fluent-crm/get-contact-external-view` — Get Or Set CRM Contact External View
+- [ ] `fluent-crm/get-contact-form-submissions` — Get CRM Contact Form Submissions
+- [x] `fluent-crm/get-contact-purchase-history` — Get CRM Contact Purchase History — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-crm/get-contact-support-tickets` — Get CRM Contact Support Tickets — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/get-contact-url-metrics` — Get CRM Contact Per-URL Click Metrics
+- [ ] `fluent-crm/get-crm-context` — Get CRM Context
+- [ ] `fluent-crm/get-crm-report` — Get CRM Report
+- [ ] `fluent-crm/get-cron-status` — Get CRM Cron Health Status
+- [ ] `fluent-crm/get-doc` — Get CRM In-App Help Doc
+- [ ] `fluent-crm/get-double-optin-config` — Get CRM Double-Optin Config
+- [ ] `fluent-crm/get-dynamic-segment-stats` — Get CRM Dynamic Segment Stats (Pro)
+- [ ] `fluent-crm/get-dynamic-segment-subscriber` — Get CRM Dynamic Segment Subscriber Match (Pro)
+- [ ] `fluent-crm/get-email-link-clicks` — Get Email Link Clicks
+- [ ] `fluent-crm/get-email-pattern` — Get CRM Email Pattern
+- [ ] `fluent-crm/get-email-pattern-wp-format` — Convert CRM Email Pattern To WP-Block Format
+- [ ] `fluent-crm/get-experiments-config` — Get CRM Feature-Flag Experiments
+- [ ] `fluent-crm/get-form-entry-detail` — Get CRM Form Entry Detail
+- [x] `fluent-crm/get-funnel-all-activities` — Get CRM Funnel Cross-Funnel Activity Stream — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/get-funnel-conversion` — Get Funnel Conversion
+- [x] `fluent-crm/get-funnel-email-reports` — Get CRM Funnel Per-Step Email Metrics — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/get-funnel-report` — Get CRM Funnel Aggregate Report
+- [ ] `fluent-crm/get-funnel-subscriber-detail` — Get CRM Funnel Subscriber Detail
+- [ ] `fluent-crm/get-funnel-syncable-counts` — Get CRM Funnel Syncable Subscriber Counts
+- [ ] `fluent-crm/get-integrations-config` — Get CRM Integrations Config
+- [ ] `fluent-crm/get-old-logs` — Get CRM Archived Logs
+- [x] `fluent-crm/get-recurring-campaign` — Get CRM Recurring Campaign (Pro) — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/get-recurring-campaign-email` — Get CRM Recurring Campaign Email (Pro)
+- [x] `fluent-crm/get-report-advanced-providers` — Get CRM Email Routing Provider Counts — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-crm/get-report-automation-steps` — Get CRM Automation Per-Step Metrics — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-crm/get-report-automations` — Get CRM Automations Aggregate Report — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/get-report-contacts-by-country` — Get CRM Contact Distribution by Country
+- [x] `fluent-crm/get-report-contacts-by-lists` — Get CRM Contact Distribution by List — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/get-report-contacts-by-status` — Get CRM Contact Distribution by Status
+- [x] `fluent-crm/get-report-contacts-by-tags` — Get CRM Contact Distribution by Tag — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/get-report-email-clicks` — Get CRM Email Click Report
+- [ ] `fluent-crm/get-report-email-opens` — Get CRM Email Open Report
+- [ ] `fluent-crm/get-report-email-performance` — Get CRM Email Performance Rates
+- [ ] `fluent-crm/get-report-email-sents` — Get CRM Email Sent Report
+- [ ] `fluent-crm/get-report-email-unsubs` — Get CRM Email Unsubscribe Report
+- [x] `fluent-crm/get-report-recent-tags` — Get CRM Recently Created or Applied Tags — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/get-report-subscribers` — Get CRM Subscribers Growth Report
+- [ ] `fluent-crm/get-report-taxonomy-terms` — Get WP Taxonomy Term Distribution
+- [ ] `fluent-crm/get-sequence` — Get Sequence
+- [ ] `fluent-crm/get-sequence-progress` — Get Sequence Progress
+- [ ] `fluent-crm/get-sequence-stats` — Get Sequence Email Stats
+- [ ] `fluent-crm/get-sequence-subscribers` — Get Sequence Subscribers
+- [ ] `fluent-crm/get-settings` — Get CRM Settings (Root)
+- [ ] `fluent-crm/get-smart-link` — Get Smart Link
+- [ ] `fluent-crm/get-smart-link-stats` — Get Smart Link Stats
+- [ ] `fluent-crm/get-sms-settings` — Get CRM Pro SMS Provider Settings
+- [x] `fluent-crm/get-system-logs` — Get CRM System Logs — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/get-tag-timeline` — Get Tag Application Timeline
+- [x] `fluent-crm/get-template` — Get CRM Email Template — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/global-search` — Global CRM Search
+- [ ] `fluent-crm/import-companies-csv` — Import CRM Companies From CSV (Pro)
+- [ ] `fluent-crm/import-from-wp-users` — Import CRM Contacts From WP Users
+- [ ] `fluent-crm/import-funnel` — Import CRM Funnel From Export Definition
+- [ ] `fluent-crm/list-automation-steps` — List Automation Steps
+- [ ] `fluent-crm/list-automations` — List Automations
+- [ ] `fluent-crm/list-built-in-templates` — List CRM Built-In Email Templates
+- [x] `fluent-crm/list-campaign-emails` — List CRM Campaign Per-Recipient Emails — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-crm/list-campaign-unsubscribers` — List CRM Campaign Unsubscribers — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-crm/list-campaigns` — List Campaigns — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-crm/list-campaigns-pro-post-taxonomies` — List CRM Campaign-Pro Post Taxonomies (Pro) — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-crm/list-campaigns-pro-posts` — List CRM Campaign-Pro WP Posts (Pro) — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-crm/list-campaigns-pro-products` — List CRM Campaign-Pro Commerce Products (Pro) — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-crm/list-commerce-reports-for-provider` — List CRM Commerce Reports For Provider (Pro) — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/list-companies` — List CRM Companies
+- [x] `fluent-crm/list-company-notes` — List CRM Company Notes (Pro) — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/list-contact-events` — List Contact Events
+- [ ] `fluent-crm/list-contacts` — List Contacts
+- [ ] `fluent-crm/list-contacts-by-date-range` — Get Contacts by Date Range
+- [ ] `fluent-crm/list-contacts-recently-active` — Get Recently Active Contacts
+- [ ] `fluent-crm/list-docs` — List CRM In-App Help Docs
+- [x] `fluent-crm/list-dynamic-segment-custom-fields` — List CRM Dynamic Segment Buildable Custom Fields (Pro) — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-crm/list-dynamic-segments` — List CRM Dynamic Segments (Pro) — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/list-editor-cart-products` — List CRM Editor Cart Products
+- [ ] `fluent-crm/list-editor-pattern-categories` — List CRM Editor-Pattern Categories
+- [ ] `fluent-crm/list-editor-patterns` — List CRM Editor Patterns
+- [ ] `fluent-crm/list-email-pattern-categories` — List CRM Email-Pattern Categories
+- [ ] `fluent-crm/list-event-keys` — List Event Keys
+- [x] `fluent-crm/list-experiments-campaigns` — List Campaigns Under Experimental Flow — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/list-form-entries` — List CRM Form Entries
+- [ ] `fluent-crm/list-forms` — List CRM Forms
+- [x] `fluent-crm/list-funnel-subscribers` — List Funnel Subscribers — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-crm/list-funnel-templates` — List CRM Funnel Templates — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/list-funnel-triggers` — List CRM Funnel Triggers Dictionary
+- [ ] `fluent-crm/list-labels` — List CRM Labels
+- [ ] `fluent-crm/list-lists` — List CRM Lists
+- [ ] `fluent-crm/list-lists-with-counts` — List Lists with Subscriber Counts
+- [ ] `fluent-crm/list-notes` — List Contact Notes
+- [x] `fluent-crm/list-recurring-campaign-emails` — List CRM Recurring Campaign Emails (Pro) — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-crm/list-recurring-campaigns` — List CRM Recurring Campaigns (Pro) — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-crm/list-report-emails` — List CRM Per-Recipient Emails (Reports) — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/list-sequence-emails` — List Sequence Emails
+- [ ] `fluent-crm/list-sequences` — List Sequences
+- [x] `fluent-crm/list-sequences-for-subscriber` — List CRM Sequences For Subscriber (Pro) — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/list-smart-codes` — List CRM Smart Codes Dictionary
+- [ ] `fluent-crm/list-smart-links` — List Smart Links
+- [x] `fluent-crm/list-subscriber-automations` — List CRM Subscriber Automations — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-crm/list-subscriber-tracking-events` — List CRM Subscriber Tracking Events — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/list-tags` — List CRM Tags
+- [ ] `fluent-crm/list-tags-with-counts` — List Tags with Subscriber Counts
+- [ ] `fluent-crm/list-templates` — List Email Templates
+- [ ] `fluent-crm/list-templates-all` — List All CRM Email Templates (Flat)
+- [ ] `fluent-crm/list-user-roles` — List WP User Roles (CRM Picker UI)
+- [ ] `fluent-crm/list-users-for-fluent-crm` — List WP Users (FluentCRM Subscriber Correlation)
+- [ ] `fluent-crm/list-webhooks` — List CRM Webhooks
+- [ ] `fluent-crm/manage-editor-pattern` — Manage Single CRM Editor Pattern
+- [ ] `fluent-crm/manage-list` — Manage List
+- [ ] `fluent-crm/manage-sequence-subscribers` — Manage Sequence Subscribers
+- [ ] `fluent-crm/manage-tag` — Manage Tag
+- [ ] `fluent-crm/pause-campaign` — Pause CRM Campaign
+- [ ] `fluent-crm/preview-campaign-email-html` — Preview CRM Campaign Email HTML
+- [ ] `fluent-crm/preview-campaign-recipient-email` — Preview CRM Campaign Recipient Email
+- [ ] `fluent-crm/reapply-sequence` — Reapply CRM Sequence (Pro)
+- [ ] `fluent-crm/remove-automation-step` — Remove Automation Step
+- [ ] `fluent-crm/remove-bulk-funnel-subscribers` — Remove Bulk CRM Funnel Subscribers
+- [ ] `fluent-crm/remove-contact-from-sequence` — Remove Contact from Sequence
+- [ ] `fluent-crm/resend-campaign-emails` — Resend CRM Campaign Emails (Pro)
+- [ ] `fluent-crm/resend-failed-campaign-emails` — Resend Failed CRM Campaign Emails (Pro)
+- [ ] `fluent-crm/resend-unopened-campaign-emails` — Resend Unopened CRM Campaign Emails (Pro)
+- [ ] `fluent-crm/resume-campaign` — Resume CRM Campaign
+- [ ] `fluent-crm/resync-campaign-revenues` — Resync CRM Campaign Revenue Attribution
+- [ ] `fluent-crm/run-import-csv` — Run CRM CSV Subscriber Import
+- [ ] `fluent-crm/run-import-driver` — Run CRM Import Driver
+- [ ] `fluent-crm/save-funnel-email-action` — Save CRM Funnel Email Action
+- [ ] `fluent-crm/save-funnel-email-action-fallback` — Save CRM Funnel Email-Action Fallback Settings
+- [ ] `fluent-crm/save-funnel-sequences` — Save CRM Funnel Sequences Atomically
+- [ ] `fluent-crm/save-funnel-sequences-step` — Save CRM Funnel Step List Atomically
+- [x] `fluent-crm/schedule-campaign` — Schedule CRM Campaign — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/search-companies` — Search CRM Companies (Pro)
+- [ ] `fluent-crm/search-contacts-advanced` — Advanced Contact Search
+- [x] `fluent-crm/search-unattached-contacts-for-company` — Search Contacts Not In Any Company (Pro) — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/send-email-to-contact` — Send Email to Contact
+- [ ] `fluent-crm/send-test-email` — Send Test Email
+- [ ] `fluent-crm/send-test-email-campaign` — Send Test Email For CRM Campaign
+- [ ] `fluent-crm/send-test-funnel-webhook` — Send Test CRM Funnel Webhook
+- [ ] `fluent-crm/sequence-email-update-create` — Upsert CRM Sequence Email Atomically (Pro)
+- [ ] `fluent-crm/sync-funnel-new-steps` — Sync CRM Funnel New-Steps Re-Enrollment
+- [ ] `fluent-crm/tag-actions-on-campaign` — Configure CRM Campaign Tag Actions (Pro)
+- [ ] `fluent-crm/test-ai-connection` — Test CRM AI Provider Connection
+- [ ] `fluent-crm/track-event` — Track Custom Event
+- [ ] `fluent-crm/unschedule-campaign` — Unschedule CRM Campaign
+- [ ] `fluent-crm/update-abandon-cart-settings` — Update CRM Abandoned-Cart Settings
+- [ ] `fluent-crm/update-ai-settings` — Update CRM AI Provider Settings
+- [ ] `fluent-crm/update-auto-subscribe-settings` — Update CRM Auto-Subscribe Settings
+- [ ] `fluent-crm/update-automation` — Update Automation
+- [ ] `fluent-crm/update-automation-status` — Update Automation Status
+- [x] `fluent-crm/update-campaign` — Update CRM Campaign — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/update-campaign-labels` — Update CRM Campaign Labels
+- [x] `fluent-crm/update-campaign-title` — Update CRM Campaign Title — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/update-companies-property` — Update CRM Companies Single Property (Pro)
+- [x] `fluent-crm/update-company` — Update CRM Company (Pro) — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/update-company-note` — Update CRM Company Note (Pro)
+- [ ] `fluent-crm/update-compliance-settings` — Update CRM Compliance Settings (GDPR)
+- [ ] `fluent-crm/update-contact` — Update CRM Contact
+- [ ] `fluent-crm/update-contact-automation-status` — Update Contact Automation Status
+- [x] `fluent-crm/update-contact-custom-fields` — Update CRM Contact Custom Field Definitions (DESTRUCTIVE — full replace) — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/update-contact-custom-fields-group-name` — Rename CRM Contact Custom Field Group
+- [ ] `fluent-crm/update-double-optin-config` — Update CRM Double-Optin Config
+- [ ] `fluent-crm/update-dynamic-segment` — Update CRM Dynamic Segment (Pro)
+- [ ] `fluent-crm/update-email-pattern` — Update CRM Email Pattern
+- [ ] `fluent-crm/update-experiments-config` — Update CRM Feature-Flag Experiments
+- [ ] `fluent-crm/update-funnel-labels` — Update CRM Funnel Labels
+- [ ] `fluent-crm/update-funnel-subscriber-status` — Update CRM Funnel Subscriber Status
+- [x] `fluent-crm/update-funnel-title` — Update CRM Funnel Title — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/update-integrations-config` — Update CRM Integrations Config
+- [x] `fluent-crm/update-label` — Update CRM Label — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/update-list` — Update CRM List
+- [ ] `fluent-crm/update-note` — Update Contact Note
+- [ ] `fluent-crm/update-pro-manager` — Update CRM Pro Sub-Admin Manager
+- [x] `fluent-crm/update-recurring-campaign-data` — Update CRM Recurring Campaign Data (Pro) — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/update-recurring-campaign-email` — Update CRM Recurring Campaign Email (Pro)
+- [x] `fluent-crm/update-recurring-campaign-labels` — Update CRM Recurring Campaign Labels (Pro) — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/update-recurring-campaign-settings` — Update CRM Recurring Campaign Settings (Pro)
+- [ ] `fluent-crm/update-sequence` — Update Sequence
+- [ ] `fluent-crm/update-sequence-email` — Update Sequence Email
+- [ ] `fluent-crm/update-sequence-email-delay` — Update CRM Sequence Email Delay (Pro)
+- [ ] `fluent-crm/update-settings` — Update CRM Settings (Root)
+- [ ] `fluent-crm/update-single-campaign-property` — Update Single CRM Campaign Property
+- [ ] `fluent-crm/update-smart-link` — Update Smart Link
+- [ ] `fluent-crm/update-sms-settings` — Update CRM Pro SMS Provider Settings
+- [ ] `fluent-crm/update-subscribers-property` — Update CRM Subscribers Single Property
+- [ ] `fluent-crm/update-tag` — Update CRM Tag
+- [ ] `fluent-crm/update-template` — Update CRM Email Template
+- [x] `fluent-crm/update-webhook` — Update CRM Webhook — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-crm/upload-import-csv` — Upload CRM Import CSV File
+- [ ] `fluent-crm/upsert-campaign` — Create or Update Campaign
+- [ ] `fluent-crm/upsert-contact` — Create or Update Contact
+
+### fluent-forms
+- [ ] `fluent-forms/add-manager` — Add Manager
+- [ ] `fluent-forms/add-submission-note` — Add Submission Note
+- [ ] `fluent-forms/bulk-update-submissions` — Bulk Update Submissions
+- [ ] `fluent-forms/cancel-scheduled-action` — Cancel Scheduled Action
+- [ ] `fluent-forms/convert-form` — Convert Form To Conversational
+- [x] `fluent-forms/create-form` — Create Form — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-forms/create-form-confirmation` — Create Form Confirmation
+- [ ] `fluent-forms/create-form-integration` — Create Form Integration
+- [ ] `fluent-forms/create-form-notification` — Create Form Notification
+- [ ] `fluent-forms/delete-form` — Delete Form
+- [ ] `fluent-forms/delete-form-confirmation` — Delete Form Confirmation
+- [ ] `fluent-forms/delete-form-integration` — Delete Form Integration
+- [ ] `fluent-forms/delete-form-notification` — Delete Form Notification
+- [ ] `fluent-forms/delete-logs` — Delete Logs
+- [ ] `fluent-forms/delete-submission` — Delete Submission
+- [ ] `fluent-forms/delete-submission-logs` — Delete Submission Logs
+- [x] `fluent-forms/delete-submission-note` — Delete Submission Note — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-forms/duplicate-form` — Duplicate Form
+- [x] `fluent-forms/export-entries` — Export Entries — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-forms/export-form` — Export Form Definition
+- [ ] `fluent-forms/get-completion-rate` — Get Completion Rate
+- [ ] `fluent-forms/get-conversational-design` — Get Conversational Design
+- [ ] `fluent-forms/get-country-heatmap` — Get Country Heatmap
+- [ ] `fluent-forms/get-form` — Get Form
+- [ ] `fluent-forms/get-form-advanced-validation` — Get Advanced Validation Settings
+- [ ] `fluent-forms/get-form-analytics` — Get Form Analytics
+- [ ] `fluent-forms/get-form-conversion-stats` — Get Form Conversion Stats
+- [ ] `fluent-forms/get-form-customizer` — Get Form Customizer
+- [ ] `fluent-forms/get-form-general-settings` — Get Form General Settings
+- [x] `fluent-forms/get-form-integration` — Get Form Integration — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-forms/get-form-notification` — Get Form Notification
+- [ ] `fluent-forms/get-form-preset` — Get Form Preset
+- [ ] `fluent-forms/get-form-settings` — Get Form Settings
+- [ ] `fluent-forms/get-form-shortcodes` — Get Form Shortcodes
+- [ ] `fluent-forms/get-form-stats` — Get Form Stats
+- [ ] `fluent-forms/get-global-settings` — Get Global Settings
+- [ ] `fluent-forms/get-integration-global-settings` — Get Integration Global Settings
+- [x] `fluent-forms/get-integration-list-ids` — Get Integration List IDs — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-forms/get-integration-merge-fields` — Get Integration Merge Fields
+- [ ] `fluent-forms/get-log-filters` — Get Log Filters
+- [ ] `fluent-forms/get-overview-chart` — Get Overview Chart
+- [ ] `fluent-forms/get-quiz-attempt` — Get Quiz Attempt
+- [ ] `fluent-forms/get-quiz-config` — Get Quiz Config
+- [ ] `fluent-forms/get-revenue-chart` — Get Revenue Chart
+- [x] `fluent-forms/get-submission` — Get Form Submission — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-forms/get-submissions-analysis` — Get Per-Field Submissions Analysis
+- [ ] `fluent-forms/get-subscription` — Get Subscription
+- [ ] `fluent-forms/get-survey-html` — Get Survey HTML
+- [ ] `fluent-forms/get-survey-results` — Get Survey Results
+- [ ] `fluent-forms/get-top-performing-forms` — Get Top Performing Forms
+- [ ] `fluent-forms/get-transaction` — Get Payment Transaction
+- [x] `fluent-forms/global-search` — Global Search — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-forms/import-entries` — Import Entries
+- [ ] `fluent-forms/import-form` — Import Form Definition
+- [ ] `fluent-forms/list-all-submissions` — List All Submissions (cross-form)
+- [ ] `fluent-forms/list-available-integrations` — List Available Integrations
+- [ ] `fluent-forms/list-form-confirmations` — List Form Confirmations
+- [ ] `fluent-forms/list-form-integrations` — List Form Integrations
+- [ ] `fluent-forms/list-form-notifications` — List Form Notifications
+- [ ] `fluent-forms/list-form-views` — List Form Views
+- [ ] `fluent-forms/list-forms` — List Forms
+- [ ] `fluent-forms/list-logs` — List Logs
+- [ ] `fluent-forms/list-managers` — List Managers
+- [ ] `fluent-forms/list-order-items` — List Order Items
+- [ ] `fluent-forms/list-payment-types` — List Payment Types
+- [ ] `fluent-forms/list-quiz-attempts` — List Quiz Attempts
+- [ ] `fluent-forms/list-role-capabilities` — List Role Capabilities
+- [ ] `fluent-forms/list-scheduled-actions` — List Scheduled Actions
+- [ ] `fluent-forms/list-submission-logs` — List Submission Logs
+- [ ] `fluent-forms/list-submission-notes` — List Submission Notes
+- [ ] `fluent-forms/list-submissions` — List Form Submissions
+- [ ] `fluent-forms/list-subscriptions` — List Subscriptions
+- [ ] `fluent-forms/list-transactions` — List Payment Transactions
+- [ ] `fluent-forms/remove-manager` — Remove Manager
+- [ ] `fluent-forms/reset-form-analytics` — Reset Form Analytics
+- [ ] `fluent-forms/retry-scheduled-action` — Retry Scheduled Action
+- [ ] `fluent-forms/save-form-preset` — Save Form Preset
+- [ ] `fluent-forms/set-role-capability` — Set Role Capability
+- [x] `fluent-forms/toggle-integration-status` — Toggle Integration Status — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-forms/toggle-submission-favorite` — Toggle Submission Favorite
+- [ ] `fluent-forms/update-conversational-design` — Update Conversational Design
+- [x] `fluent-forms/update-form` — Update Form — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-forms/update-form-advanced-validation` — Update Advanced Validation Settings
+- [ ] `fluent-forms/update-form-confirmation` — Update Form Confirmation
+- [ ] `fluent-forms/update-form-customizer` — Update Form Customizer
+- [ ] `fluent-forms/update-form-general-settings` — Update Form General Settings
+- [ ] `fluent-forms/update-form-integration` — Update Form Integration
+- [ ] `fluent-forms/update-form-notification` — Update Form Notification
+- [ ] `fluent-forms/update-form-settings` — Update Form Settings
+- [ ] `fluent-forms/update-global-settings` — Update Global Settings
+- [ ] `fluent-forms/update-submission-status` — Update Submission Status
+- [ ] `fluent-forms/update-submission-user` — Reassign Submission Owner
+
+### fluent-messaging
+- [ ] `fluent-messaging/add-participant` — Add Thread Participant
+- [ ] `fluent-messaging/create-thread` — Create Chat Thread
+- [ ] `fluent-messaging/delete-message` — Delete Chat Message
+- [ ] `fluent-messaging/delete-thread` — Delete Chat Thread
+- [ ] `fluent-messaging/get-messaging-stats` — Get Messaging Stats
+- [x] `fluent-messaging/get-thread` — Get Chat Thread — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-messaging/list-messages` — List Thread Messages
+- [ ] `fluent-messaging/list-threads` — List Chat Threads
+- [ ] `fluent-messaging/mark-thread-read` — Mark Thread Read
+- [ ] `fluent-messaging/remove-participant` — Remove Thread Participant
+- [x] `fluent-messaging/send-message` — Send Message — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-messaging/update-message` — Update Chat Message
+- [ ] `fluent-messaging/update-thread` — Update Chat Thread
+
+### fluent-player
+- [x] `fluent-player/activate-license` — Activate license — **EXCLUDE (3rd-party/license)**
+- [ ] `fluent-player/analytics-devices` — Analytics — devices / browsers
+- [ ] `fluent-player/analytics-location-breakdown` — Analytics — location breakdown
+- [ ] `fluent-player/analytics-new-returning-viewers` — Analytics — new vs returning viewers
+- [x] `fluent-player/analytics-performance-over-time` — Analytics — performance over time — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-player/analytics-retention` — Analytics — retention curve
+- [ ] `fluent-player/analytics-stats` — Analytics — overall stats
+- [ ] `fluent-player/analytics-top-users` — Analytics — top viewers
+- [ ] `fluent-player/analytics-top-videos` — Analytics — top videos
+- [ ] `fluent-player/analytics-user-info` — Analytics — user info
+- [ ] `fluent-player/analytics-user-retention` — Analytics — user retention
+- [ ] `fluent-player/analytics-user-stats` — Analytics — user stats
+- [ ] `fluent-player/analytics-user-top-videos` — Analytics — user top videos
+- [ ] `fluent-player/analytics-video-devices` — Analytics — single video devices
+- [ ] `fluent-player/analytics-video-location-breakdown` — Analytics — single video location breakdown
+- [ ] `fluent-player/analytics-video-retention` — Analytics — single video retention
+- [x] `fluent-player/analytics-video-stats` — Analytics — single video stats — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-player/analytics-video-top-users` — Analytics — single video top viewers
+- [x] `fluent-player/bunny-storage-create-directory` — Bunny Storage — create directory — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-player/bunny-storage-delete-video` — Bunny Storage — delete video — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/bunny-storage-get-video` — Bunny Storage — get video — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/bunny-storage-list-videos` — Bunny Storage — list videos — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/bunny-stream-create-collection` — Bunny Stream — create collection — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/bunny-stream-create-video` — Bunny Stream — create video — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-player/bunny-stream-delete-collection` — Bunny Stream — delete collection — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/bunny-stream-delete-video` — Bunny Stream — delete video — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/bunny-stream-list-collections` — Bunny Stream — list collections — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/bunny-stream-list-libraries` — Bunny Stream — list libraries — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/bunny-stream-list-videos` — Bunny Stream — list videos — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/bunny-stream-update-collection` — Bunny Stream — update collection — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/bunny-stream-update-video` — Bunny Stream — update video — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/create-media` — Create media — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/create-media-tag` — Create media tag — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-player/create-playlist` — Create playlist — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-player/create-preset` — Create preset
+- [x] `fluent-player/deactivate-license` — Deactivate license — **EXCLUDE (3rd-party/license)**
+- [ ] `fluent-player/delete-email-collection` — Delete email collection
+- [ ] `fluent-player/delete-media` — Delete media
+- [ ] `fluent-player/delete-media-tag` — Delete media tag
+- [ ] `fluent-player/delete-playlist` — Delete playlist
+- [ ] `fluent-player/delete-preset` — Delete preset
+- [ ] `fluent-player/export-email-collections` — Export email collections
+- [x] `fluent-player/generate-youtube-storyboard` — Generate YouTube storyboard — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-player/get-email-collection` — Get email collection
+- [ ] `fluent-player/get-integration-fields` — Get integration fields
+- [ ] `fluent-player/get-license-details` — Get license details
+- [x] `fluent-player/get-media` — Get media — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-player/get-media-metadata` — Get media metadata (oEmbed/YouTube) — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-player/get-playlist` — Get playlist
+- [ ] `fluent-player/get-preset` — Get preset
+- [ ] `fluent-player/get-settings` — Get settings (full)
+- [ ] `fluent-player/get-settings-section` — Get settings section
+- [x] `fluent-player/get-youtube-captions` — Get YouTube captions — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-player/get-youtube-channel-info` — Get YouTube channel info — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/import-youtube-captions` — Import YouTube captions — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-player/list-email-collections` — List email collections
+- [x] `fluent-player/list-layer-forms` — List layer forms — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-player/list-media-tags` — List media tags — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-player/list-presets` — List presets
+- [x] `fluent-player/list-provider-resources` — List provider resources — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-player/list-smartcodes` — List smartcodes
+- [x] `fluent-player/mux-create-asset` — Mux — create asset — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-player/mux-create-live-stream` — Mux — create live stream — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/mux-create-playback-restriction` — Mux — create playback restriction — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/mux-create-signing-key` — Mux — create signing key — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/mux-create-track` — Mux — create asset track — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/mux-create-upload` — Mux — create direct upload URL — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/mux-delete-asset` — Mux — delete asset — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/mux-delete-live-stream` — Mux — delete live stream — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/mux-delete-playback-restriction` — Mux — delete playback restriction — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/mux-delete-signing-key` — Mux — delete signing key — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/mux-delete-track` — Mux — delete asset track — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/mux-generate-track-subtitles` — Mux — generate subtitles for track — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/mux-get-asset` — Mux — get asset — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/mux-get-asset-captions` — Mux — get asset captions — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/mux-get-delivery-usage` — Mux — get delivery usage — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/mux-get-live-stream` — Mux — get live stream — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-player/mux-get-upload-status` — Mux — get upload status — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/mux-list-assets` — Mux — list assets — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/mux-list-live-streams` — Mux — list live streams — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/mux-list-playback-restrictions` — Mux — list playback restrictions — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/mux-list-signing-keys` — Mux — list signing keys — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/mux-reset-stream-key` — Mux — reset stream key — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/mux-update-asset` — Mux — update asset (passthrough) — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/mux-update-asset-mp4-support` — Mux — update asset MP4 support — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/remove-subtitle` — Remove subtitle — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-player/rename-media-tag` — Rename media tag
+- [ ] `fluent-player/reset-settings` — Reset settings
+- [ ] `fluent-player/save-email-provider-settings` — Save email provider settings
+- [x] `fluent-player/save-integration-settings` — Save integration settings — **EXCLUDE (3rd-party/license)**
+- [x] `fluent-player/search-media` — Search media — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-player/test-integration-connection` — Test integration connection
+- [x] `fluent-player/update-media` — Update media — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-player/update-playlist` — Update playlist — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-player/update-preset` — Update preset
+- [x] `fluent-player/update-settings` — Update settings — **ALREADY-TESTED (#110 Layer-2)**
+- [x] `fluent-player/update-timed-content` — Update timed content (chapters + overlays) — **ALREADY-TESTED (#110 Layer-2)**
+- [ ] `fluent-player/upload-subtitle` — Upload subtitle
+- [ ] `fluent-player/validate-provider-field` — Validate provider field
+
+### fluent-snippets
+- [ ] `fluent-snippets/create-snippet` — Create Snippet
+- [ ] `fluent-snippets/delete-snippet` — Delete Snippet
+- [ ] `fluent-snippets/get-snippet` — Get Snippet
+- [ ] `fluent-snippets/get-snippet-stats` — Get Snippet Stats
+- [ ] `fluent-snippets/list-snippet-tags` — List Snippet Tags
+- [ ] `fluent-snippets/list-snippets` — List Snippets
+- [ ] `fluent-snippets/update-snippet` — Update Snippet
+
+### fluent-support
+- [ ] `fluent-support/add-ticket-tag` — Add Tag to Ticket
+- [ ] `fluent-support/bulk-ticket-action` — Bulk Ticket Action
+- [ ] `fluent-support/change-ticket-customer` — Change Ticket Customer
+- [ ] `fluent-support/close-ticket` — Close Support Ticket
+- [ ] `fluent-support/create-agent` — Create Support Agent
+- [ ] `fluent-support/create-customer` — Create Support Customer
+- [ ] `fluent-support/create-product` — Create Support Product
+- [ ] `fluent-support/create-tag` — Create Support Tag
+- [ ] `fluent-support/create-ticket` — Create Support Ticket
+- [ ] `fluent-support/delete-agent` — Delete Support Agent
+- [ ] `fluent-support/delete-conversation` — Delete Conversation
+- [ ] `fluent-support/delete-customer` — Delete Support Customer
+- [ ] `fluent-support/delete-product` — Delete Support Product
+- [ ] `fluent-support/delete-tag` — Delete Support Tag
+- [ ] `fluent-support/delete-ticket` — Delete Support Ticket
+- [ ] `fluent-support/get-agent` — Get Support Agent
+- [ ] `fluent-support/get-customer` — Get Support Customer
+- [ ] `fluent-support/get-mailbox` — Get Support Mailbox
+- [ ] `fluent-support/get-product` — Get Support Product
+- [ ] `fluent-support/get-saved-reply` — Get Saved Reply
+- [ ] `fluent-support/get-support-stats` — Support Dashboard Stats
+- [ ] `fluent-support/get-tag` — Get Support Tag
+- [ ] `fluent-support/get-ticket` — Get Support Ticket
+- [ ] `fluent-support/get-ticket-tags` — Get Ticket Tags
+- [ ] `fluent-support/list-agents` — List Support Agents
+- [ ] `fluent-support/list-conversations` — List Ticket Conversations
+- [ ] `fluent-support/list-customers` — List Support Customers
+- [ ] `fluent-support/list-mailboxes` — List Support Mailboxes
+- [ ] `fluent-support/list-products` — List Support Products
+- [ ] `fluent-support/list-saved-replies` — List Saved Replies
+- [ ] `fluent-support/list-tags` — List Support Tags
+- [ ] `fluent-support/list-tickets` — List Support Tickets
+- [ ] `fluent-support/remove-ticket-tag` — Remove Tag from Ticket
+- [ ] `fluent-support/reopen-ticket` — Reopen Support Ticket
+- [ ] `fluent-support/reply-to-ticket` — Reply to Support Ticket
+- [ ] `fluent-support/update-agent` — Update Support Agent
+- [ ] `fluent-support/update-conversation` — Update Conversation
+- [ ] `fluent-support/update-customer` — Update Support Customer
+- [ ] `fluent-support/update-product` — Update Support Product
+- [ ] `fluent-support/update-tag` — Update Support Tag
+- [ ] `fluent-support/update-ticket` — Update Support Ticket
+
+### fluent
+- [ ] `fluent/get-active-modules` — Get Active Fluent Modules
+- [ ] `fluent/get-engagement-score` — Get User Engagement Score
+- [ ] `fluent/get-suite-dashboard` — Get Fluent Dashboard
+- [ ] `fluent/get-user-360` — Get User 360 View
+- [ ] `fluent/onboard-user` — Onboard User Across Fluent Products
+
+## S2-WP-core — 199 total (199 TO TEST)
+
+
+### blocks
+- [ ] `blocks/append-inner` — Append Inner Blocks
+- [ ] `blocks/find-in-post` — Find Block in Post
+- [ ] `blocks/find-nested` — Find Nested Blocks
+- [ ] `blocks/get-at-path` — Get Block at Path
+- [ ] `blocks/get-type` — Get Block Type
+- [ ] `blocks/insert` — Insert Block
+- [ ] `blocks/list-types` — List Block Types
+- [ ] `blocks/parse` — Parse Blocks
+- [ ] `blocks/remove` — Remove Block
+- [ ] `blocks/replace` — Replace Block
+- [ ] `blocks/serialize` — Serialize Blocks
+- [ ] `blocks/update-at-path` — Update Block at Path
+- [ ] `blocks/update-attributes` — Update Block Attributes
+
+### cache
+- [ ] `cache/delete-transient` — Delete Transient
+- [ ] `cache/flush` — Flush Transients
+- [ ] `cache/flush-page-cache` — Flush Page Cache
+- [ ] `cache/get-transient` — Get Transient
+- [ ] `cache/list-transients` — List Transients
+- [ ] `cache/object-cache-status` — Object Cache Status
+- [ ] `cache/set-transient` — Set Transient
+
+### comments
+- [ ] `comments/create` — Create Comment
+- [ ] `comments/delete` — Delete Comment
+- [ ] `comments/get` — Get Comment
+- [ ] `comments/list` — List Comments
+- [ ] `comments/update` — Update Comment
+
+### content
+- [ ] `content/append` — Append Content
+- [ ] `content/batch-update` — Batch Update Content
+- [ ] `content/change-type` — Change Content Type
+- [ ] `content/create` — Create Content
+- [ ] `content/create-from-file` — Create Content from File
+- [ ] `content/delete` — Delete Content
+- [ ] `content/discover-types` — Discover Content Types
+- [ ] `content/duplicate` — Duplicate Content
+- [ ] `content/find-by-url` — Find Content by URL
+- [ ] `content/get` — Get Content
+- [ ] `content/get-by-slug` — Get Content by Slug
+- [ ] `content/get-site-map` — Get Site Map
+- [ ] `content/get-snapshot` — Get Content Snapshot
+- [ ] `content/get-text` — Get Content as Plain Text
+- [ ] `content/list` — List Content
+- [ ] `content/list-structure` — List Content Structure
+- [ ] `content/render-page` — Render Page HTML
+- [ ] `content/search-replace` — Search and Replace in Content
+- [ ] `content/update` — Update Content
+
+### cron
+- [ ] `cron/create-event` — Schedule Cron Event
+- [ ] `cron/delete-event` — Unschedule Cron Event
+- [ ] `cron/get-event` — Get Cron Event
+- [ ] `cron/list-events` — List Cron Events
+- [ ] `cron/list-schedules` — List Cron Schedules
+- [ ] `cron/run-event` — Run Cron Event
+
+### diagnostic
+- [ ] `diagnostic/content-health` — Content Health Audit
+- [ ] `diagnostic/content-narrative` — Content Narrative
+- [ ] `diagnostic/environment-info` — Environment Info
+- [ ] `diagnostic/registered-assets` — Registered Scripts & Styles
+- [ ] `diagnostic/security-posture` — Security Posture Diagnostic
+- [ ] `diagnostic/site-overview` — Site Overview Diagnostic
+- [ ] `diagnostic/taxonomy-health` — Taxonomy Health Diagnostic
+- [ ] `diagnostic/theme-audit` — Theme Audit Diagnostic
+
+### editorial
+- [ ] `editorial/content-samples` — Content Samples
+- [ ] `editorial/site-voice` — Editorial Voice Fingerprint
+
+### filesystem
+- [ ] `filesystem/create-directory` — Create Directory
+- [ ] `filesystem/delete-file` — Delete File
+- [ ] `filesystem/fetch-remote` — Fetch Remote File
+- [ ] `filesystem/list-directory` — List Directory
+- [ ] `filesystem/read-file` — Read File
+- [ ] `filesystem/write-binary` — Write Binary File
+- [ ] `filesystem/write-file` — Write File
+
+### knowledge
+- [ ] `knowledge/add-observation` — Add Knowledge Observation
+- [ ] `knowledge/assign-tags` — Assign Tags to Entity
+- [ ] `knowledge/boot` — Knowledge Layer Boot
+- [ ] `knowledge/create` — Create Knowledge Document
+- [ ] `knowledge/create-tag` — Create Knowledge Tag
+- [ ] `knowledge/delete` — Archive Knowledge Document
+- [ ] `knowledge/delete-session` — Delete Knowledge Session
+- [ ] `knowledge/delete-tag` — Delete Knowledge Tag
+- [ ] `knowledge/fork` — Fork Knowledge Document
+- [ ] `knowledge/get` — Get Knowledge Document
+- [ ] `knowledge/get-revisions` — Get Document Revisions
+- [ ] `knowledge/get-session` — Get Knowledge Session
+- [ ] `knowledge/get-tag` — Get Knowledge Tag
+- [ ] `knowledge/list` — List Knowledge Documents
+- [ ] `knowledge/list-observations` — List Knowledge Observations
+- [ ] `knowledge/list-sessions` — List Knowledge Sessions
+- [ ] `knowledge/list-tags` — List Knowledge Tags
+- [ ] `knowledge/log-session` — Log Knowledge Session
+- [ ] `knowledge/resolve-observation` — Resolve Knowledge Observation
+- [ ] `knowledge/restore-revision` — Restore Document Revision
+- [ ] `knowledge/search` — Search Knowledge Documents
+- [ ] `knowledge/unassign-tags` — Unassign Tags from Entity
+- [ ] `knowledge/update` — Update Knowledge Document
+- [ ] `knowledge/update-session` — Update Knowledge Session
+- [ ] `knowledge/update-tag` — Update Knowledge Tag
+
+### media
+- [ ] `media/create` — Upload Media
+- [ ] `media/delete` — Delete Media
+- [ ] `media/get` — Get Media Item
+- [ ] `media/list` — List Media
+- [ ] `media/update` — Update Media
+- [ ] `media/upload` — Upload Media from Base64
+
+### menus
+- [ ] `menus/add-menu-item` — Add Menu Item
+- [ ] `menus/assign-location` — Assign Menu to Location
+- [ ] `menus/create-menu` — Create Menu
+- [ ] `menus/delete-menu` — Delete Menu
+- [ ] `menus/delete-menu-item` — Delete Menu Item
+- [ ] `menus/get-menu` — Get Menu
+- [ ] `menus/list-locations` — List Menu Locations
+- [ ] `menus/list-menu-items` — List Menu Items
+- [ ] `menus/list-menus` — List Menus
+- [ ] `menus/reorder-menu-items` — Reorder Menu Items
+- [ ] `menus/unassign-location` — Unassign Menu from Location
+- [ ] `menus/update-menu-item` — Update Menu Item
+
+### meta
+- [ ] `meta/delete-post-meta` — Delete Post Meta
+- [ ] `meta/delete-term-meta` — Delete Term Meta
+- [ ] `meta/delete-user-meta` — Delete User Meta
+- [ ] `meta/get-post-meta` — Get Post Meta
+- [ ] `meta/get-term-meta` — Get Term Meta
+- [ ] `meta/get-user-meta` — Get User Meta
+- [ ] `meta/list-post-meta` — List Post Meta
+- [ ] `meta/list-registered` — List Registered Meta Keys
+- [ ] `meta/list-term-meta` — List Term Meta
+- [ ] `meta/list-user-meta` — List User Meta
+- [ ] `meta/update-post-meta` — Update Post Meta
+- [ ] `meta/update-term-meta` — Update Term Meta
+- [ ] `meta/update-user-meta` — Update User Meta
+
+### patterns
+- [ ] `patterns/get` — Get Block Pattern
+- [ ] `patterns/list` — List Block Patterns
+- [ ] `patterns/list-categories` — List Pattern Categories
+- [ ] `patterns/register` — Register Block Pattern
+- [ ] `patterns/unregister` — Unregister Block Pattern
+
+### plugins
+- [ ] `plugins/activate` — Activate Plugin
+- [ ] `plugins/deactivate` — Deactivate Plugin
+- [ ] `plugins/delete` — Delete Plugin
+- [ ] `plugins/get` — Get Plugin
+- [ ] `plugins/install` — Install Plugin
+- [ ] `plugins/list` — List Plugins
+- [ ] `plugins/search-repository` — Search Plugin Repository
+
+### rest
+- [ ] `rest/get-index` — Get REST Index
+- [ ] `rest/get-route-schema` — Get Route Schema
+- [ ] `rest/list-namespaces` — List REST Namespaces
+- [ ] `rest/list-routes` — List REST Routes
+
+### revisions
+- [ ] `revisions/delete` — Delete Revision
+- [ ] `revisions/get` — Get Revision
+- [ ] `revisions/list` — List Revisions
+- [ ] `revisions/purge` — Purge All Revisions
+- [ ] `revisions/restore` — Restore Revision
+
+### rewrite
+- [ ] `rewrite/flush` — Flush Rewrite Rules
+- [ ] `rewrite/get-structure` — Get Permalink Structure
+- [ ] `rewrite/list-rules` — List Rewrite Rules
+
+### settings
+- [ ] `settings/add-redaction-keyword` — Add redaction keyword
+- [ ] `settings/delete` — Delete Option
+- [ ] `settings/exempt-ability-from-bucket3` — Exempt ability from Bucket 3 redaction
+- [ ] `settings/get` — Get Setting
+- [ ] `settings/get-group` — Get Settings Group
+- [ ] `settings/get-permalink-structure` — Get Permalink Structure
+- [ ] `settings/get-redaction-list` — Get redaction list
+- [ ] `settings/list` — List Settings
+- [ ] `settings/remove-custom-keyword` — Remove custom redaction keyword
+- [ ] `settings/remove-default-bucket3-keyword` — Remove default Bucket 3 keyword
+- [ ] `settings/restore-redaction-defaults` — Restore redaction defaults
+- [ ] `settings/unexempt-ability-from-bucket3` — Re-lock ability under Bucket 3
+- [ ] `settings/update` — Update Setting
+
+### site-health
+- [ ] `site-health/info` — Site Health Info
+- [ ] `site-health/list-tests` — List Health Tests
+- [ ] `site-health/pulse` — Site Pulse
+- [ ] `site-health/run-test` — Run Health Test
+- [ ] `site-health/status` — Site Health Status
+
+### taxonomies
+- [ ] `taxonomies/assign-to-content` — Assign Terms to Content
+- [ ] `taxonomies/batch-assign` — Batch Assign Terms
+- [ ] `taxonomies/create-term` — Create Term
+- [ ] `taxonomies/delete-term` — Delete Term
+- [ ] `taxonomies/discover` — Discover Taxonomies
+- [ ] `taxonomies/get-content-terms` — Get Content Terms
+- [ ] `taxonomies/get-term` — Get Term
+- [ ] `taxonomies/list-terms` — List Terms
+- [ ] `taxonomies/update-term` — Update Term
+
+### theme
+- [ ] `theme/update-asset` — Update Theme Asset
+
+### themes
+- [ ] `themes/activate` — Activate Theme
+- [ ] `themes/delete` — Delete Theme
+- [ ] `themes/delete-mod` — Delete Theme Mod
+- [ ] `themes/dequeue-asset` — Dequeue Theme Asset
+- [ ] `themes/design-snapshot` — Design Snapshot
+- [ ] `themes/enqueue-asset` — Enqueue Theme Asset
+- [ ] `themes/get-active` — Get Active Theme
+- [ ] `themes/get-mod` — Get Theme Mod
+- [ ] `themes/get-theme-json` — Get Theme JSON
+- [ ] `themes/install` — Install Theme
+- [ ] `themes/list` — List Themes
+- [ ] `themes/list-enqueued-assets` — List Enqueued Theme Assets
+- [ ] `themes/list-mods` — List Theme Mods
+- [ ] `themes/set-mod` — Set Theme Mod
+- [ ] `themes/set-mods-batch` — Set Theme Mods (Batch)
+
+### users
+- [ ] `users/create` — Create User
+- [ ] `users/create-app-password` — Create Application Password
+- [ ] `users/delete` — Delete User
+- [ ] `users/delete-all-app-passwords` — Delete All Application Passwords
+- [ ] `users/delete-app-password` — Delete Application Password
+- [ ] `users/get` — Get User
+- [ ] `users/list` — List Users
+- [ ] `users/list-app-passwords` — List Application Passwords
+- [ ] `users/update` — Update User
+
+## S3-Spectra/Astra/SureCart/Presto — 198 total (194 TO TEST)
+
+
+### astra
+- [ ] `astra/create-custom-layout` — Create Custom Layout
+- [ ] `astra/create-page-header` — Create Page Header
+- [ ] `astra/delete-custom-layout` — Delete Custom Layout
+- [ ] `astra/delete-page-header` — Delete Page Header
+- [ ] `astra/get-blog-config` — Get Blog Config
+- [ ] `astra/get-breadcrumb-config` — Get Breadcrumb Config
+- [ ] `astra/get-cpt-layout-defaults` — Get CPT Layout Defaults
+- [ ] `astra/get-custom-layout` — Get Custom Layout
+- [ ] `astra/get-design-tokens` — Get Design Tokens
+- [ ] `astra/get-footer-config` — Get Footer Config
+- [ ] `astra/get-global-styles` — Get Global Styles
+- [ ] `astra/get-header-config` — Get Header Config
+- [ ] `astra/get-layout-presets` — Get Layout Presets
+- [ ] `astra/get-option` — Get Astra Option
+- [ ] `astra/get-page-header` — Get Page Header
+- [ ] `astra/get-page-layout` — Get Page Layout
+- [ ] `astra/get-performance-settings` — Get Performance Settings
+- [ ] `astra/get-pro-settings` — Get Pro Settings
+- [ ] `astra/get-pro-status` — Get Pro Status
+- [ ] `astra/get-scroll-to-top` — Get Scroll to Top
+- [ ] `astra/get-single-post-config` — Get Single Post Config
+- [ ] `astra/list-custom-layouts` — List Custom Layouts
+- [ ] `astra/list-page-headers` — List Page Headers
+- [ ] `astra/update-blog-config` — Update Blog Config
+- [ ] `astra/update-breadcrumb-config` — Update Breadcrumb Config
+- [ ] `astra/update-cpt-layout-defaults` — Update CPT Layout Defaults
+- [ ] `astra/update-custom-layout` — Update Custom Layout
+- [ ] `astra/update-design-tokens` — Update Design Tokens
+- [ ] `astra/update-footer-builder` — Update Footer Builder
+- [ ] `astra/update-global-styles` — Update Global Styles
+- [ ] `astra/update-header-builder` — Update Header Builder
+- [ ] `astra/update-option` — Update Astra Option
+- [ ] `astra/update-page-header` — Update Page Header
+- [ ] `astra/update-page-layout` — Update Page Layout
+- [ ] `astra/update-pro-settings` — Update Pro Settings
+- [ ] `astra/update-scroll-to-top` — Update Scroll to Top
+
+### presto-player
+- [ ] `presto-player/create-audio-preset` — Create Presto Player Audio Preset
+- [ ] `presto-player/create-email-collection` — Create Presto Player Email Collection
+- [ ] `presto-player/create-preset` — Create Presto Player Video Preset
+- [ ] `presto-player/create-video` — Create Presto Player Video
+- [ ] `presto-player/delete-audio-preset` — Delete Presto Player Audio Preset
+- [ ] `presto-player/delete-preset` — Delete Presto Player Video Preset
+- [ ] `presto-player/delete-video` — Delete Presto Player Video
+- [ ] `presto-player/get-audio-preset` — Get Presto Player Audio Preset
+- [x] `presto-player/get-bunny-settings` — Get Presto Player Bunny CDN Settings — **EXCLUDE (3rd-party/license)**
+- [x] `presto-player/get-bunny-status` — Get Presto Player Bunny CDN Status — **EXCLUDE (3rd-party/license)**
+- [ ] `presto-player/get-email-collection` — Get Presto Player Email Collection
+- [ ] `presto-player/get-preset` — Get Presto Player Video Preset
+- [x] `presto-player/get-settings` — Get Presto Player Settings — **EXCLUDE (3rd-party/license)**
+- [ ] `presto-player/get-video` — Get Presto Player Video
+- [ ] `presto-player/get-video-stats` — Get Presto Player Video Stats
+- [ ] `presto-player/get-webhook` — Get Presto Player Webhook
+- [ ] `presto-player/list-audio-presets` — List Presto Player Audio Presets
+- [ ] `presto-player/list-email-collections` — List Presto Player Email Collections
+- [ ] `presto-player/list-presets` — List Presto Player Video Presets
+- [ ] `presto-player/list-setting-groups` — List Presto Player Setting Groups
+- [ ] `presto-player/list-videos` — List Presto Player Videos
+- [ ] `presto-player/list-webhooks` — List Presto Player Webhooks
+- [ ] `presto-player/top-users` — Get Top Presto Player Users
+- [ ] `presto-player/top-videos` — Get Top Presto Player Videos
+- [ ] `presto-player/update-audio-preset` — Update Presto Player Audio Preset
+- [ ] `presto-player/update-email-collection` — Update Presto Player Email Collection
+- [ ] `presto-player/update-preset` — Update Presto Player Video Preset
+- [ ] `presto-player/update-setting` — Update Presto Player Setting
+- [ ] `presto-player/update-video` — Update Presto Player Video
+- [ ] `presto-player/user-video-stats` — Get Presto Player User Video Stats
+- [ ] `presto-player/video-timeline` — Get Presto Player Video Timeline
+- [ ] `presto-player/views-by-day` — Get Presto Player Views by Day
+- [ ] `presto-player/watch-time-by-day` — Get Presto Player Watch Time by Day
+
+### spectra
+- [ ] `spectra/build-image` — Build Image Block
+- [ ] `spectra/create-reusable-block` — Create Reusable Block
+- [ ] `spectra/delete-block` — Delete Block
+- [ ] `spectra/delete-reusable-block` — Delete Reusable Block
+- [ ] `spectra/duplicate-block` — Duplicate Block
+- [ ] `spectra/flush-caches` — Flush Caches
+- [ ] `spectra/get-asset-info` — Get Spectra Asset Info
+- [ ] `spectra/get-block-css` — Get Block CSS
+- [ ] `spectra/get-page-blocks` — Get Page Blocks
+- [ ] `spectra/get-page-outline` — Get Page Outline
+- [ ] `spectra/get-reusable-block` — Get Reusable Block
+- [ ] `spectra/get-settings` — Get Spectra Settings
+- [ ] `spectra/get-theme-classes` — Get Theme Classes
+- [ ] `spectra/insert-blocks` — Insert Blocks
+- [ ] `spectra/list-patterns` — List Spectra Patterns
+- [ ] `spectra/list-reusable-blocks` — List Reusable Blocks
+- [ ] `spectra/move-block` — Move Block
+- [ ] `spectra/regenerate-all-assets` — Regenerate All Spectra Assets
+- [ ] `spectra/regenerate-assets` — Regenerate Spectra Assets
+- [ ] `spectra/update-block-attrs` — Update Block Attributes
+- [ ] `spectra/update-reusable-block` — Update Reusable Block
+- [ ] `spectra/update-section` — Update Section
+- [ ] `spectra/update-settings` — Update Spectra Settings
+- [ ] `spectra/validate-markup` — Validate Block Markup
+- [ ] `spectra/validate-page` — Validate Page
+
+### surecart
+- [ ] `surecart/archive-product` — Archive Product
+- [ ] `surecart/cancel-subscription` — Cancel Subscription
+- [ ] `surecart/complete-subscription` — Complete SureCart Subscription
+- [ ] `surecart/create-coupon` — Create Coupon
+- [ ] `surecart/create-customer` — Create Customer
+- [ ] `surecart/create-fulfillment` — Create Fulfillment
+- [ ] `surecart/create-invoice` — Create Invoice
+- [ ] `surecart/create-price` — Create Price
+- [ ] `surecart/create-product` — Create Product
+- [ ] `surecart/create-product-collection` — Create SureCart Product Collection
+- [ ] `surecart/create-promotion` — Create Promotion
+- [ ] `surecart/create-refund` — Create Refund
+- [ ] `surecart/create-webhook` — Create SureCart Webhook
+- [ ] `surecart/delete-coupon` — Delete Coupon
+- [ ] `surecart/delete-customer` — Delete Customer
+- [ ] `surecart/delete-fulfillment` — Delete Fulfillment
+- [ ] `surecart/delete-price` — Delete SureCart Price
+- [ ] `surecart/delete-product` — Delete SureCart Product
+- [ ] `surecart/delete-product-collection` — Delete SureCart Product Collection
+- [ ] `surecart/delete-promotion` — Delete Promotion
+- [ ] `surecart/delete-webhook` — Delete SureCart Webhook
+- [ ] `surecart/duplicate-product` — Duplicate Product
+- [ ] `surecart/find-customer-by-email` — Find SureCart Customer by Email
+- [ ] `surecart/get-abandoned-checkout` — Get Abandoned Checkout
+- [ ] `surecart/get-account` — Get SureCart Store Account
+- [ ] `surecart/get-brand` — Get SureCart Store Brand
+- [ ] `surecart/get-charge` — Get SureCart Charge
+- [ ] `surecart/get-checkout` — Get SureCart Checkout
+- [ ] `surecart/get-coupon` — Get Coupon
+- [ ] `surecart/get-customer` — Get Customer
+- [ ] `surecart/get-customer-portal-protocol` — Get SureCart Customer Portal Protocol
+- [ ] `surecart/get-fulfillment` — Get Fulfillment
+- [ ] `surecart/get-fulfillment-item` — Get Fulfillment Item
+- [ ] `surecart/get-invoice` — Get SureCart Invoice
+- [ ] `surecart/get-license` — Get License
+- [ ] `surecart/get-order` — Get Order
+- [ ] `surecart/get-order-protocol` — Get SureCart Order Protocol
+- [ ] `surecart/get-order-statistics` — Get Order Statistics
+- [ ] `surecart/get-order-stats` — Get SureCart Order Statistics
+- [ ] `surecart/get-price` — Get SureCart Price
+- [ ] `surecart/get-product` — Get Product
+- [ ] `surecart/get-product-collection` — Get SureCart Product Collection
+- [ ] `surecart/get-promotion` — Get Promotion
+- [ ] `surecart/get-purchase` — Get SureCart Purchase
+- [ ] `surecart/get-refund` — Get Refund
+- [ ] `surecart/get-return-request` — Get SureCart Return Request
+- [ ] `surecart/get-shipping-protocol` — Get SureCart Shipping Protocol
+- [ ] `surecart/get-statistics` — Get SureCart Statistics
+- [ ] `surecart/get-store-dashboard` — Get Store Dashboard
+- [ ] `surecart/get-store-info` — Get Store Info
+- [ ] `surecart/get-subscription` — Get Subscription
+- [ ] `surecart/get-subscription-protocol` — Get SureCart Subscription Protocol
+- [ ] `surecart/get-subscription-stats` — Get SureCart Subscription Statistics
+- [ ] `surecart/get-tax-protocol` — Get SureCart Tax Protocol
+- [ ] `surecart/get-variant` — Get SureCart Variant
+- [ ] `surecart/get-webhook` — Get SureCart Webhook
+- [ ] `surecart/invoke-purchase` — Invoke SureCart Purchase
+- [ ] `surecart/list-abandoned-checkouts` — List Abandoned Checkouts
+- [ ] `surecart/list-activations` — List SureCart License Activations
+- [ ] `surecart/list-affiliations` — List SureCart Affiliations
+- [ ] `surecart/list-bumps` — List SureCart Order Bumps
+- [ ] `surecart/list-charges` — List SureCart Charges
+- [ ] `surecart/list-checkouts` — List SureCart Checkouts
+- [ ] `surecart/list-collections` — List SureCart Product Collections
+- [ ] `surecart/list-coupons` — List Coupons
+- [ ] `surecart/list-customers` — List Customers
+- [ ] `surecart/list-downloads` — List SureCart Downloads
+- [ ] `surecart/list-fulfillments` — List Fulfillments
+- [ ] `surecart/list-invoices` — List SureCart Invoices
+- [ ] `surecart/list-licenses` — List Licenses
+- [ ] `surecart/list-orders` — List Orders
+- [ ] `surecart/list-payment-intents` — List SureCart Payment Intents
+- [ ] `surecart/list-prices` — List Prices
+- [x] `surecart/list-processors` — List SureCart Payment Processors — **EXCLUDE (3rd-party/license)**
+- [ ] `surecart/list-products` — List Products
+- [ ] `surecart/list-promotions` — List Promotions
+- [ ] `surecart/list-purchases` — List SureCart Purchases
+- [ ] `surecart/list-referrals` — List SureCart Referrals
+- [ ] `surecart/list-refunds` — List Refunds
+- [ ] `surecart/list-return-reasons` — List SureCart Return Reasons
+- [ ] `surecart/list-return-requests` — List SureCart Return Requests
+- [ ] `surecart/list-shipping-methods` — List SureCart Shipping Methods
+- [ ] `surecart/list-shipping-profiles` — List SureCart Shipping Profiles
+- [ ] `surecart/list-shipping-rates` — List SureCart Shipping Rates
+- [ ] `surecart/list-shipping-zones` — List SureCart Shipping Zones
+- [ ] `surecart/list-subscriptions` — List Subscriptions
+- [ ] `surecart/list-upsell-funnels` — List SureCart Upsell Funnels
+- [ ] `surecart/list-variant-options` — List SureCart Variant Options
+- [ ] `surecart/list-variants` — List SureCart Variants
+- [ ] `surecart/list-webhooks` — List SureCart Webhooks
+- [ ] `surecart/preview-upcoming-period` — Preview SureCart Upcoming Period
+- [ ] `surecart/renew-subscription` — Renew SureCart Subscription
+- [ ] `surecart/restore-subscription` — Restore SureCart Subscription
+- [ ] `surecart/revoke-purchase` — Revoke SureCart Purchase
+- [ ] `surecart/update-coupon` — Update Coupon
+- [ ] `surecart/update-customer` — Update Customer
+- [ ] `surecart/update-fulfillment` — Update Fulfillment
+- [ ] `surecart/update-invoice` — Update Invoice
+- [ ] `surecart/update-order` — Update SureCart Order
+- [ ] `surecart/update-price` — Update Price
+- [ ] `surecart/update-product` — Update Product
+- [ ] `surecart/update-product-collection` — Update SureCart Product Collection
+- [ ] `surecart/update-promotion` — Update Promotion
+- [ ] `surecart/update-subscription-renewal-date` — Update Subscription Renewal Date
+
+## S4-Other — 1 total (1 TO TEST)
+
+
+### suite
+- [ ] `suite/get-status` — Get Status
