@@ -32,8 +32,7 @@ class Fluent_Abilities_Dashboard {
 		'messaging' => 'fluent-messaging',
 		'cart'      => 'fluent-cart',
 		'affiliate' => 'fluent-affiliate',
-		'player'    => 'fluent-player',
-		'fluent'    => 'fluent',
+		'cross'     => 'fluent',
 	);
 
 	/**

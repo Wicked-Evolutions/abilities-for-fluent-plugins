@@ -166,11 +166,8 @@ add_action( 'wp_abilities_api_init', function() {
 				foreach ( $product->variants as $variation ) {
 					$variations[] = array(
 						'id'             => (int) $variation->id,
-						// FluentCart ProductVariation columns are `variation_title`
-						// and `item_price` (no `title`/`price` attrs) — vendor-source
-						// verified (ProductVariation::$fillable/$casts).
-						'title'          => $variation->variation_title ?? null,
-						'price'          => fluent_cart_format_money( $variation->item_price ),
+						'title'          => $variation->title,
+						'price'          => fluent_cart_format_money( $variation->price ),
 						'compare_price'  => fluent_cart_format_money( $variation->compare_price ),
 						'stock_status'   => $variation->stock_status ?? null,
 						'stock_quantity' => $variation->stock_quantity ?? null,
@@ -414,11 +411,7 @@ add_action( 'wp_abilities_api_init', function() {
 				'status'          => (string) ( $order->status ?? '' ),
 				'payment_status'  => (string) ( $order->payment_status ?? '' ),
 				'payment_method'  => (string) ( $order->payment_method ?? '' ),
-				// FluentCart Order has no `total` column — the persisted order
-				// total is `total_amount` (Order::$fillable/$casts, vendor-source
-				// verified; create-custom-order writes `total_amount`). Reading
-				// `$order->total` always yielded 0 (#100 item 8 get-order).
-				'total'           => fluent_cart_format_money( $order->total_amount ),
+				'total'           => fluent_cart_format_money( $order->total ),
 				'subtotal'        => fluent_cart_format_money( $order->subtotal ),
 				'tax_total'       => fluent_cart_format_money( $order->tax_total ),
 				'discount_total'  => fluent_cart_format_money( $order->discount_total ),
@@ -538,7 +531,7 @@ add_action( 'wp_abilities_api_init', function() {
 			'total_order_count'    => array( 'type' => 'integer' ),
 			'lifetime_value'       => array( 'type' => 'number' ),
 			'contact_id'           => array( 'type' => 'integer' ),
-			'user_id'              => array( 'type' => array( 'integer', 'null' ) ),
+			'user_id'              => array( 'type' => 'integer' ),
 			'recent_orders'        => array( 'type' => 'array', 'items' => array( 'type' => 'object' ) ),
 			'active_subscriptions' => array( 'type' => 'integer' ),
 			'created_at'           => array( 'type' => 'string' ),

@@ -529,18 +529,7 @@ add_action( 'wp_abilities_api_init', function() {
 			$slug   = \FluentBooking\App\Services\Helper::generateSlotSlug( $duration . 'min', $calendar );
 			$status = sanitize_text_field( $input['status'] ?? 'active' );
 
-			// V10: AvailabilityService::getDefaultSchedule() can call reset() on a null
-			// schedule list when the calendar user has no configured availability
-			// (P-K pattern, F-BOOK-01). Wrap to convert the PHP TypeError into a
-			// typed WP_Error rather than letting the fatal propagate.
-			try {
-				$availability = \FluentBooking\App\Services\AvailabilityService::getDefaultSchedule( $calendar->user_id );
-			} catch ( \Throwable $e ) {
-				return new WP_Error(
-					'vendor_precondition_failed',
-					'FluentBooking default-schedule lookup failed for calendar user ' . (int) $calendar->user_id . ': ' . $e->getMessage()
-				);
-			}
+			$availability = \FluentBooking\App\Services\AvailabilityService::getDefaultSchedule( $calendar->user_id );
 
 			$slot_data = array(
 				'title'             => $title,
@@ -1366,7 +1355,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-booking/update-booking-status', array(
 		'label'       => 'Update Booking Status',
-		'description' => 'Update the status of a booking. Uses the Booking model to ensure all hooks fire. Valid statuses: scheduled, completed, cancelled, rejected, no_show. Input: pass the booking ID as `id` (an integer) — the field is `id`, NOT `booking_id` — plus `status` (one of the valid statuses) and optional `reason`.',
+		'description' => 'Update the status of a booking. Uses the Booking model to ensure all hooks fire. Valid statuses: scheduled, completed, cancelled, rejected, no_show.',
 		'category'    => 'fluent-booking',
 		'input_schema' => array(
 			'type'       => 'object',

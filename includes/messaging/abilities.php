@@ -101,7 +101,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->read( 'fluent-messaging/get-thread', array(
 		'label'       => 'Get Chat Thread',
-		'description' => 'Get a single chat thread by ID with full participant details. Non-admin users must be a participant. Note: the parameter is `id` (the thread ID), not `thread_id`.',
+		'description' => 'Get a single chat thread by ID with full participant details. Non-admin users must be a participant.',
 		'category'    => 'fluent-messaging',
 		'input_schema' => array(
 			'type'       => 'object',
@@ -313,7 +313,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-messaging/send-message', array(
 		'label'       => 'Send Message',
-		'description' => 'Send a message to a chat thread. Non-admin users must be a participant. Uses the current WordPress user as the sender. Updates thread message_count and updated_at timestamp. Returns the persisted message_id of the new entry so callers can reference it in subsequent reads. Note: required parameters are `thread_id` and `text` — the message body parameter is `text` (not `message`).',
+		'description' => 'Send a message to a chat thread. Non-admin users must be a participant. Uses the current WordPress user as the sender. Updates thread message_count and updated_at timestamp.',
 		'category'    => 'fluent-messaging',
 		'input_schema' => array(
 			'type'       => 'object',
@@ -356,8 +356,8 @@ add_action( 'wp_abilities_api_init', function() {
 
 			$now = current_time( 'mysql' );
 
-			// insertGetId() returns the auto-increment id; insert() returns boolean
-			$message_id = wpFluent()->table( 'fcom_chat_messages' )->insertGetId( array(
+			// Insert the message.
+			$message_id = wpFluent()->table( 'fcom_chat_messages' )->insert( array(
 				'thread_id'  => (int) $input['thread_id'],
 				'user_id'    => $user_id,
 				'text'       => wp_kses_post( $input['text'] ),

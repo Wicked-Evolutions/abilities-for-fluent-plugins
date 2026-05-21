@@ -4,6 +4,3 @@ node_modules/
 .DS_Store
 .phpunit.cache/
 .phpunit.result.cache
-
-# Per-chat work artifacts (never committed).
-.boards-research-extract.md

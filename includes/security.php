@@ -35,7 +35,6 @@ function fluent_abilities_get_caps() {
 		'forms' => array(
 			'fluent_forms_read',
 			'fluent_forms_write',
-			'fluent_forms_delete',
 		),
 		'support' => array(
 			'fluent_support_read',
@@ -51,7 +50,6 @@ function fluent_abilities_get_caps() {
 			'fluent_booking_read',
 			'fluent_booking_write',
 			'fluent_booking_delete',
-			'fluent_booking_admin', // License/global settings/integration credentials.
 		),
 		'smtp' => array(
 			'fluent_smtp_read',
@@ -78,11 +76,6 @@ function fluent_abilities_get_caps() {
 			'fluent_affiliate_read',
 			'fluent_affiliate_write',
 			'fluent_affiliate_delete',
-		),
-		'player' => array(
-			'fluent_player_read',
-			'fluent_player_write',
-			'fluent_player_delete',
 		),
 	);
 }
@@ -284,7 +277,6 @@ function fluent_abilities_get_module_status() {
 		'messaging'  => array( 'label' => 'Fluent Messaging',  'constant' => 'FLUENT_MESSAGING_CHAT_VERSION' ),
 		'cart'       => array( 'label' => 'FluentCart',        'constant' => 'FLUENTCART_VERSION' ),
 		'affiliate'  => array( 'label' => 'FluentAffiliate',  'constant' => 'FLUENT_AFFILIATE_VERSION' ),
-		'player'     => array( 'label' => 'FluentPlayer',     'constant' => 'FLUENT_PLAYER_VERSION' ),
 		'fluent'     => array( 'label' => 'Fluent (Cross-Module)', 'constant' => 'FLUENT_ABILITIES_VERSION' ),
 	);
 

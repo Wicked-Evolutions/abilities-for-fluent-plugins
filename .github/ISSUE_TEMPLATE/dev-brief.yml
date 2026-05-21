@@ -3,10 +3,6 @@ description: Specification for the dev agent to implement
 title: "[Brief]: "
 labels: ["dev-brief"]
 body:
-  - type: markdown
-    attributes:
-      value: |
-        📄 **Product scope is canonical** — site-agnostic product for arbitrary single-site **and** multisite WordPress; our sites are an incidental test environment, never the fix scope; site-coupled behavior is a defect; multisite is first-class. See [`docs/PRODUCT-SCOPE.md`](../docs/PRODUCT-SCOPE.md).
   - type: textarea
     id: objective
     attributes:
