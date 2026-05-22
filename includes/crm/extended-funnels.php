@@ -68,24 +68,6 @@ function fluent_abilities_crm_register_extended_funnels() {
 		},
 	) );
 
-	$reg->write( 'fluent-crm/save-funnel-sequences', array(
-		'label'         => 'Save CRM Funnel Sequences Atomically',
-		'description'   => 'Atomic multi-step save with index reset. Source: FunnelController::saveFunnelSequences (POST /funnels/funnel/save-funnel-sequences). Capability: fcrm_write_funnels.',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'funnel_id', 'sequences' ),
-			'properties' => array(
-				'funnel_id' => array( 'type' => 'integer' ),
-				'sequences' => array( 'type' => 'array', 'items' => $obj ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output(),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/funnels/funnel/save-funnel-sequences', $input );
-		},
-	) );
-
 	$reg->write( 'fluent-crm/save-funnel-email-action-fallback', array(
 		'label'         => 'Save CRM Funnel Email-Action Fallback Settings',
 		'description'   => 'Save email-action fallback settings for one step. Source: FunnelController::saveEmailActionFallback (POST /funnels/funnel/save-email-action-fallback).',
@@ -384,26 +366,6 @@ function fluent_abilities_crm_register_extended_funnels() {
 		'output_schema' => fluent_abilities_schema_item_output(),
 		'callback'      => function ( $input ) use ( $proxy ) {
 			return $proxy( 'POST', '/fluent-crm/v2/funnels/import', $input );
-		},
-	) );
-
-	$reg->read( 'fluent-crm/get-funnel-all-activities', array(
-		'label'         => 'Get CRM Funnel Cross-Funnel Activity Stream',
-		'description'   => 'Cross-funnel activity stream over a date range. Source: FunnelController::allActivities (GET /funnels/all-activities).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'properties' => array_merge(
-				array(
-					'date_from' => array( 'type' => 'string' ),
-					'date_to'   => array( 'type' => 'string' ),
-				),
-				fluent_abilities_pagination_schema()
-			),
-		),
-		'output_schema' => fluent_abilities_schema_list_output( 'activities', $obj ),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return fluent_abilities_normalize_collection( $proxy( 'GET', '/fluent-crm/v2/funnels/all-activities', $input ), 'activities' );
 		},
 	) );
 

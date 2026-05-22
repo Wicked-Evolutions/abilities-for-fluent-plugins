@@ -244,25 +244,6 @@ function fluent_abilities_crm_register_extended_pro_marketing() {
 		},
 	) );
 
-	$reg->write( 'fluent-crm/change-recurring-campaign-status', array(
-		'label'         => 'Change CRM Recurring Campaign Status (Pro)',
-		'description'   => 'State-machine transition: active/paused/archived. Source: RecurringCampaignController::changeStatus (POST /recurring-campaigns/{campaign_id}/change-status).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'campaign_id', 'status' ),
-			'properties' => array(
-				'campaign_id' => array( 'type' => 'integer' ),
-				'status'      => array( 'type' => 'string' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output(),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			$cid = (int) ( $input['campaign_id'] ?? 0 );
-			return fluent_abilities_project_response( $proxy( 'POST', '/fluent-crm/v2/recurring-campaigns/' . $cid . '/change-status', array( 'status' => $input['status'] ?? '' ) ) );
-		},
-	) );
-
 	$reg->write( 'fluent-crm/update-recurring-campaign-settings', array(
 		'label'         => 'Update CRM Recurring Campaign Settings (Pro)',
 		'description'   => 'Update recurrence/settings object. Source: RecurringCampaignController::updateSettings (POST /recurring-campaigns/{campaign_id}/update-settings).',
@@ -393,25 +374,6 @@ function fluent_abilities_crm_register_extended_pro_marketing() {
 		},
 	) );
 
-	$reg->read( 'fluent-crm/estimate-dynamic-segment-contacts', array(
-		'label'         => 'Estimate CRM Dynamic Segment Contacts (Pro)',
-		'description'   => 'Compute estimated contact-count for a candidate condition set. Source: DynamicSegmentController::estimatedContacts (POST /dynamic-segments/estimated-contacts).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'conditions' ),
-			'properties' => array(
-				'conditions' => $obj,
-			),
-		),
-		'output_schema' => fluent_abilities_schema_item_output( array(
-			'estimated_count' => array( 'type' => 'integer' ),
-		) ),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/dynamic-segments/estimated-contacts', $input );
-		},
-	) );
-
 	$reg->write( 'fluent-crm/update-dynamic-segment', array(
 		'label'         => 'Update CRM Dynamic Segment (Pro)',
 		'description'   => 'Update a dynamic segment. Source: DynamicSegmentController::update (PUT /dynamic-segments/{id}).',
@@ -453,22 +415,6 @@ function fluent_abilities_crm_register_extended_pro_marketing() {
 		'output_schema' => fluent_abilities_schema_item_output(),
 		'callback'      => function ( $input ) use ( $proxy ) {
 			return $proxy( 'POST', '/fluent-crm/v2/dynamic-segments/duplicate/' . (int) ( $input['id'] ?? 0 ) );
-		},
-	) );
-
-	$reg->read( 'fluent-crm/list-dynamic-segment-custom-fields', array(
-		'label'         => 'List CRM Dynamic Segment Buildable Custom Fields (Pro)',
-		'description'   => 'Custom fields usable in segment conditions. Source: DynamicSegmentController::customFields (GET /dynamic-segments/custom-fields). V10: vendor controller may TypeError when FluentCampaign Pro is inactive or segment registry empty; registrar returns WP_Error instead.',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array( 'type' => 'object', 'properties' => array() ),
-		'output_schema' => fluent_abilities_schema_collection_output( 'fields', $obj ),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			// V10: convert vendor-side TypeError into a typed WP_Error (P-K pattern).
-			try {
-				return $proxy( 'GET', '/fluent-crm/v2/dynamic-segments/custom-fields' );
-			} catch ( \Throwable $e ) {
-				return new WP_Error( 'vendor_precondition_failed', 'FluentCRM dynamic-segment custom-fields lookup failed: ' . $e->getMessage() );
-			}
 		},
 	) );
 
@@ -520,25 +466,6 @@ function fluent_abilities_crm_register_extended_pro_marketing() {
 		},
 	) );
 
-	$reg->write( 'fluent-crm/tag-actions-on-campaign', array(
-		'label'         => 'Configure CRM Campaign Tag Actions (Pro)',
-		'description'   => 'Post-send automation rules: add/remove tags on open/click. Source: CampaignsProController::tagActions (POST /campaigns-pro/{id}/tag-actions).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'id', 'actions' ),
-			'properties' => array(
-				'id'      => array( 'type' => 'integer' ),
-				'actions' => array( 'type' => 'array', 'items' => $obj ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output(),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			$id = (int) ( $input['id'] ?? 0 );
-			return $proxy( 'POST', '/fluent-crm/v2/campaigns-pro/' . $id . '/tag-actions', array( 'actions' => $input['actions'] ?? array() ) );
-		},
-	) );
-
 	$reg->read( 'fluent-crm/list-campaigns-pro-posts', array(
 		'label'         => 'List CRM Campaign-Pro WP Posts (Pro)',
 		'description'   => 'WP posts for campaign-pro picker. Source: CampaignsProController::posts (GET /campaigns-pro/posts).',
@@ -585,22 +512,5 @@ function fluent_abilities_crm_register_extended_pro_marketing() {
 	// =========================================================================
 	// §5.28 — Smart Links extras (Pro) — 1
 	// =========================================================================
-
-	$reg->write( 'fluent-crm/activate-smart-link', array(
-		'label'         => 'Activate CRM Smart Link (Pro)',
-		'description'   => 'Bulk-activate or per-link activate a smart-link. Source: SmartLinkController::activate (POST /smart-links/activate).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'smart_link_id' ),
-			'properties' => array(
-				'smart_link_id' => array( 'type' => 'integer' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output(),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/smart-links/activate', $input );
-		},
-	) );
 
 }

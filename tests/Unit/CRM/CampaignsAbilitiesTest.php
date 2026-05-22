@@ -43,7 +43,6 @@ class FluentCRMCampaignsAbilitiesTest extends TestCase {
 		'fluent-crm/get-campaign-revenues'                   => 'read',
 		'fluent-crm/resync-campaign-revenues'                => 'write',
 		'fluent-crm/list-campaign-unsubscribers'             => 'read',
-		'fluent-crm/get-campaign-contacts-by-segment'        => 'read',
 		'fluent-crm/update-campaign-labels'                  => 'write',
 	);
 

@@ -233,39 +233,6 @@ function fluent_abilities_crm_register_extended_reports() {
 	// =========================================================================
 	// 5.12.8 — list-report-emails (perm: fcrm_read_emails — non-default tier)
 	// =========================================================================
-	$reg->read( 'fluent-crm/list-report-emails', array(
-		'label'        => 'List CRM Per-Recipient Emails (Reports)',
-		'description'  => 'Per-recipient sent-email rows from fc_campaign_emails, paginated. Source: ReportController::getEmails (GET /reports/emails). Capability: fcrm_read_emails (overrides ReportPolicy default).',
-		'category'     => 'fluent-crm',
-		'input_schema' => array(
-			'type'       => 'object',
-			'properties' => array_merge(
-				array(
-					'campaign_id' => array(
-						'type'        => 'integer',
-						'description' => 'Filter by campaign_id (optional).',
-					),
-					'status'      => array(
-						'type'        => 'string',
-						'description' => 'Filter by send status (sent, scheduled, failed, bounced).',
-					),
-				),
-				fluent_abilities_pagination_schema()
-			),
-		),
-		'output_schema' => fluent_abilities_schema_list_output( 'emails', array(
-			'id'            => array( 'type' => 'integer' ),
-			'campaign_id'   => array( 'type' => 'integer' ),
-			'subscriber_id' => array( 'type' => 'integer' ),
-			'email_subject' => array( 'type' => 'string' ),
-			'status'        => array( 'type' => 'string' ),
-			'created_at'    => array( 'type' => array( 'string', 'null' ) ),
-		) ),
-		'callback'      => function ( $input ) use ( $proxy_get ) {
-			return fluent_abilities_normalize_collection( $proxy_get( '/fluent-crm/v2/reports/emails', $input ), 'emails' );
-		},
-	) );
-
 	// =========================================================================
 	// 5.12.9 — delete-report-emails (perm: fcrm_manage_email_delete)
 	// =========================================================================

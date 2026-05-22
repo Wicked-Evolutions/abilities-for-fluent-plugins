@@ -372,42 +372,6 @@ function fluent_abilities_crm_register_extended_misc_small() {
 	// §5.22 — Docs (in-app help, 3)
 	// =========================================================================
 
-	$reg->read( 'fluent-crm/list-docs', array(
-		'label'         => 'List CRM In-App Help Docs',
-		'description'   => 'In-app help articles (operator UI). Source: DocsController::index (GET /docs).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array( 'type' => 'object', 'properties' => array() ),
-		'output_schema' => fluent_abilities_schema_collection_output( 'docs', array(
-			'id'    => array( 'type' => 'integer' ),
-			'title' => array( 'type' => 'string' ),
-			'slug'  => array( 'type' => array( 'string', 'null' ) ),
-		) ),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/docs' );
-		},
-	) );
-
-	$reg->read( 'fluent-crm/get-doc', array(
-		'label'         => 'Get CRM In-App Help Doc',
-		'description'   => 'Full article markdown for a single help doc. Source: DocsController::show (GET /docs/{doc_id}).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'doc_id' ),
-			'properties' => array(
-				'doc_id' => array( 'type' => array( 'integer', 'string' ) ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_item_output( array(
-			'id'      => array( 'type' => array( 'integer', 'string' ) ),
-			'title'   => array( 'type' => 'string' ),
-			'content' => array( 'type' => 'string' ),
-		) ),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/docs/' . rawurlencode( (string) ( $input['doc_id'] ?? '' ) ) );
-		},
-	) );
-
 
 	// =========================================================================
 	// §5.31 — Global search (1; namespace-index is denylisted)

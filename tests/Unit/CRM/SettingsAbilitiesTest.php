@@ -24,7 +24,6 @@ class FluentCRMSettingsAbilitiesTest extends TestCase {
 		'fluent-crm/get-auto-subscribe-settings'        => 'read',
 		'fluent-crm/update-auto-subscribe-settings'     => 'write',
 		'fluent-crm/get-integrations-config'            => 'read',
-		'fluent-crm/update-integrations-config'         => 'write',
 		'fluent-crm/get-compliance-settings'            => 'read',
 		'fluent-crm/update-compliance-settings'         => 'write',
 		'fluent-crm/get-experiments-config'             => 'read',
@@ -32,7 +31,6 @@ class FluentCRMSettingsAbilitiesTest extends TestCase {
 		'fluent-crm/list-experiments-campaigns'         => 'read',
 		'fluent-crm/get-system-logs'                    => 'read',
 		'fluent-crm/get-cron-status'                    => 'read',
-		'fluent-crm/get-old-logs'                       => 'read',
 		'fluent-crm/get-abandon-cart-settings'          => 'read',
 		'fluent-crm/update-abandon-cart-settings'       => 'write',
 	);

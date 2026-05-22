@@ -39,7 +39,6 @@ class FluentCRMCrashGuardsTest extends TestCase {
 
 	private const GUARDED_SLUGS = array(
 		'fluent-crm/list-funnel-templates',
-		'fluent-crm/list-dynamic-segment-custom-fields',
 		'fluent-crm/list-campaigns-pro-products',
 		'fluent-crm/create-company-note',
 	);
@@ -112,10 +111,6 @@ class FluentCRMCrashGuardsTest extends TestCase {
 		return array(
 			'list-funnel-templates' => array(
 				'fluent-crm/list-funnel-templates',
-				array(),
-			),
-			'list-dynamic-segment-custom-fields' => array(
-				'fluent-crm/list-dynamic-segment-custom-fields',
 				array(),
 			),
 			'list-campaigns-pro-products' => array(

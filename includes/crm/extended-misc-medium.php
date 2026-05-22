@@ -92,30 +92,6 @@ function fluent_abilities_crm_register_extended_misc_medium() {
 		},
 	) );
 
-	$reg->write( 'fluent-crm/generate-ai-content', array(
-		'label'         => 'Generate CRM AI Content',
-		'description'   => 'Generate AI content (email subject, body, etc.) via configured provider. Source: AiController::generate (POST /ai/generate). Capability: fcrm_manage_emails (note: this is a write-tier cap distinct from settings-tier).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'prompt' ),
-			'properties' => array(
-				'prompt'       => array( 'type' => 'string' ),
-				'context_type' => array(
-					'type'        => 'string',
-					'description' => 'email_subject, email_body, etc.',
-				),
-				'tone'         => array( 'type' => 'string' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_item_output( array(
-			'content' => array( 'type' => array( 'string', 'null' ) ),
-		) ),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/ai/generate', $input );
-		},
-	) );
-
 	// =========================================================================
 	// §5.15 — Abandoned-cart-ops (3 ops; settings pair lives in §5.13)
 	// Capability inferred per surface placement.

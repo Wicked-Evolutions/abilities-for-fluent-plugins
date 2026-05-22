@@ -185,22 +185,6 @@ function fluent_abilities_crm_register_extended_settings() {
 		},
 	) );
 
-	$reg->write( 'fluent-crm/update-integrations-config', array(
-		'label'         => 'Update CRM Integrations Config',
-		'description'   => 'Save integration provider configs. Source: SettingController::updateIntegrations (POST /setting/integrations).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'properties' => array(
-				'integrations' => $obj_blob(),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output(),
-		'callback'      => function ( $input ) use ( $proxy_write ) {
-			return $proxy_write( 'POST', '/fluent-crm/v2/setting/integrations', $input );
-		},
-	) );
-
 	// =========================================================================
 	// 5.13.10 / 5.13.11 — compliance (GDPR)
 	// =========================================================================
@@ -334,24 +318,6 @@ function fluent_abilities_crm_register_extended_settings() {
 	// =========================================================================
 	// 5.13 paired — get-old-logs (read only; DELETE is denylisted)
 	// =========================================================================
-	$reg->read( 'fluent-crm/get-old-logs', array(
-		'label'         => 'Get CRM Archived Logs',
-		'description'   => 'Archived/rotated log entries. Source: SettingController::oldLogs (GET /setting/old_logs).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'properties' => fluent_abilities_pagination_schema(),
-		),
-		'output_schema' => fluent_abilities_schema_list_output( 'logs', array(
-			'id'         => array( 'type' => 'integer' ),
-			'message'    => array( 'type' => array( 'string', 'null' ) ),
-			'created_at' => array( 'type' => array( 'string', 'null' ) ),
-		) ),
-		'callback'      => function ( $input ) use ( $proxy_get ) {
-			return $proxy_get( '/fluent-crm/v2/setting/old_logs', $input );
-		},
-	) );
-
 	// =========================================================================
 	// 5.15 paired (settings half) — abandoned-cart settings
 	// =========================================================================

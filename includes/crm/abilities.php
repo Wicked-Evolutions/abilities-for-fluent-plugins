@@ -1247,56 +1247,6 @@ add_action( 'wp_abilities_api_init', function() {
 		},
 	));
 
-	$reg->write( 'fluent-crm/add-contact-to-sequence', array(
-		'label'       => 'Add Contact to Sequence',
-		'description' => 'Enroll a contact into an email sequence. Creates scheduled emails for all sequence steps. Contact must be a subscribed FluentCRM contact.',
-		'category'    => 'fluent-crm',
-		'input_schema' => array(
-			'type'       => 'object',
-			'required'   => array( 'sequence_id', 'contact_id' ),
-			'properties' => array(
-				'sequence_id' => array( 'type' => 'integer', 'description' => 'Sequence ID' ),
-				'contact_id'  => array( 'type' => 'integer', 'description' => 'FluentCRM contact ID' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output( array(
-			'contact_id'  => array( 'type' => 'integer' ),
-			'sequence_id' => array( 'type' => 'integer' ),
-			'status'      => array( 'type' => 'string' ),
-		) ),
-		'annotations'   => array( 'idempotent' => false ),
-		'callback' => function( $input ) {
-			$sequence = \FluentCampaign\App\Models\Sequence::find( absint( $input['sequence_id'] ) );
-			if ( ! $sequence ) {
-				return fluent_abilities_error( 'not_found', 'Sequence not found' );
-			}
-
-			$subscriber = FluentCrmApi( 'contacts' )->getContact( absint( $input['contact_id'] ) );
-			if ( ! $subscriber ) {
-				return fluent_abilities_error( 'not_found', 'Contact not found' );
-			}
-
-			// Check if already enrolled and active.
-			$existing = \FluentCampaign\App\Models\SequenceTracker::where( 'campaign_id', $sequence->id )
-				->where( 'subscriber_id', $subscriber->id )
-				->where( 'status', 'active' )
-				->first();
-
-			if ( $existing ) {
-				return fluent_abilities_error( 'ability_invalid_input', 'Contact is already actively enrolled in this sequence' );
-			}
-
-			$sequence->subscribe( array( $subscriber ) );
-
-			return array(
-				'success'     => true,
-				'sequence_id' => $sequence->id,
-				'contact_id'  => $subscriber->id,
-				'email'       => $subscriber->email,
-			);
-		},
-	));
-
 	$reg->write( 'fluent-crm/remove-contact-from-sequence', array(
 		'label'       => 'Remove Contact from Sequence',
 		'description' => 'Soft-cancel a contact from a sequence. Sets tracker status to "cancelled" and cancels all pending scheduled emails. Does NOT delete any records.',

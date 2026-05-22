@@ -416,25 +416,6 @@ function fluent_abilities_crm_register_extended_campaigns() {
 		},
 	) );
 
-	$reg->read( 'fluent-crm/get-campaign-contacts-by-segment', array(
-		'label'         => 'Get CRM Campaign Contacts By Engagement Segment',
-		'description'   => 'Contacts grouped by send-engagement segment (sent/opened/clicked/bounced/unopened). Source: CampaignController::getContactsBySegment (GET /campaigns/{id}/contacts-by-segment).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => $id_required( array(
-			'segment' => array(
-				'type'        => 'string',
-				'description' => 'sent, opened, clicked, bounced, unopened',
-			),
-		) ),
-		'output_schema' => fluent_abilities_schema_list_output( 'contacts', $obj ),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			$id = (int) ( $input['id'] ?? 0 );
-			$q  = $input;
-			unset( $q['id'] );
-			return fluent_abilities_unwrap_paginator( $proxy( 'GET', '/fluent-crm/v2/campaigns/' . $id . '/contacts-by-segment', $q ), 'contacts' );
-		},
-	) );
-
 	$reg->write( 'fluent-crm/update-campaign-labels', array(
 		'label'         => 'Update CRM Campaign Labels',
 		'description'   => 'Set label IDs on a campaign. Source: CampaignController::updateLabels (PUT /campaigns/{id}/update-labels).',

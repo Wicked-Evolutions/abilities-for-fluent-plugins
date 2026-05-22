@@ -34,8 +34,6 @@ class FluentCRMMiscSmallAbilitiesTest extends TestCase {
 		'fluent-crm/list-form-entries'          => 'read',
 		'fluent-crm/get-form-entry-detail'      => 'read',
 		// §5.22 Docs
-		'fluent-crm/list-docs'                  => 'read',
-		'fluent-crm/get-doc'                    => 'read',
 		// §5.31 Global search
 	);
 
@@ -75,11 +73,6 @@ class FluentCRMMiscSmallAbilitiesTest extends TestCase {
 		$GLOBALS['_test_user_caps'] = array( 'fluent_crm_read' );
 		$cb                         = $abilities['fluent-crm/delete-label']['permission_callback'];
 		$this->assertFalse( $cb() );
-	}
-
-	public function test_get_doc_requires_doc_id() {
-		$abilities = wp_get_abilities();
-		$this->assertContains( 'doc_id', $abilities['fluent-crm/get-doc']['input_schema']['required'] );
 	}
 
 	public function test_form_entry_detail_requires_form_id_and_id() {

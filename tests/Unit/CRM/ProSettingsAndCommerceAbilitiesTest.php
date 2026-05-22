@@ -22,7 +22,6 @@ class FluentCRMProSettingsAndCommerceAbilitiesTest extends TestCase {
 
 	private const SLUGS = array(
 		// §5.29
-		'fluent-crm/create-pro-manager'                      => 'write',
 		'fluent-crm/update-pro-manager'                      => 'write',
 		'fluent-crm/delete-pro-manager'                      => 'delete',
 		'fluent-crm/get-sms-settings'                        => 'read',
@@ -30,7 +29,6 @@ class FluentCRMProSettingsAndCommerceAbilitiesTest extends TestCase {
 		'fluent-crm/disable-sms-provider'                    => 'write',
 		// §5.30
 		'fluent-crm/list-commerce-reports-for-provider'      => 'read',
-		'fluent-crm/get-commerce-report'                     => 'read',
 	);
 
 	protected function setUp(): void {
@@ -66,16 +64,6 @@ class FluentCRMProSettingsAndCommerceAbilitiesTest extends TestCase {
 		$GLOBALS['_test_user_caps'] = array( 'fluent_crm_read' );
 		$cb                         = $abilities['fluent-crm/delete-pro-manager']['permission_callback'];
 		$this->assertFalse( $cb() );
-	}
-
-	public function test_create_manager_requires_user_id() {
-		$abilities = wp_get_abilities();
-		$this->assertContains( 'user_id', $abilities['fluent-crm/create-pro-manager']['input_schema']['required'] );
-	}
-
-	public function test_commerce_report_requires_provider() {
-		$abilities = wp_get_abilities();
-		$this->assertContains( 'provider', $abilities['fluent-crm/get-commerce-report']['input_schema']['required'] );
 	}
 
 	public function test_callbacks_all_invokable() {

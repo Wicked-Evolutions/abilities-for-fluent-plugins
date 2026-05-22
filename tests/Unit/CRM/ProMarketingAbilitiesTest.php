@@ -31,7 +31,6 @@ class FluentCRMProMarketingAbilitiesTest extends TestCase {
 		'fluent-crm/create-recurring-campaign'                  => 'write',
 		'fluent-crm/get-recurring-campaign'                     => 'read',
 		'fluent-crm/update-recurring-campaign-data'             => 'write',
-		'fluent-crm/change-recurring-campaign-status'           => 'write',
 		'fluent-crm/update-recurring-campaign-settings'         => 'write',
 		'fluent-crm/duplicate-recurring-campaign'               => 'write',
 		'fluent-crm/list-recurring-campaign-emails'             => 'read',
@@ -41,21 +40,17 @@ class FluentCRMProMarketingAbilitiesTest extends TestCase {
 		// §5.26
 		'fluent-crm/list-dynamic-segments'                      => 'read',
 		'fluent-crm/get-dynamic-segment-stats'                  => 'read',
-		'fluent-crm/estimate-dynamic-segment-contacts'          => 'read',
 		'fluent-crm/update-dynamic-segment'                     => 'write',
 		'fluent-crm/delete-dynamic-segment'                     => 'delete',
 		'fluent-crm/duplicate-dynamic-segment'                  => 'write',
-		'fluent-crm/list-dynamic-segment-custom-fields'         => 'read',
 		// §5.27
 		'fluent-crm/resend-failed-campaign-emails'              => 'write',
 		'fluent-crm/resend-unopened-campaign-emails'            => 'write',
 		'fluent-crm/resend-campaign-emails'                     => 'write',
-		'fluent-crm/tag-actions-on-campaign'                    => 'write',
 		'fluent-crm/list-campaigns-pro-posts'                   => 'read',
 		'fluent-crm/list-campaigns-pro-post-taxonomies'         => 'read',
 		'fluent-crm/list-campaigns-pro-products'                => 'read',
 		// §5.28
-		'fluent-crm/activate-smart-link'                        => 'write',
 	);
 
 	protected function setUp(): void {

@@ -35,24 +35,6 @@ function fluent_abilities_crm_register_extended_pro_settings_and_commerce() {
 	// =========================================================================
 
 
-	$reg->write( 'fluent-crm/create-pro-manager', array(
-		'label'         => 'Create CRM Pro Sub-Admin Manager',
-		'description'   => 'Grant a WP user FCRM Pro manager access with permission list. Source: CampaignProSettingController::createManager (POST /campaign-pro-settings/managers).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'user_id' ),
-			'properties' => array(
-				'user_id'     => array( 'type' => 'integer' ),
-				'permissions' => array( 'type' => 'array', 'items' => array( 'type' => 'string' ) ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_item_output(),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/campaign-pro-settings/managers', $input );
-		},
-	) );
-
 	$reg->write( 'fluent-crm/update-pro-manager', array(
 		'label'         => 'Update CRM Pro Sub-Admin Manager',
 		'description'   => 'Update a manager\'s permissions. Source: CampaignProSettingController::updateManager (PUT /campaign-pro-settings/managers/{id}).',
@@ -147,28 +129,6 @@ function fluent_abilities_crm_register_extended_pro_settings_and_commerce() {
 		'callback'      => function ( $input ) use ( $proxy ) {
 			$provider = sanitize_key( (string) ( $input['provider'] ?? '' ) );
 			return $proxy( 'GET', '/fluent-crm/v2/commerce-reports/' . $provider );
-		},
-	) );
-
-	$reg->read( 'fluent-crm/get-commerce-report', array(
-		'label'         => 'Get CRM Commerce Report (Pro)',
-		'description'   => 'Provider-variant commerce report payload over a date range. Source: CommerceReportController::report (GET /commerce-reports/{provider}/report).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'provider' ),
-			'properties' => array(
-				'provider'  => array( 'type' => 'string' ),
-				'date_from' => array( 'type' => 'string' ),
-				'date_to'   => array( 'type' => 'string' ),
-			),
-		),
-		'output_schema' => $obj,
-		'callback'      => function ( $input ) use ( $proxy ) {
-			$provider = sanitize_key( (string) ( $input['provider'] ?? '' ) );
-			$q        = $input;
-			unset( $q['provider'] );
-			return $proxy( 'GET', '/fluent-crm/v2/commerce-reports/' . $provider . '/report', $q );
 		},
 	) );
 

@@ -18,7 +18,6 @@ class FluentCRMFunnelsAbilitiesTest extends TestCase {
 	private const SLUGS = array(
 		// §5.9
 		'fluent-crm/list-funnel-triggers'                 => 'read',
-		'fluent-crm/save-funnel-sequences'                => 'write',
 		'fluent-crm/save-funnel-email-action-fallback'    => 'write',
 		'fluent-crm/save-funnel-sequences-step'           => 'write',
 		'fluent-crm/save-funnel-email-action'             => 'write',
@@ -38,7 +37,6 @@ class FluentCRMFunnelsAbilitiesTest extends TestCase {
 		// §5.11
 		'fluent-crm/list-funnel-templates'                => 'read',
 		'fluent-crm/import-funnel'                        => 'write',
-		'fluent-crm/get-funnel-all-activities'            => 'read',
 		'fluent-crm/get-funnel-syncable-counts'           => 'read',
 		'fluent-crm/sync-funnel-new-steps'                => 'write',
 		'fluent-crm/send-test-funnel-webhook'             => 'write',

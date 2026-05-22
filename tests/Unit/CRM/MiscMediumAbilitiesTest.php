@@ -26,7 +26,6 @@ class FluentCRMMiscMediumAbilitiesTest extends TestCase {
 		'fluent-crm/get-ai-settings'                        => 'read',
 		'fluent-crm/update-ai-settings'                     => 'write',
 		'fluent-crm/test-ai-connection'                     => 'write',
-		'fluent-crm/generate-ai-content'                    => 'write',
 		// §5.15 Abandoned-cart ops
 		// §5.16 Custom fields
 		'fluent-crm/get-contact-custom-fields'              => 'read',

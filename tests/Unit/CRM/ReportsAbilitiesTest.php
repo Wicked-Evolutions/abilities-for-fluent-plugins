@@ -40,7 +40,6 @@ class FluentCRMReportsAbilitiesTest extends TestCase {
 		'fluent-crm/get-report-email-unsubs'          => 'read',
 		'fluent-crm/get-report-email-performance'     => 'read',
 		'fluent-crm/get-report-taxonomy-terms'        => 'read',
-		'fluent-crm/list-report-emails'               => 'read',
 		'fluent-crm/delete-report-emails'             => 'delete',
 		'fluent-crm/get-report-advanced-providers'    => 'read',
 		'fluent-crm/get-report-contacts-by-status'    => 'read',
@@ -81,7 +80,7 @@ class FluentCRMReportsAbilitiesTest extends TestCase {
 
 	// ── Registration shape ────────────────────────────────────────────────────
 
-	public function test_cluster_registers_17_abilities() {
+	public function test_cluster_registers_16_abilities() {
 		$abilities = wp_get_abilities();
 		foreach ( array_keys( self::SLUGS ) as $slug ) {
 			$this->assertArrayHasKey( $slug, $abilities, "Missing ability: {$slug}" );

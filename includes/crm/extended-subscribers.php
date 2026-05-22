@@ -109,31 +109,6 @@ function fluent_abilities_crm_register_extended_subscribers() {
 		},
 	) );
 
-	$reg->write( 'fluent-crm/get-contact-external-view', array(
-		'label'         => 'Get Or Set CRM Contact External View',
-		'description'   => 'Operator-rendered external-view payload + toggle. GET returns { html, settings }; passing settings switches to POST behavior. Source: SubscriberController::getExternalView / setExternalView (GET|POST /subscribers/{id}/external_view).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'id' ),
-			'properties' => array(
-				'id'       => array( 'type' => 'integer' ),
-				'settings' => $obj,
-			),
-		),
-		'output_schema' => fluent_abilities_schema_item_output( array(
-			'html'     => array( 'type' => array( 'string', 'null' ) ),
-			'settings' => $obj,
-		) ),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			$id     = (int) ( $input['id'] ?? 0 );
-			$method = isset( $input['settings'] ) ? 'POST' : 'GET';
-			$q      = $input;
-			unset( $q['id'] );
-			return $proxy( $method, '/fluent-crm/v2/subscribers/' . $id . '/external_view', $q );
-		},
-	) );
-
 	$reg->read( 'fluent-crm/get-contact-url-metrics', array(
 		'label'         => 'Get CRM Contact Per-URL Click Metrics',
 		'description'   => 'Per-link click history for a contact. Source: SubscriberController::getUrlMetrics (GET /subscribers/{id}/url-metrics). Capability: fcrm_read_contacts.',
@@ -209,26 +184,5 @@ function fluent_abilities_crm_register_extended_subscribers() {
 
 
 
-
-	$reg->read( 'fluent-crm/export-subscribers', array(
-		'label'         => 'Export CRM Subscribers',
-		'description'   => 'Export subscribers as CSV or JSON. Long-running operation; returns download URL or inline payload. Note: the column-selection list is named `fields` here, but the vendor export handler reads the selected columns from a `columns` key — when narrowing exported columns, send the column slugs under `fields` (this wrapper forwards them) understanding the vendor maps them to its `columns` parameter. Source: SubscriberController::exportSubscribers (GET|POST /subscribers-export). Capability: fcrm_read_contacts.',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'properties' => array(
-				'format'  => array(
-					'type'        => 'string',
-					'description' => 'csv or json (default csv).',
-				),
-				'filters' => $obj,
-				'fields'  => array( 'type' => 'array', 'items' => array( 'type' => 'string' ) ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_item_output(),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/subscribers-export', $input );
-		},
-	) );
 
 }

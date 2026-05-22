@@ -84,34 +84,6 @@ function fluent_abilities_crm_register_extended_pro_companies() {
 	) );
 
 	// 5.23.3 — update-company
-	$reg->write( 'fluent-crm/update-company', array(
-		'label'         => 'Update CRM Company (Pro)',
-		'description'   => 'Update Pro company. Source: CompanyController::update (PUT /companies/{id}).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'id' ),
-			'properties' => array(
-				'id'               => array( 'type' => 'integer' ),
-				'name'             => array( 'type' => 'string' ),
-				'description'      => array( 'type' => 'string' ),
-				'industry'         => array( 'type' => 'string' ),
-				'employees_number' => array( 'type' => array( 'integer', 'string' ) ),
-				'type'             => array( 'type' => 'string' ),
-				'address'          => array( 'type' => 'string' ),
-				'phone'            => array( 'type' => 'string' ),
-				'website'          => array( 'type' => 'string' ),
-				'owner_id'         => array( 'type' => 'integer' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output(),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			$id = (int) ( $input['id'] ?? 0 );
-			unset( $input['id'] );
-			return fluent_abilities_project_response( $proxy( 'PUT', '/fluent-crm/v2/companies/' . $id, $input ) );
-		},
-	) );
-
 	// 5.23.4 — delete-company
 	$reg->delete( 'fluent-crm/delete-company', array(
 		'label'         => 'Delete CRM Company (Pro)',
@@ -137,24 +109,6 @@ function fluent_abilities_crm_register_extended_pro_companies() {
 	) );
 
 	// 5.23.6 — search-unattached-contacts-for-company
-	$reg->read( 'fluent-crm/search-unattached-contacts-for-company', array(
-		'label'         => 'Search Contacts Not In Any Company (Pro)',
-		'description'   => 'Contacts that are not yet attached to any Pro company. Source: CompanyController::searchUnattachedContacts (GET /companies/search-unattached-contacts).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'company_id', 'q' ),
-			'properties' => array(
-				'company_id' => array( 'type' => 'integer' ),
-				'q'          => array( 'type' => 'string' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_collection_output( 'contacts', $obj ),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/companies/search-unattached-contacts', $input );
-		},
-	) );
-
 	// 5.23.7 — update-companies-property
 	$reg->write( 'fluent-crm/update-companies-property', array(
 		'label'         => 'Update CRM Companies Single Property (Pro)',
@@ -292,31 +246,6 @@ function fluent_abilities_crm_register_extended_pro_companies() {
 	) );
 
 	// 5.23.13 — update-company-note
-	$reg->write( 'fluent-crm/update-company-note', array(
-		'label'         => 'Update CRM Company Note (Pro)',
-		'description'   => 'Update a note attached to a company. Source: CompanyController::updateNote (PUT /companies/{id}/notes/{note_id}).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'id', 'note_id' ),
-			'properties' => array(
-				'id'          => array( 'type' => 'integer' ),
-				'note_id'     => array( 'type' => 'integer' ),
-				'title'       => array( 'type' => 'string' ),
-				'description' => array( 'type' => 'string' ),
-				'type'        => array( 'type' => 'string' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output(),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			$id  = (int) ( $input['id'] ?? 0 );
-			$nid = (int) ( $input['note_id'] ?? 0 );
-			$q   = $input;
-			unset( $q['id'], $q['note_id'] );
-			return $proxy( 'PUT', '/fluent-crm/v2/companies/' . $id . '/notes/' . $nid, $q );
-		},
-	) );
-
 	// 5.23.14 — delete-company-note
 	$reg->delete( 'fluent-crm/delete-company-note', array(
 		'label'         => 'Delete CRM Company Note (Pro)',
