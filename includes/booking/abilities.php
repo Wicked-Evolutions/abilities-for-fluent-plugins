@@ -12,6 +12,39 @@
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Recursively strip privileged host-only fields from a booking's meta /
+ * location_details before they cross an ordinary read boundary (#140).
+ *
+ * get-booking is an unscoped read; without this, its output disclosed the Zoom
+ * host "start as host" token/link (start_url / zak / *_start_link) and the host's
+ * Google Calendar links (remote_link / remote_calendar_id) — letting any caller
+ * with read access host the meeting or read the host mailbox's calendar.
+ * Attendee-safe fields (join_url, password, meeting_id, etc.) are preserved.
+ *
+ * @param mixed $value Decoded meta value (array or scalar).
+ * @return mixed The value with privileged keys removed at any depth.
+ */
+function fluent_abilities_booking_redact_host_secrets( $value ) {
+	if ( ! is_array( $value ) ) {
+		return $value;
+	}
+	$deny = array( 'start_url', 'zak', 'start_link', 'online_platform_start_link', 'remote_link', 'remote_calendar_id' );
+	$out  = array();
+	foreach ( $value as $k => $v ) {
+		if ( is_string( $k ) ) {
+			$lk = strtolower( $k );
+			if ( in_array( $lk, $deny, true )
+				|| substr( $lk, -11 ) === '_start_link'
+				|| substr( $lk, -10 ) === '_start_url' ) {
+				continue;
+			}
+		}
+		$out[ $k ] = is_array( $v ) ? fluent_abilities_booking_redact_host_secrets( $v ) : $v;
+	}
+	return $out;
+}
+
 add_action( 'wp_abilities_api_init', function() {
 
 	$reg = new Fluent_Abilities_Registrar( 'booking' );
@@ -1102,7 +1135,10 @@ add_action( 'wp_abilities_api_init', function() {
 				);
 			}
 
-			$location_details = fluent_abilities_safe_array( maybe_unserialize( $booking->location_details ?? '' ) );
+			// #140: location_details can carry the host-only online_platform_start_link.
+			$location_details = fluent_abilities_booking_redact_host_secrets(
+				fluent_abilities_safe_array( maybe_unserialize( $booking->location_details ?? '' ) )
+			);
 
 			// Get booking meta — fcal_booking_meta uses 'value' column (not 'meta_value').
 			$meta_rows  = wpFluent()->table( 'fcal_booking_meta' )
@@ -1113,6 +1149,10 @@ add_action( 'wp_abilities_api_init', function() {
 			foreach ( $meta_rows as $row ) {
 				$meta[ $row->meta_key ] = fluent_abilities_safe_array( maybe_unserialize( $row->value ?? '' ) );
 			}
+
+			// #140: strip privileged host-only fields (Zoom start token/link, host
+			// calendar links) from meta before returning to an ordinary read caller.
+			$meta = fluent_abilities_booking_redact_host_secrets( $meta );
 
 			return array(
 				'id'                 => (int) $booking->id,
