@@ -27,6 +27,102 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg = new Fluent_Abilities_Registrar( 'forms' );
 
+	$reg->read( 'fluent-forms/list-form-fields', array(
+		'label'       => 'List Form Fields',
+		'description' => 'Get field definitions for a form. Returns the structured field configuration including labels, types, and validation rules.',
+		'input_schema' => array(
+			'type'       => 'object',
+			'required'   => array( 'form_id' ),
+			'properties' => array(
+				'form_id' => array( 'type' => 'integer', 'description' => 'Form ID' ),
+			),
+		),
+		'output_schema' => fluent_abilities_schema_item_output( array(
+			'form_id'    => array( 'type' => 'integer' ),
+			'form_title' => array( 'type' => 'string' ),
+			'fields'     => array( 'type' => 'array', 'items' => array( 'type' => 'object' ) ),
+			'raw'        => array( 'type' => 'object' ),
+		) ),
+		'callback' => function( $input ) {
+			if ( ! fluent_abilities_user_can( 'forms', 'read' ) ) {
+				return fluent_abilities_error( 'rest_forbidden', 'You do not have permission to read form fields' );
+			}
+
+			$form_id = (int) $input['form_id'];
+			if ( $form_id < 1 ) {
+				return fluent_abilities_error( 'ability_invalid_input', 'form_id must be a positive integer' );
+			}
+
+			global $wpdb;
+			$forms_table = $wpdb->prefix . 'fluentform_forms';
+
+			// Get the form record — form_fields is stored as JSON in the forms table.
+			$form = $wpdb->get_row( $wpdb->prepare(
+				"SELECT id, title, form_fields FROM {$forms_table} WHERE id = %d",
+				$form_id
+			) );
+
+			if ( ! $form ) {
+				return fluent_abilities_error( 'not_found', 'Form not found' );
+			}
+
+			$form_fields = json_decode( $form->form_fields, true );
+
+			if ( ! $form_fields || ! is_array( $form_fields ) ) {
+				return fluent_abilities_error( 'ability_invalid_input', 'Could not parse form field definitions' );
+			}
+
+			// Extract a flat list of fields with key details.
+			$fields = array();
+			$raw_fields = $form_fields['fields'] ?? array();
+
+			foreach ( $raw_fields as $field ) {
+				$field_info = array(
+					'element'    => $field['element'] ?? '',
+					'name'       => $field['attributes']['name'] ?? '',
+					'label'      => $field['settings']['label'] ?? '',
+					'type'       => $field['attributes']['type'] ?? $field['element'] ?? '',
+					'required'   => ! empty( $field['settings']['validation_rules']['required']['value'] ),
+					'placeholder'=> $field['attributes']['placeholder'] ?? '',
+				);
+
+				// Include options for select/radio/checkbox fields.
+				if ( ! empty( $field['settings']['advanced_options'] ) ) {
+					$field_info['options'] = $field['settings']['advanced_options'];
+				} elseif ( ! empty( $field['options'] ) ) {
+					$field_info['options'] = $field['options'];
+				}
+
+				// Include container/column children.
+				if ( ! empty( $field['columns'] ) ) {
+					$field_info['columns'] = array();
+					foreach ( $field['columns'] as $column ) {
+						$col_fields = array();
+						foreach ( ( $column['fields'] ?? array() ) as $col_field ) {
+							$col_fields[] = array(
+								'element'    => $col_field['element'] ?? '',
+								'name'       => $col_field['attributes']['name'] ?? '',
+								'label'      => $col_field['settings']['label'] ?? '',
+								'type'       => $col_field['attributes']['type'] ?? $col_field['element'] ?? '',
+								'required'   => ! empty( $col_field['settings']['validation_rules']['required']['value'] ),
+							);
+						}
+						$field_info['columns'][] = $col_fields;
+					}
+				}
+
+				$fields[] = $field_info;
+			}
+
+			return array(
+				'form_id'    => $form_id,
+				'form_title' => $form->title,
+				'fields'     => $fields,
+				'raw'        => $form_fields,
+			);
+		},
+	) );
+
 	// =========================================================================
 	// FORMS
 	// =========================================================================

@@ -16,6 +16,274 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg = new Fluent_Abilities_Registrar( 'crm' );
 
+	$reg->read( 'fluent-crm/list-templates', array(
+		'label'       => 'List Email Templates',
+		'description' => 'List email templates available in FluentCRM.',
+		'category'    => 'fluent-crm',
+		'input_schema' => array(
+			'type'       => 'object',
+			'properties' => fluent_abilities_pagination_schema(),
+		),
+		'output_schema' => fluent_abilities_schema_list_output( 'templates', array(
+			'id'         => array( 'type' => 'integer' ),
+			'title'      => array( 'type' => 'string' ),
+			'subject'    => array( 'type' => 'string' ),
+			'created_at' => array( 'type' => 'string' ),
+		) ),
+		'callback' => function( $input ) {
+			$pagination = fluent_abilities_pagination( $input );
+			$query = \FluentCrm\App\Models\Template::orderBy( 'id', 'DESC' );
+			$total = $query->count();
+			$templates = $query->offset( $pagination['offset'] )->limit( $pagination['per_page'] )->get();
+
+			$items = array();
+			foreach ( $templates as $template ) {
+				$items[] = array(
+					'id'         => (int) $template->id,
+					'title'      => (string) ( $template->post_title ?? $template->title ?? '' ),
+					'subject'    => (string) ( $template->post_excerpt ?? $template->subject ?? '' ),
+					'created_at' => $template->created_at ? (string) $template->created_at : '',
+				);
+			}
+
+			return array( 'templates' => $items, 'total' => $total, 'page' => $pagination['page'] );
+		},
+	));
+
+	$reg->read( 'fluent-crm/get-contact-journey', array(
+		'label'       => 'Get Contact Journey',
+		'description' => 'Get a unified timeline of a contact\'s journey: tag applications, list assignments, email sends/opens/clicks, automation steps, custom events, and notes. Sorted chronologically.',
+		'category'    => 'fluent-crm',
+		'input_schema' => array(
+			'type'       => 'object',
+			'required'   => array( 'contact_id' ),
+			'properties' => array(
+				'contact_id' => array( 'type' => 'integer', 'description' => 'Contact/subscriber ID' ),
+				'limit'      => array( 'type' => 'integer', 'description' => 'Max events to return (default: 100)' ),
+			),
+		),
+		'output_schema' => fluent_abilities_schema_item_output( array(
+			'contact_id'    => array( 'type' => 'integer' ),
+			'email'         => array( 'type' => 'string' ),
+			'journey'       => array( 'type' => 'array', 'items' => array( 'type' => 'object' ) ),
+			'total_entries' => array( 'type' => 'integer' ),
+		) ),
+		'callback' => function( $input ) {
+			$contact_id = intval( $input['contact_id'] );
+			$limit      = isset( $input['limit'] ) ? min( intval( $input['limit'] ), 500 ) : 100;
+
+			global $wpdb;
+			$events = array();
+
+			// 1. Tag/list applications from pivot table
+			$pivot_table = $wpdb->prefix . 'fc_subscriber_pivot';
+			$pivots = $wpdb->get_results( $wpdb->prepare(
+				"SELECT p.object_type, p.object_id, p.created_at,
+					CASE
+						WHEN p.object_type LIKE '%%Tag' THEN t.title
+						WHEN p.object_type LIKE '%%Lists' THEN l.title
+						ELSE NULL
+					END as object_title
+				FROM {$pivot_table} p
+				LEFT JOIN {$wpdb->prefix}fc_tags t ON p.object_type LIKE '%%Tag' AND p.object_id = t.id
+				LEFT JOIN {$wpdb->prefix}fc_lists l ON p.object_type LIKE '%%Lists' AND p.object_id = l.id
+				WHERE p.subscriber_id = %d
+				ORDER BY p.created_at DESC",
+				$contact_id
+			) );
+
+			foreach ( $pivots as $p ) {
+				$type = strpos( $p->object_type, 'Tag' ) !== false ? 'tag_applied' : 'list_added';
+				$events[] = array(
+					'type'       => $type,
+					'title'      => $p->object_title,
+					'object_id'  => (int) $p->object_id,
+					'created_at' => (string) $p->created_at,
+				);
+			}
+
+			// 2. Email sends/opens/clicks
+			$emails_table = $wpdb->prefix . 'fc_campaign_emails';
+			$emails = $wpdb->get_results( $wpdb->prepare(
+				"SELECT campaign_id, email_type, email_subject, status, is_open, click_counter, scheduled_at, created_at
+				FROM {$emails_table}
+				WHERE subscriber_id = %d
+				ORDER BY created_at DESC",
+				$contact_id
+			) );
+
+			foreach ( $emails as $e ) {
+				$events[] = array(
+					'type'         => 'email_' . $e->status,
+					'title'        => $e->email_subject,
+					'campaign_id'  => (int) $e->campaign_id,
+					'email_type'   => $e->email_type,
+					'is_open'      => (bool) $e->is_open,
+					'click_counter'  => (int) $e->click_counter,
+					'created_at'   => (string) $e->created_at,
+				);
+			}
+
+			// 3. Automation/funnel steps
+			$funnel_table = $wpdb->prefix . 'fc_funnel_metrics';
+			if ( $wpdb->get_var( "SHOW TABLES LIKE '{$funnel_table}'" ) ) {
+				$funnel_steps = $wpdb->get_results( $wpdb->prepare(
+					"SELECT fm.funnel_id, fm.action_id, fm.status, fm.created_at, f.title as funnel_title
+					FROM {$funnel_table} fm
+					LEFT JOIN {$wpdb->prefix}fc_funnels f ON fm.funnel_id = f.id
+					WHERE fm.subscriber_id = %d
+					ORDER BY fm.created_at DESC",
+					$contact_id
+				) );
+
+				foreach ( $funnel_steps as $fs ) {
+					$events[] = array(
+						'type'        => 'automation_' . $fs->status,
+						'title'       => $fs->funnel_title,
+						'funnel_id'   => (int) $fs->funnel_id,
+						'action_id'   => (int) $fs->action_id,
+						'created_at'  => (string) $fs->created_at,
+					);
+				}
+			}
+
+			// 4. Custom events
+			$event_table = $wpdb->prefix . 'fc_event_tracking';
+			if ( $wpdb->get_var( "SHOW TABLES LIKE '{$event_table}'" ) ) {
+				$custom_events = $wpdb->get_results( $wpdb->prepare(
+					"SELECT event_key, title, value, counter, provider, created_at
+					FROM {$event_table}
+					WHERE subscriber_id = %d
+					ORDER BY created_at DESC",
+					$contact_id
+				) );
+
+				foreach ( $custom_events as $ce ) {
+					$events[] = array(
+						'type'       => 'custom_event',
+						'title'      => $ce->title,
+						'event_key'  => $ce->event_key,
+						'value'      => $ce->value,
+						'counter'    => (int) $ce->counter,
+						'provider'   => $ce->provider,
+						'created_at' => (string) $ce->created_at,
+					);
+				}
+			}
+
+			// 5. Notes
+			$notes_table = $wpdb->prefix . 'fc_subscriber_notes';
+			$notes = $wpdb->get_results( $wpdb->prepare(
+				"SELECT title, description, type, created_at
+				FROM {$notes_table}
+				WHERE subscriber_id = %d
+				ORDER BY created_at DESC",
+				$contact_id
+			) );
+
+			foreach ( $notes as $n ) {
+				$events[] = array(
+					'type'        => 'note_' . $n->type,
+					'title'       => $n->title,
+					'description' => $n->description,
+					'created_at'  => (string) $n->created_at,
+				);
+			}
+
+			// Sort all events by created_at descending
+			usort( $events, function( $a, $b ) {
+				return strcmp( $b['created_at'] ?? '', $a['created_at'] ?? '' );
+			});
+
+			$events = array_slice( $events, 0, $limit );
+
+			return array(
+				'contact_id'   => $contact_id,
+				'events'       => $events,
+				'total_events' => count( $events ),
+			);
+		},
+	));
+
+	$reg->delete( 'fluent-crm/delete-campaign', array(
+		'label'       => 'Delete CRM Campaign',
+		'description' => 'Permanently delete a campaign by ID. Only draft campaigns can be deleted.',
+		'category'    => 'fluent-crm',
+		'input_schema' => array(
+			'type'       => 'object',
+			'required'   => array( 'id' ),
+			'properties' => array(
+				'id' => array( 'type' => 'integer', 'description' => 'Campaign ID' ),
+			),
+		),
+		'output_schema' => fluent_abilities_schema_success_output( array(
+			'id' => array( 'type' => 'integer' ),
+		) ),
+		'annotations'   => array( 'idempotent' => false ),
+		'callback'      => function( $input ) {
+			$campaign = \FluentCrm\App\Models\Campaign::find( intval( $input['id'] ) );
+			if ( ! $campaign ) {
+				return fluent_abilities_error( 'not_found', 'Campaign not found.' );
+			}
+			if ( ! in_array( $campaign->status, array( 'draft', 'archived' ), true ) ) {
+				return fluent_abilities_error( 'ability_invalid_input', 'Only draft or archived campaigns can be deleted. Current status: ' . $campaign->status );
+			}
+			$id = $campaign->id;
+			$campaign->delete();
+			return array( 'success' => true, 'id' => $id );
+		},
+	) );
+
+	$reg->write( 'fluent-crm/add-contact-to-sequence', array(
+		'label'       => 'Add Contact to Sequence',
+		'description' => 'Enroll a contact into an email sequence. Creates scheduled emails for all sequence steps. Contact must be a subscribed FluentCRM contact.',
+		'category'    => 'fluent-crm',
+		'input_schema' => array(
+			'type'       => 'object',
+			'required'   => array( 'sequence_id', 'contact_id' ),
+			'properties' => array(
+				'sequence_id' => array( 'type' => 'integer', 'description' => 'Sequence ID' ),
+				'contact_id'  => array( 'type' => 'integer', 'description' => 'FluentCRM contact ID' ),
+			),
+		),
+		'output_schema' => fluent_abilities_schema_success_output( array(
+			'contact_id'  => array( 'type' => 'integer' ),
+			'sequence_id' => array( 'type' => 'integer' ),
+			'status'      => array( 'type' => 'string' ),
+		) ),
+		'annotations'   => array( 'idempotent' => false ),
+		'callback' => function( $input ) {
+			$sequence = \FluentCampaign\App\Models\Sequence::find( absint( $input['sequence_id'] ) );
+			if ( ! $sequence ) {
+				return fluent_abilities_error( 'not_found', 'Sequence not found' );
+			}
+
+			$subscriber = FluentCrmApi( 'contacts' )->getContact( absint( $input['contact_id'] ) );
+			if ( ! $subscriber ) {
+				return fluent_abilities_error( 'not_found', 'Contact not found' );
+			}
+
+			// Check if already enrolled and active.
+			$existing = \FluentCampaign\App\Models\SequenceTracker::where( 'campaign_id', $sequence->id )
+				->where( 'subscriber_id', $subscriber->id )
+				->where( 'status', 'active' )
+				->first();
+
+			if ( $existing ) {
+				return fluent_abilities_error( 'ability_invalid_input', 'Contact is already actively enrolled in this sequence' );
+			}
+
+			$sequence->subscribe( array( $subscriber ) );
+
+			return array(
+				'success'     => true,
+				'sequence_id' => $sequence->id,
+				'contact_id'  => $subscriber->id,
+				'email'       => $subscriber->email,
+			);
+		},
+	));
+
 	// =========================================================================
 	// CONTACTS
 	// =========================================================================

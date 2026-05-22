@@ -45,6 +45,257 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg = new Fluent_Abilities_Registrar( 'cart' );
 
+	$reg->write( 'fluent-cart/update-order-address', array(
+		'label'       => 'Update Order Address',
+		'description' => 'Update billing or shipping address on a FluentCart order.',
+		'input_schema' => array(
+			'type'       => 'object',
+			'required'   => array( 'order_id', 'type' ),
+			'properties' => array(
+				'order_id'  => array( 'type' => 'integer', 'description' => 'Order ID' ),
+				'type'      => array( 'type' => 'string', 'description' => 'Address type: billing, shipping', 'enum' => array( 'billing', 'shipping' ) ),
+				'name'      => array( 'type' => 'string', 'description' => 'Full name' ),
+				'address_1' => array( 'type' => 'string', 'description' => 'Address line 1' ),
+				'address_2' => array( 'type' => 'string', 'description' => 'Address line 2' ),
+				'city'      => array( 'type' => 'string', 'description' => 'City' ),
+				'state'     => array( 'type' => 'string', 'description' => 'State/Province' ),
+				'postcode'  => array( 'type' => 'string', 'description' => 'Postal/ZIP code' ),
+				'country'   => array( 'type' => 'string', 'description' => 'Country code (e.g., US, GB)' ),
+			),
+		),
+		'output_schema' => fluent_abilities_schema_success_output( array(
+			'address_id' => array( 'type' => 'integer' ),
+			'order_id'   => array( 'type' => 'integer' ),
+		) ),
+		'callback' => function( $input ) {
+			$order = \FluentCart\App\Models\Order::find( (int) $input['order_id'] );
+			if ( ! $order ) {
+				return fluent_abilities_error( 'not_found', 'Order not found.' );
+			}
+
+			$type = sanitize_text_field( $input['type'] );
+			$address = \FluentCart\App\Models\OrderAddress::where( 'order_id', $order->id )
+				->where( 'type', $type )
+				->first();
+
+			$fields = array( 'name', 'address_1', 'address_2', 'city', 'state', 'postcode', 'country' );
+
+			if ( $address ) {
+				foreach ( $fields as $field ) {
+					if ( isset( $input[ $field ] ) ) {
+						$address->$field = sanitize_text_field( $input[ $field ] );
+					}
+				}
+				$address->save();
+			} else {
+				$data = array(
+					'order_id' => $order->id,
+					'type'     => $type,
+				);
+				foreach ( $fields as $field ) {
+					$data[ $field ] = isset( $input[ $field ] ) ? sanitize_text_field( $input[ $field ] ) : null;
+				}
+				$address = \FluentCart\App\Models\OrderAddress::create( $data );
+			}
+
+			return array(
+				'success'    => true,
+				'address_id' => (int) $address->id,
+				'order_id'   => (int) $order->id,
+			);
+		},
+	) );
+
+	$reg->write( 'fluent-cart/update-customer', array(
+		'label'       => 'Update Customer',
+		'description' => 'Update FluentCart customer details: first_name, last_name, phone, address fields.',
+		'input_schema' => array(
+			'type'       => 'object',
+			'required'   => array( 'id' ),
+			'properties' => array(
+				'id'         => array( 'type' => 'integer', 'description' => 'Customer ID' ),
+				'first_name' => array( 'type' => 'string', 'description' => 'First name' ),
+				'last_name'  => array( 'type' => 'string', 'description' => 'Last name' ),
+				'phone'      => array( 'type' => 'string', 'description' => 'Phone number' ),
+				'status'     => array( 'type' => 'string', 'description' => 'Customer status: active, inactive' ),
+			),
+		),
+		'output_schema' => fluent_abilities_schema_success_output( array(
+			'id' => array( 'type' => 'integer' ),
+		) ),
+		'callback' => function( $input ) {
+			$customer = \FluentCart\App\Models\Customer::find( intval( $input['id'] ) );
+			if ( ! $customer ) {
+				return fluent_abilities_error( 'not_found', 'Customer not found.' );
+			}
+			$fields = array( 'first_name', 'last_name', 'phone', 'status' );
+			foreach ( $fields as $field ) {
+				if ( isset( $input[ $field ] ) ) {
+					$customer->$field = sanitize_text_field( $input[ $field ] );
+				}
+			}
+			$customer->save();
+			return array( 'success' => true, 'id' => $customer->id );
+		},
+	) );
+
+	$reg->read( 'fluent-cart/list-shipping-methods', array(
+		'label'       => 'List Shipping Methods',
+		'description' => 'List all FluentCart shipping methods.',
+		'capability'  => 'manage_options',
+		'input_schema' => array(
+			'type' => 'object',
+		),
+		'output_schema' => fluent_abilities_schema_collection_output( 'shipping_methods', array(
+			'id'     => array( 'type' => 'integer' ),
+			'title'  => array( 'type' => 'string' ),
+			'cost'   => array( 'type' => 'number' ),
+			'status' => array( 'type' => 'string' ),
+		) ),
+		'callback' => function( $input ) {
+			global $wpdb;
+			$table = $wpdb->prefix . 'fct_shipping_methods';
+			if ( $wpdb->get_var( "SHOW TABLES LIKE '{$table}'" ) !== $table ) {
+				return array( 'shipping_methods' => array(), 'total' => 0 );
+			}
+			$rows = $wpdb->get_results( "SELECT id, title, cost, status FROM {$table} ORDER BY id ASC" );
+			$items = array_map( function( $r ) {
+				return array( 'id' => (int) $r->id, 'title' => $r->title, 'cost' => fluent_cart_format_money( $r->cost ), 'status' => $r->status );
+			}, $rows ?: array() );
+			return array( 'shipping_methods' => $items, 'total' => count( $items ) );
+		},
+	) );
+
+	$reg->read( 'fluent-cart/list-abandoned-carts', array(
+		'label'       => 'List Abandoned Carts',
+		'description' => 'List abandoned FluentCart shopping carts for recovery campaigns.',
+		'input_schema' => array(
+			'type'       => 'object',
+			'properties' => array_merge( array(
+				'date_from' => array( 'type' => 'string', 'description' => 'Filter from date (YYYY-MM-DD)' ),
+				'date_to'   => array( 'type' => 'string', 'description' => 'Filter to date (YYYY-MM-DD)' ),
+			), fluent_abilities_pagination_schema() ),
+		),
+		'output_schema' => fluent_abilities_schema_list_output( 'carts', array(
+			'id'         => array( 'type' => 'integer' ),
+			'email'      => array( 'type' => 'string' ),
+			'total'      => array( 'type' => 'number' ),
+			'created_at' => array( 'type' => 'string' ),
+		) ),
+		'callback' => function( $input ) {
+			$pagination = fluent_abilities_pagination( $input );
+
+			global $wpdb;
+			$table = $wpdb->prefix . 'fct_carts';
+			if ( $wpdb->get_var( "SHOW TABLES LIKE '{$table}'" ) !== $table ) {
+				return array( 'carts' => array(), 'total' => 0, 'page' => 1, 'per_page' => $pagination['per_page'] );
+			}
+
+			$where = "WHERE status = 'abandoned'";
+			$params = array();
+			if ( ! empty( $input['date_from'] ) ) {
+				$where .= ' AND created_at >= %s';
+				$params[] = sanitize_text_field( $input['date_from'] ) . ' 00:00:00';
+			}
+			if ( ! empty( $input['date_to'] ) ) {
+				$where .= ' AND created_at <= %s';
+				$params[] = sanitize_text_field( $input['date_to'] ) . ' 23:59:59';
+			}
+
+			$total = (int) $wpdb->get_var( ! empty( $params ) ? $wpdb->prepare( "SELECT COUNT(*) FROM {$table} {$where}", ...$params ) : "SELECT COUNT(*) FROM {$table} {$where}" );
+			$rows  = $wpdb->get_results( ! empty( $params ) ? $wpdb->prepare( "SELECT id, email, total, created_at FROM {$table} {$where} ORDER BY created_at DESC LIMIT %d OFFSET %d", ...array_merge( $params, array( $pagination['per_page'], $pagination['offset'] ) ) ) : $wpdb->prepare( "SELECT id, email, total, created_at FROM {$table} {$where} ORDER BY created_at DESC LIMIT %d OFFSET %d", $pagination['per_page'], $pagination['offset'] ) );
+
+			return array(
+				'carts'    => array_map( function( $r ) { return array( 'id' => (int) $r->id, 'email' => $r->email, 'total' => fluent_cart_format_money( $r->total ), 'created_at' => $r->created_at ); }, $rows ?: array() ),
+				'total'    => $total,
+				'page'     => $pagination['page'],
+				'per_page' => $pagination['per_page'],
+			);
+		},
+	) );
+
+	$reg->read( 'fluent-cart/get-retention-stats', array(
+		'label'       => 'Get Retention Stats',
+		'description' => 'Calculate customer retention metrics: repeat purchase rate, average days between purchases, churn indicators.',
+		'input_schema' => array(
+			'type'       => 'object',
+			'properties' => array(
+				'date_from' => array( 'type' => 'string', 'description' => 'Analysis start date (YYYY-MM-DD)' ),
+				'date_to'   => array( 'type' => 'string', 'description' => 'Analysis end date (YYYY-MM-DD)' ),
+			),
+		),
+		'output_schema' => fluent_abilities_schema_item_output( array(
+			'total_customers'       => array( 'type' => 'integer' ),
+			'repeat_buyers'         => array( 'type' => 'integer' ),
+			'repeat_purchase_rate'  => array( 'type' => 'string' ),
+			'avg_order_value'       => array( 'type' => 'number' ),
+			'generated_at'          => array( 'type' => 'string' ),
+		) ),
+		'callback' => function( $input ) {
+			global $wpdb;
+			$orders_table = $wpdb->prefix . 'fct_orders';
+			if ( $wpdb->get_var( "SHOW TABLES LIKE '{$orders_table}'" ) !== $orders_table ) {
+				return fluent_abilities_error( 'not_found', 'FluentCart orders table not found.' );
+			}
+
+			$where = "WHERE status = 'completed'";
+			$params = array();
+			if ( ! empty( $input['date_from'] ) ) {
+				$where .= ' AND created_at >= %s';
+				$params[] = sanitize_text_field( $input['date_from'] ) . ' 00:00:00';
+			}
+			if ( ! empty( $input['date_to'] ) ) {
+				$where .= ' AND created_at <= %s';
+				$params[] = sanitize_text_field( $input['date_to'] ) . ' 23:59:59';
+			}
+
+			$total_customers = (int) ( ! empty( $params )
+				? $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(DISTINCT customer_id) FROM {$orders_table} {$where}", ...$params ) )
+				: $wpdb->get_var( "SELECT COUNT(DISTINCT customer_id) FROM {$orders_table} {$where}" ) );
+
+			$repeat_buyers = (int) ( ! empty( $params )
+				? $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM (SELECT customer_id FROM {$orders_table} {$where} GROUP BY customer_id HAVING COUNT(*) > 1) rb", ...$params ) )
+				: $wpdb->get_var( "SELECT COUNT(*) FROM (SELECT customer_id FROM {$orders_table} {$where} GROUP BY customer_id HAVING COUNT(*) > 1) rb" ) );
+
+			$avg_total = (float) ( ! empty( $params )
+				? $wpdb->get_var( $wpdb->prepare( "SELECT AVG(total) FROM {$orders_table} {$where}", ...$params ) )
+				: $wpdb->get_var( "SELECT AVG(total) FROM {$orders_table} {$where}" ) );
+
+			return array(
+				'total_customers'       => $total_customers,
+				'repeat_buyers'         => $repeat_buyers,
+				'repeat_purchase_rate'  => $total_customers > 0 ? round( $repeat_buyers / $total_customers * 100, 1 ) . '%' : '0%',
+				'avg_order_value'       => fluent_cart_format_money( (int) $avg_total ),
+				'generated_at'          => current_time( 'mysql' ),
+			);
+		},
+	) );
+
+	$reg->delete( 'fluent-cart/delete-coupon', array(
+		'label'       => 'Delete Coupon',
+		'description' => 'Permanently delete a FluentCart coupon by ID.',
+		'input_schema' => array(
+			'type'       => 'object',
+			'required'   => array( 'id' ),
+			'properties' => array(
+				'id' => array( 'type' => 'integer', 'description' => 'Coupon ID' ),
+			),
+		),
+		'output_schema' => fluent_abilities_schema_success_output( array(
+			'id' => array( 'type' => 'integer' ),
+		) ),
+		'annotations' => array( 'idempotent' => false ),
+		'callback'    => function( $input ) {
+			$coupon = \FluentCart\App\Models\Coupon::find( intval( $input['id'] ) );
+			if ( ! $coupon ) {
+				return fluent_abilities_error( 'not_found', 'Coupon not found.' );
+			}
+			$id = $coupon->id;
+			$coupon->delete();
+			return array( 'success' => true, 'id' => $id );
+		},
+	) );
+
 	// =========================================================================
 	// ORDERS
 	// =========================================================================

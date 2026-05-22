@@ -193,7 +193,7 @@ class FluentFormsAbilitiesRegistrationTest extends FormsAbilitiesTestCase {
 		// the §4 inventory tables, which authoritatively enumerate the abilities
 		// being shipped. Same drift pattern as the Fluent Boards research called
 		// out in the sprint plan (TL;DR 124 vs §4 verification 160).
-		$this->assertCount( 88, $fluent_forms, 'Expected 6 existing + 88 new (research §4 enumeration) = 94 fluent-forms abilities registered.' );
+		$this->assertCount( 89, $fluent_forms, 'Expected 6 existing + 88 new (research §4 enumeration) = 94 fluent-forms abilities registered.' );
 	}
 
 	public function test_no_existing_v1_1_3_ability_was_renamed() {

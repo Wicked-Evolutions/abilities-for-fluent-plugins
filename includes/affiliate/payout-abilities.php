@@ -15,6 +15,166 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg = new Fluent_Abilities_Registrar( 'affiliate' );
 
+	$reg->write( 'fluent-affiliate/process-payout', array(
+		'label'       => 'Process Affiliate Payout',
+		'description' => 'Creates a payout batch and marks referrals as paid. WARNING: This creates financial records that cannot be undone. Requires explicit human authorization. Set confirm=true only after reviewing the preview from validate-payout-config.',
+		'category'    => 'fluent-affiliate',
+		'annotations' => array( 'idempotent' => false ),
+		'input_schema' => array(
+			'type'       => 'object',
+			'properties' => array(
+				'confirm' => array(
+					'type'        => 'boolean',
+					'description' => 'Must be true to execute. If false or omitted, returns a preview of what would be paid.',
+				),
+				'payout_method' => array(
+					'type'        => 'string',
+					'description' => 'Payment method: manual, paypal, bank_transfer (default: manual)',
+					'default'     => 'manual',
+				),
+				'title' => array(
+					'type'        => 'string',
+					'description' => 'Payout batch title (default: auto-generated with date)',
+				),
+				'description' => array(
+					'type'        => 'string',
+					'description' => 'Payout batch description',
+				),
+				'minimum_amount' => array(
+					'type'        => 'number',
+					'description' => 'Minimum payout threshold — affiliates below this amount are skipped (default: 0)',
+					'default'     => 0,
+				),
+				'affiliate_ids' => array(
+					'type'        => 'array',
+					'items'       => array( 'type' => 'integer' ),
+					'description' => 'Specific affiliate IDs to pay. If omitted, pays all eligible affiliates.',
+				),
+			),
+			'required' => array( 'confirm' ),
+		),
+		'callback' => function( $input ) {
+			$minimum       = (float) ( $input['minimum_amount'] ?? 0 );
+			$payout_method = sanitize_text_field( $input['payout_method'] ?? 'manual' );
+			$currency      = \FluentAffiliate\App\Helper\Utility::getCurrency();
+
+			// Build eligible affiliates query.
+			$query = \FluentAffiliate\App\Models\Affiliate::where( 'status', 'active' )
+				->where( 'unpaid_earnings', '>', $minimum );
+
+			if ( ! empty( $input['affiliate_ids'] ) ) {
+				$query->whereIn( 'id', array_map( 'intval', $input['affiliate_ids'] ) );
+			}
+
+			$affiliates = $query->get();
+
+			if ( $affiliates->isEmpty() ) {
+				return fluent_abilities_error( 'not_found', 'No eligible affiliates found for payout.' );
+			}
+
+			// Preview mode — return what would be paid.
+			if ( empty( $input['confirm'] ) || $input['confirm'] !== true ) {
+				$preview = array();
+				$total   = 0;
+				foreach ( $affiliates as $aff ) {
+					$unpaid = round( (float) ( $aff->unpaid_earnings ?? 0 ), 2 );
+					$total += $unpaid;
+					$preview[] = array(
+						'affiliate_id'  => (int) $aff->id,
+						'user_email'    => $aff->user->user_email ?? '',
+						'payment_email' => $aff->payment_email ?? '',
+						'amount'        => $unpaid,
+					);
+				}
+
+				return array(
+					'status'       => 'preview',
+					'message'      => 'Payout NOT processed. Review the data below and call again with confirm=true to execute.',
+					'total_amount' => round( $total, 2 ),
+					'currency'     => $currency ?? '',
+					'affiliates'   => $preview,
+				);
+			}
+
+			// === EXECUTION MODE — confirm=true ===
+
+			$title = sanitize_text_field( $input['title'] ?? 'Payout — ' . gmdate( 'Y-m-d H:i' ) );
+
+			// Create the payout batch.
+			$payout = \FluentAffiliate\App\Models\Payout::create( array(
+				'created_by'    => get_current_user_id(),
+				'payout_method' => $payout_method,
+				'status'        => 'processing',
+				'currency'      => $currency,
+				'title'         => $title,
+				'description'   => sanitize_textarea_field( $input['description'] ?? '' ),
+				'total_amount'  => 0,
+			) );
+
+			$total_paid       = 0;
+			$transaction_ids  = array();
+
+			foreach ( $affiliates as $affiliate ) {
+				$unpaid_referrals = \FluentAffiliate\App\Models\Referral::where( 'affiliate_id', $affiliate->id )
+					->where( 'status', 'unpaid' )
+					->get();
+
+				if ( $unpaid_referrals->isEmpty() ) {
+					continue;
+				}
+
+				$affiliate_total = 0;
+				foreach ( $unpaid_referrals as $referral ) {
+					$affiliate_total += (float) ( $referral->amount ?? 0 );
+				}
+
+				// Create transaction for this affiliate.
+				$transaction = \FluentAffiliate\App\Models\Transaction::create( array(
+					'created_by'    => get_current_user_id(),
+					'affiliate_id'  => (int) $affiliate->id,
+					'payout_id'     => (int) $payout->id,
+					'total_amount'  => round( $affiliate_total, 2 ),
+					'payout_method' => $payout_method,
+					'status'        => 'paid',
+					'currency'      => $currency,
+				) );
+
+				$transaction_ids[] = (int) $transaction->id;
+
+				// Mark referrals as paid and link to payout.
+				foreach ( $unpaid_referrals as $referral ) {
+					$referral->status                = 'paid';
+					$referral->payout_id             = (int) $payout->id;
+					$referral->payout_transaction_id = (int) $transaction->id;
+					$referral->save();
+				}
+
+				// Update affiliate earnings.
+				$affiliate->unpaid_earnings = 0;
+				$affiliate->save();
+
+				$total_paid += $affiliate_total;
+
+				do_action( 'fluent_affiliate/payout/transaction/transaction_updated_to_paid', $transaction, $payout );
+			}
+
+			// Finalize payout.
+			$payout->total_amount = round( $total_paid, 2 );
+			$payout->status       = 'paid';
+			$payout->save();
+
+			return array(
+				'success'           => true,
+				'payout_id'         => (int) $payout->id,
+				'total_amount'      => round( $total_paid, 2 ),
+				'currency'          => $currency ?? '',
+				'affiliates_paid'   => count( $transaction_ids ),
+				'transaction_ids'   => $transaction_ids,
+				'message'           => 'Payout processed successfully.',
+			);
+		},
+	) );
+
 	// =========================================================================
 	// PAYOUTS
 	// =========================================================================

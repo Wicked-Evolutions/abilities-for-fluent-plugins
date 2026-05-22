@@ -50,6 +50,95 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg = new Fluent_Abilities_Registrar( 'community' );
 
+	$reg->read( 'fluent-community/list-activities', array(
+		'label'       => 'List Activities',
+		'description' => 'List community activity feed (recent actions by members).',
+		'category'    => 'fluent-community',
+		'input_schema' => array(
+			'type'       => 'object',
+			'properties' => array_merge( array(
+				'user_id' => array( 'type' => 'integer', 'description' => 'Filter by user ID' ),
+			), fluent_abilities_pagination_schema() ),
+		),
+		'output_schema' => fluent_abilities_schema_list_output( 'activities', array(
+			'id'         => array( 'type' => 'integer' ),
+			'user_id'    => array( 'type' => 'integer' ),
+			'action'     => array( 'type' => array( 'string', 'null' ) ),
+			'object_id'  => array( 'type' => array( 'integer', 'null' ) ),
+			'created_at' => array( 'type' => 'string' ),
+		) ),
+		'callback' => function( $input ) {
+			$pagination = fluent_abilities_pagination( $input );
+
+			if ( ! class_exists( '\FluentCommunity\App\Models\Activity' ) ) {
+				return array( 'activities' => array(), 'total' => 0, 'page' => $pagination['page'] );
+			}
+
+			$query = \FluentCommunity\App\Models\Activity::orderBy( 'id', 'DESC' );
+
+			if ( ! empty( $input['user_id'] ) ) {
+				$query->where( 'user_id', (int) $input['user_id'] );
+			}
+
+			$total = $query->count();
+			$activities = $query->offset( $pagination['offset'] )->limit( $pagination['per_page'] )->get();
+
+			$items = array();
+			foreach ( $activities as $act ) {
+				$items[] = array(
+					'id'         => $act->id,
+					'user_id'    => $act->user_id,
+					'action'     => $act->action ?? $act->type ?? null,
+					'content'    => $act->content ?? $act->description ?? null,
+					'object_id'  => $act->object_id ?? null,
+					'created_at' => (string) $act->created_at,
+				);
+			}
+
+			return array( 'activities' => $items, 'total' => $total, 'page' => $pagination['page'] );
+		},
+	) );
+
+	$reg->read( 'fluent-community/get-profile', array(
+		'label'       => 'Get Member Profile',
+		'description' => 'Get a community member profile by user ID.',
+		'category'    => 'fluent-community',
+		'input_schema' => array(
+			'type'       => 'object',
+			'required'   => array( 'user_id' ),
+			'properties' => array(
+				'user_id' => array( 'type' => 'integer', 'description' => 'WordPress user ID' ),
+			),
+		),
+		'output_schema' => fluent_abilities_schema_item_output( array(
+			'user_id'           => array( 'type' => 'integer' ),
+			'display_name'      => array( 'type' => 'string' ),
+			'short_description' => array( 'type' => 'string' ),
+			'meta'              => array( 'type' => 'object' ),
+			'created_at'        => array( 'type' => 'string' ),
+		) ),
+		'callback' => function( $input ) {
+			$profile = \FluentCommunity\App\Models\XProfile::where( 'user_id', (int) $input['user_id'] )->first();
+			if ( ! $profile ) {
+				return fluent_abilities_error( 'not_found', 'Profile not found' );
+			}
+
+			return array(
+				'id'           => $profile->id,
+				'user_id'      => $profile->user_id,
+				'display_name' => $profile->display_name,
+				'username'     => $profile->username ?? null,
+				'email'        => $profile->email ?? null,
+				'status'       => $profile->status,
+				'total_points' => $profile->total_points ?? 0,
+				'avatar'       => $profile->avatar ?? null,
+				'short_description' => $profile->short_description ?? null,
+				'meta'         => fluent_abilities_safe_array( $profile->meta ),
+				'created_at'   => (string) $profile->created_at,
+			);
+		},
+	) );
+
 	// =========================================================================
 	// SPACES
 	// =========================================================================
