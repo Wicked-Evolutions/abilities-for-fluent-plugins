@@ -949,22 +949,42 @@ add_action( 'wp_abilities_api_init', function() {
 		) ),
 		'level'    => 'admin',
 		'callback' => function( $input ) {
+			// Lessons persist through the canonical CourseLesson model (F-COM-01 / #124):
+			// fcom_posts rows scoped to type=course_lesson and keyed to the course by
+			// space_id. The previous Feed write with type=lesson produced a row the
+			// CourseLesson type scope can never read back, so success was reported with
+			// a phantom id. Guard the canonical model first so an inactive course module
+			// returns a typed WP_Error rather than fataling on a missing class.
+			if ( ! class_exists( '\FluentCommunity\Modules\Course\Model\CourseLesson' ) ) {
+				return fluent_abilities_error( 'vendor_helper_unavailable', 'FluentCommunity\Modules\Course\Model\CourseLesson is not available. The course module must be active for this ability.' );
+			}
+
 			$course = \FluentCommunity\Modules\Course\Model\Course::where( 'type', 'course' )->find( (int) $input['course_id'] );
 			if ( ! $course ) {
 				return fluent_abilities_error( 'not_found', 'Course not found' );
 			}
 
-			$data = array(
-				'space_id' => $course->id,
-				'user_id'  => get_current_user_id(),
-				'title'    => sanitize_text_field( $input['title'] ),
-				'message'  => wp_kses_post( $input['content'] ?? '' ),
-				'type'     => 'lesson',
-				'status'   => sanitize_text_field( $input['status'] ?? 'draft' ),
-				'priority' => (int) ( $input['order'] ?? 0 ),
-			);
+			// The CourseLesson creating-hook sets user_id, slug, content_type and forces
+			// type=course_lesson — do not pass type. Wrap the write so a schema/precondition
+			// mismatch returns a typed WP_Error, never a raw SQL string.
+			try {
+				$lesson = \FluentCommunity\Modules\Course\Model\CourseLesson::create( array(
+					'space_id' => $course->id,
+					'title'    => sanitize_text_field( $input['title'] ),
+					'message'  => wp_kses_post( $input['content'] ?? '' ),
+					'status'   => sanitize_text_field( $input['status'] ?? 'draft' ),
+					'priority' => (int) ( $input['order'] ?? 0 ),
+				) );
+			} catch ( \Throwable $e ) {
+				return fluent_abilities_error( 'fluent_community_lesson_create_failed', 'Could not create the lesson against the installed FluentCommunity course schema.' );
+			}
 
-			$lesson = \FluentCommunity\App\Models\Feed::create( $data );
+			// Never report success with a phantom id: confirm the lesson reads back
+			// through the CourseLesson scope before returning success.
+			if ( ! $lesson || empty( $lesson->id )
+				|| ! \FluentCommunity\Modules\Course\Model\CourseLesson::where( 'id', (int) $lesson->id )->exists() ) {
+				return fluent_abilities_error( 'fluent_community_lesson_not_persisted', 'Lesson creation did not persist a readable lesson record.' );
+			}
 
 			return array( 'success' => true, 'id' => $lesson->id, 'status' => $lesson->status );
 		},
@@ -1045,6 +1065,14 @@ add_action( 'wp_abilities_api_init', function() {
 			'progress_percentage' => array( 'type' => 'number' ),
 		) ),
 		'callback' => function( $input ) {
+			// Lessons are CourseLesson rows (fcom_posts, type=course_lesson) keyed to the
+			// course by space_id — NOT course_id, which does not exist on fcom_posts and
+			// leaked a raw SQL error to the client (#124). Guard the canonical model first
+			// so an inactive course module returns a typed WP_Error rather than fataling.
+			if ( ! class_exists( '\FluentCommunity\Modules\Course\Model\CourseLesson' ) ) {
+				return fluent_abilities_error( 'vendor_helper_unavailable', 'FluentCommunity\Modules\Course\Model\CourseLesson is not available. The course module must be active for this ability.' );
+			}
+
 			$course = \FluentCommunity\Modules\Course\Model\Course::where( 'type', 'course' )->find( (int) $input['course_id'] );
 			if ( ! $course ) {
 				return fluent_abilities_error( 'not_found', 'Course not found' );
@@ -1058,27 +1086,27 @@ add_action( 'wp_abilities_api_init', function() {
 				return fluent_abilities_error( 'rest_forbidden', 'You may only view your own course progress' );
 			}
 
-			// Get all lessons for this course.
-			$total_lessons = 0;
-			if ( class_exists( '\FluentCommunity\Modules\Course\Model\CourseLesson' ) ) {
-				$total_lessons = \FluentCommunity\Modules\Course\Model\CourseLesson::where( 'course_id', $course->id )
+			// Wrap DB access so any residual schema drift returns a typed WP_Error instead
+			// of a raw query string. Completions are lesson_completed reactions whose
+			// object_id is one of the course's published lessons (the prior whereHas('post')
+			// also failed — Reaction has no post() relationship).
+			try {
+				$lesson_ids = \FluentCommunity\Modules\Course\Model\CourseLesson::where( 'space_id', $course->id )
 					->where( 'status', 'published' )
-					->count();
-			} else {
-				$total_lessons = \FluentCommunity\App\Models\Feed::where( 'space_id', $course->id )
-					->where( 'type', 'lesson' )
-					->where( 'status', 'published' )
-					->count();
-			}
+					->pluck( 'id' )
+					->toArray();
+				$total_lessons = count( $lesson_ids );
 
-			// Get completed lessons via Reaction model.
-			$completed = \FluentCommunity\App\Models\Reaction::where( 'user_id', $user_id )
-				->where( 'object_type', 'lesson_completed' )
-				->where( 'type', 'completed' )
-				->whereHas( 'post', function( $q ) use ( $course ) {
-					$q->where( 'space_id', $course->id );
-				})
-				->count();
+				$completed = 0;
+				if ( $total_lessons > 0 ) {
+					$completed = \FluentCommunity\App\Models\Reaction::where( 'user_id', $user_id )
+						->where( 'object_type', 'lesson_completed' )
+						->whereIn( 'object_id', $lesson_ids )
+						->count();
+				}
+			} catch ( \Throwable $e ) {
+				return fluent_abilities_error( 'fluent_community_course_schema_mismatch', 'Could not read course progress against the installed FluentCommunity course schema.' );
+			}
 
 			$percentage = $total_lessons > 0 ? round( ( $completed / $total_lessons ) * 100 ) : 0;
 
