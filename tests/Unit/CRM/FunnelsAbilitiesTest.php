@@ -37,14 +37,11 @@ class FluentCRMFunnelsAbilitiesTest extends TestCase {
 		'fluent-crm/list-subscriber-automations'          => 'read',
 		// §5.11
 		'fluent-crm/list-funnel-templates'                => 'read',
-		'fluent-crm/create-funnel-from-template'          => 'write',
 		'fluent-crm/import-funnel'                        => 'write',
 		'fluent-crm/get-funnel-all-activities'            => 'read',
-		'fluent-crm/remove-bulk-funnel-subscribers'       => 'delete',
 		'fluent-crm/get-funnel-syncable-counts'           => 'read',
 		'fluent-crm/sync-funnel-new-steps'                => 'write',
 		'fluent-crm/send-test-funnel-webhook'             => 'write',
-		'fluent-crm/do-bulk-action-funnels'               => 'write',
 	);
 
 	protected function setUp(): void {
@@ -82,13 +79,6 @@ class FluentCRMFunnelsAbilitiesTest extends TestCase {
 		$abilities                  = wp_get_abilities();
 		$GLOBALS['_test_user_caps'] = array( 'fluent_crm_read' );
 		$cb                         = $abilities['fluent-crm/delete-funnel-subscribers']['permission_callback'];
-		$this->assertFalse( $cb() );
-	}
-
-	public function test_remove_bulk_rejects_user_with_only_read_cap() {
-		$abilities                  = wp_get_abilities();
-		$GLOBALS['_test_user_caps'] = array( 'fluent_crm_read' );
-		$cb                         = $abilities['fluent-crm/remove-bulk-funnel-subscribers']['permission_callback'];
 		$this->assertFalse( $cb() );
 	}
 

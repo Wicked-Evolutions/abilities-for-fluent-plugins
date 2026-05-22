@@ -22,12 +22,10 @@ class FluentCRMProMarketingAbilitiesTest extends TestCase {
 		// §5.24
 		'fluent-crm/list-sequences-for-subscriber'              => 'read',
 		'fluent-crm/duplicate-sequence'                         => 'write',
-		'fluent-crm/sequence-email-update-create'               => 'write',
 		'fluent-crm/duplicate-sequence-email'                   => 'write',
 		'fluent-crm/update-sequence-email-delay'                => 'write',
 		'fluent-crm/manage-sequence-subscribers'                => 'write',
 		'fluent-crm/reapply-sequence'                           => 'write',
-		'fluent-crm/do-bulk-action-sequences'                   => 'write',
 		// §5.25
 		'fluent-crm/list-recurring-campaigns'                   => 'read',
 		'fluent-crm/create-recurring-campaign'                  => 'write',
@@ -39,18 +37,14 @@ class FluentCRMProMarketingAbilitiesTest extends TestCase {
 		'fluent-crm/list-recurring-campaign-emails'             => 'read',
 		'fluent-crm/get-recurring-campaign-email'               => 'read',
 		'fluent-crm/update-recurring-campaign-email'            => 'write',
-		'fluent-crm/bulk-delete-recurring-campaigns'            => 'delete',
-		'fluent-crm/do-bulk-action-recurring-campaigns'         => 'write',
 		'fluent-crm/update-recurring-campaign-labels'           => 'write',
 		// §5.26
 		'fluent-crm/list-dynamic-segments'                      => 'read',
-		'fluent-crm/create-dynamic-segment'                     => 'write',
 		'fluent-crm/get-dynamic-segment-stats'                  => 'read',
 		'fluent-crm/estimate-dynamic-segment-contacts'          => 'read',
 		'fluent-crm/update-dynamic-segment'                     => 'write',
 		'fluent-crm/delete-dynamic-segment'                     => 'delete',
 		'fluent-crm/duplicate-dynamic-segment'                  => 'write',
-		'fluent-crm/get-dynamic-segment-subscriber'             => 'read',
 		'fluent-crm/list-dynamic-segment-custom-fields'         => 'read',
 		// §5.27
 		'fluent-crm/resend-failed-campaign-emails'              => 'write',
@@ -111,11 +105,6 @@ class FluentCRMProMarketingAbilitiesTest extends TestCase {
 		$nested_req = $abilities['fluent-crm/create-recurring-campaign']['input_schema']['properties']['settings']['properties']['scheduling_settings']['required'];
 		$this->assertContains( 'time', $nested_req );
 		$this->assertContains( 'type', $nested_req );
-	}
-
-	public function test_create_dynamic_segment_requires_conditions() {
-		$abilities = wp_get_abilities();
-		$this->assertContains( 'conditions', $abilities['fluent-crm/create-dynamic-segment']['input_schema']['required'] );
 	}
 
 	public function test_callbacks_all_invokable() {

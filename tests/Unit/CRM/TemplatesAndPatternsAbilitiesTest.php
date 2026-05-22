@@ -29,13 +29,11 @@ class FluentCRMTemplatesAndPatternsAbilitiesTest extends TestCase {
 		// (handler reads `config`, ability forwarded `style`; input
 		// silently discarded since v2.0.0). see docs/P7-CLOSE.md
 		'fluent-crm/list-built-in-templates'          => 'read',
-		'fluent-crm/do-bulk-action-templates'         => 'write',
 		// §5.7 Email patterns
 		'fluent-crm/create-email-pattern'             => 'write',
 		'fluent-crm/get-email-pattern'                => 'read',
 		'fluent-crm/update-email-pattern'             => 'write',
 		'fluent-crm/delete-email-pattern'             => 'delete',
-		'fluent-crm/get-email-pattern-wp-format'      => 'write',
 		'fluent-crm/list-email-pattern-categories'    => 'read',
 		'fluent-crm/delete-email-pattern-category'    => 'delete',
 		// §5.8 Editor patterns

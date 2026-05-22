@@ -55,18 +55,8 @@ class FluentFormsInputValidationTest extends FormsAbilitiesTestCase {
 		$this->assertInstanceOf( WP_Error::class, $result );
 		$this->assertSame( 'ability_invalid_input', $result->get_error_code() );
 
-		// bulk-update-submissions requires submission_ids and action.
-		$result = $this->invoke_execute_callback( 'fluent-forms/bulk-update-submissions', array() );
-		$this->assertInstanceOf( WP_Error::class, $result );
-		$this->assertSame( 'ability_invalid_input', $result->get_error_code() );
-
 		// add-submission-note requires submission_id + content.
 		$result = $this->invoke_execute_callback( 'fluent-forms/add-submission-note', array( 'submission_id' => 1 ) );
-		$this->assertInstanceOf( WP_Error::class, $result );
-		$this->assertSame( 'ability_invalid_input', $result->get_error_code() );
-
-		// global-search requires search.
-		$result = $this->invoke_execute_callback( 'fluent-forms/global-search', array() );
 		$this->assertInstanceOf( WP_Error::class, $result );
 		$this->assertSame( 'ability_invalid_input', $result->get_error_code() );
 

@@ -262,25 +262,6 @@ function fluent_abilities_crm_register_extended_templates_and_patterns() {
 		},
 	) );
 
-	$reg->write( 'fluent-crm/do-bulk-action-templates', array(
-		'label'         => 'Bulk Action On CRM Email Templates',
-		'description'   => 'Bulk operation across templates. Source: TemplateController::handleBulkAction (POST /templates/do-bulk-action). Capability cascades per action.',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'template_ids', 'action_name' ),
-			'properties' => array(
-				'template_ids' => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
-				'action_name'  => array( 'type' => 'string' ),
-				'action_data'  => $obj,
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output(),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/templates/do-bulk-action', $input );
-		},
-	) );
-
 	// =========================================================================
 	// §5.7 — Email patterns (6 primary + 2 categories = 8)
 	// =========================================================================
@@ -362,25 +343,6 @@ function fluent_abilities_crm_register_extended_templates_and_patterns() {
 		'output_schema' => fluent_abilities_schema_success_output(),
 		'callback'      => function ( $input ) use ( $proxy ) {
 			return $proxy( 'DELETE', '/fluent-crm/v2/email-patterns/' . (int) ( $input['id'] ?? 0 ) );
-		},
-	) );
-
-	$reg->write( 'fluent-crm/get-email-pattern-wp-format', array(
-		'label'         => 'Convert CRM Email Pattern To WP-Block Format',
-		'description'   => 'Transform email-pattern HTML to WP-block format for editor reuse. Source: EmailPatternController::wpFormat (GET|POST /email-patterns/wp-format). Write-tier because the controller mutates session state on POST path.',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'content' ),
-			'properties' => array(
-				'content' => array( 'type' => 'string' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_item_output( array(
-			'wp_block_content' => array( 'type' => array( 'string', 'null' ) ),
-		) ),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/email-patterns/wp-format', $input );
 		},
 	) );
 

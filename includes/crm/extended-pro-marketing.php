@@ -61,24 +61,6 @@ function fluent_abilities_crm_register_extended_pro_marketing() {
 		},
 	) );
 
-	$reg->write( 'fluent-crm/sequence-email-update-create', array(
-		'label'         => 'Upsert CRM Sequence Email Atomically (Pro)',
-		'description'   => 'Atomic upsert of a sequence email (replaces add-sequence-email + update-sequence-email in one call). Source: SequenceController::sequenceEmailUpdateCreate (POST /sequences/sequence-email-update-create).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'sequence_id', 'email' ),
-			'properties' => array(
-				'sequence_id' => array( 'type' => 'integer' ),
-				'email'       => $obj,
-			),
-		),
-		'output_schema' => fluent_abilities_schema_item_output(),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/sequences/sequence-email-update-create', $input );
-		},
-	) );
-
 	$reg->write( 'fluent-crm/duplicate-sequence-email', array(
 		'label'         => 'Duplicate CRM Sequence Email (Pro)',
 		'description'   => 'Duplicate a single sequence email. Source: SequenceController::duplicateEmail (POST /sequences/{id}/email/duplicate).',
@@ -155,25 +137,6 @@ function fluent_abilities_crm_register_extended_pro_marketing() {
 		'output_schema' => fluent_abilities_schema_success_output(),
 		'callback'      => function ( $input ) use ( $proxy ) {
 			return $proxy( 'POST', '/fluent-crm/v2/sequences/' . (int) ( $input['id'] ?? 0 ) . '/reapply' );
-		},
-	) );
-
-	$reg->write( 'fluent-crm/do-bulk-action-sequences', array(
-		'label'         => 'Bulk Action On CRM Sequences (Pro)',
-		'description'   => 'Bulk operation across sequences. Source: SequenceController::bulkAction (POST /sequences/do-bulk-action).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'sequence_ids', 'action_name' ),
-			'properties' => array(
-				'sequence_ids' => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
-				'action_name'  => array( 'type' => 'string' ),
-				'action_data'  => $obj,
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output(),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/sequences/do-bulk-action', $input );
 		},
 	) );
 
@@ -384,44 +347,6 @@ function fluent_abilities_crm_register_extended_pro_marketing() {
 		},
 	) );
 
-	$reg->delete( 'fluent-crm/bulk-delete-recurring-campaigns', array(
-		'label'         => 'Bulk Delete CRM Recurring Campaigns (Pro)',
-		'description'   => 'Bulk-delete recurring campaigns. Source: RecurringCampaignController::bulkDelete (POST /recurring-campaigns/delete-bulk).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'campaign_ids' ),
-			'properties' => array(
-				'campaign_ids' => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output( array(
-			'deleted_count' => array( 'type' => 'integer' ),
-		) ),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/recurring-campaigns/delete-bulk', $input );
-		},
-	) );
-
-	$reg->write( 'fluent-crm/do-bulk-action-recurring-campaigns', array(
-		'label'         => 'Bulk Action On CRM Recurring Campaigns (Pro)',
-		'description'   => 'Bulk operation across recurring campaigns. Source: RecurringCampaignController::bulkAction (POST /recurring-campaigns/do-bulk-action).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'campaign_ids', 'action_name' ),
-			'properties' => array(
-				'campaign_ids' => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
-				'action_name'  => array( 'type' => 'string' ),
-				'action_data'  => $obj,
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output(),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/recurring-campaigns/do-bulk-action', $input );
-		},
-	) );
-
 	$reg->write( 'fluent-crm/update-recurring-campaign-labels', array(
 		'label'         => 'Update CRM Recurring Campaign Labels (Pro)',
 		'description'   => 'Update label IDs on a recurring campaign. Note: the label field is named `labels` (an integer array of label/term IDs), not `label_ids`; the handler reads `labels` directly. Source: RecurringCampaignController::updateLabels (PUT /recurring-campaigns/{campaign_id}/update-labels).',
@@ -454,25 +379,6 @@ function fluent_abilities_crm_register_extended_pro_marketing() {
 		'output_schema' => fluent_abilities_schema_list_output( 'segments', $obj ),
 		'callback'      => function ( $input ) use ( $proxy ) {
 			return $proxy( 'GET', '/fluent-crm/v2/dynamic-segments', $input );
-		},
-	) );
-
-	$reg->write( 'fluent-crm/create-dynamic-segment', array(
-		'label'         => 'Create CRM Dynamic Segment (Pro)',
-		'description'   => 'Create a dynamic segment with conditions (query builder). Source: DynamicSegmentController::store (POST /dynamic-segments).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'title', 'conditions' ),
-			'properties' => array(
-				'title'       => array( 'type' => 'string' ),
-				'description' => array( 'type' => 'string' ),
-				'conditions'  => $obj,
-			),
-		),
-		'output_schema' => fluent_abilities_schema_item_output(),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/dynamic-segments', $input );
 		},
 	) );
 
@@ -547,28 +453,6 @@ function fluent_abilities_crm_register_extended_pro_marketing() {
 		'output_schema' => fluent_abilities_schema_item_output(),
 		'callback'      => function ( $input ) use ( $proxy ) {
 			return $proxy( 'POST', '/fluent-crm/v2/dynamic-segments/duplicate/' . (int) ( $input['id'] ?? 0 ) );
-		},
-	) );
-
-	$reg->read( 'fluent-crm/get-dynamic-segment-subscriber', array(
-		'label'         => 'Get CRM Dynamic Segment Subscriber Match (Pro)',
-		'description'   => 'Test whether a subscriber matches a segment slug. Source: DynamicSegmentController::subscriber (GET /dynamic-segments/{slug}/subscribers/{id}).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'slug', 'id' ),
-			'properties' => array(
-				'slug' => array( 'type' => 'string' ),
-				'id'   => array( 'type' => 'integer' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_item_output( array(
-			'matches' => array( 'type' => 'boolean' ),
-		) ),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			$slug = (string) ( $input['slug'] ?? '' );
-			$id   = (int) ( $input['id'] ?? 0 );
-			return $proxy( 'GET', '/fluent-crm/v2/dynamic-segments/' . rawurlencode( $slug ) . '/subscribers/' . $id );
 		},
 	) );
 

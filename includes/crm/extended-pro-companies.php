@@ -227,25 +227,6 @@ function fluent_abilities_crm_register_extended_pro_companies() {
 	) );
 
 	// 5.23.10 — do-bulk-action-companies
-	$reg->write( 'fluent-crm/do-bulk-action-companies', array(
-		'label'         => 'Bulk Action On CRM Companies (Pro)',
-		'description'   => 'Bulk operation across Pro companies. Source: CompanyController::bulkAction (POST /companies/do-bulk-action).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'company_ids', 'action_name' ),
-			'properties' => array(
-				'company_ids' => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
-				'action_name' => array( 'type' => 'string' ),
-				'action_data' => $obj,
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output(),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/companies/do-bulk-action', $input );
-		},
-	) );
-
 	// 5.23.11 — list-company-notes
 	$reg->read( 'fluent-crm/list-company-notes', array(
 		'label'         => 'List CRM Company Notes (Pro)',

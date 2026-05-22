@@ -122,25 +122,6 @@ function fluent_abilities_crm_register_extended_misc_medium() {
 	// =========================================================================
 
 
-	$reg->delete( 'fluent-crm/bulk-delete-abandon-carts', array(
-		'label'         => 'Bulk Delete CRM Abandoned Carts',
-		'description'   => 'Bulk-delete abandoned-cart records. Source: AbandonCartController::bulkDelete (POST /abandon-carts/bulk-delete). Capability: fcrm_manage_contacts_delete per surface alignment.',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'cart_ids' ),
-			'properties' => array(
-				'cart_ids' => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output( array(
-			'deleted_count' => array( 'type' => 'integer' ),
-		) ),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/abandon-carts/bulk-delete', $input );
-		},
-	) );
-
 
 	// =========================================================================
 	// §5.16 — Custom-fields management (3)

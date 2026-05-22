@@ -298,27 +298,6 @@ function fluent_abilities_crm_register_extended_misc_small() {
 	// §5.19 — Users (2)
 	// =========================================================================
 
-	$reg->read( 'fluent-crm/list-users-for-fluent-crm', array(
-		'label'         => 'List WP Users (FluentCRM Subscriber Correlation)',
-		'description'   => 'Search WP users with FluentCRM subscriber correlation. Source: UsersController::index (GET /users).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'properties' => array(
-				'search' => array( 'type' => 'string' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_collection_output( 'users', array(
-			'id'           => array( 'type' => 'integer' ),
-			'user_email'   => array( 'type' => 'string' ),
-			'display_name' => array( 'type' => 'string' ),
-			'subscriber'   => array( 'type' => array( 'object', 'null' ), 'additionalProperties' => true ),
-		) ),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/users', $input );
-		},
-	) );
-
 	$reg->read( 'fluent-crm/list-user-roles', array(
 		'label'         => 'List WP User Roles (CRM Picker UI)',
 		'description'   => 'List WP user roles for picker UIs. Source: UsersController::roles (GET /users/roles). Response shape: roles is a slug-keyed map matching WordPress\'s native get_editable_roles() shape.',
@@ -433,26 +412,5 @@ function fluent_abilities_crm_register_extended_misc_small() {
 	// =========================================================================
 	// §5.31 — Global search (1; namespace-index is denylisted)
 	// =========================================================================
-
-	$reg->read( 'fluent-crm/global-search', array(
-		'label'         => 'Global CRM Search',
-		'description'   => 'Cross-entity search across subscribers, campaigns, and funnels. Source: GlobalSearchController::index (GET /global-search). Response keys: `subscribers`, `campaigns`, `funnels` (WordPress-native vendor terminology — subscribers is FCRM\'s contact-store table name).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'q' ),
-			'properties' => array(
-				'q' => array( 'type' => 'string', 'description' => 'Search query.' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_item_output( array(
-			'subscribers' => array( 'type' => 'array', 'items' => array( 'type' => 'object', 'additionalProperties' => true ) ),
-			'campaigns'   => array( 'type' => 'array', 'items' => array( 'type' => 'object', 'additionalProperties' => true ) ),
-			'funnels'     => array( 'type' => 'array', 'items' => array( 'type' => 'object', 'additionalProperties' => true ) ),
-		) ),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'GET', '/fluent-crm/v2/global-search', $input );
-		},
-	) );
 
 }

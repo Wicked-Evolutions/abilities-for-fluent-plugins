@@ -1697,40 +1697,6 @@ add_action( 'wp_abilities_api_init', function() {
 	// EMAIL TEMPLATES
 	// =========================================================================
 
-	$reg->read( 'fluent-crm/list-templates', array(
-		'label'       => 'List Email Templates',
-		'description' => 'List email templates available in FluentCRM.',
-		'category'    => 'fluent-crm',
-		'input_schema' => array(
-			'type'       => 'object',
-			'properties' => fluent_abilities_pagination_schema(),
-		),
-		'output_schema' => fluent_abilities_schema_list_output( 'templates', array(
-			'id'         => array( 'type' => 'integer' ),
-			'title'      => array( 'type' => 'string' ),
-			'subject'    => array( 'type' => 'string' ),
-			'created_at' => array( 'type' => 'string' ),
-		) ),
-		'callback' => function( $input ) {
-			$pagination = fluent_abilities_pagination( $input );
-			$query = \FluentCrm\App\Models\Template::orderBy( 'id', 'DESC' );
-			$total = $query->count();
-			$templates = $query->offset( $pagination['offset'] )->limit( $pagination['per_page'] )->get();
-
-			$items = array();
-			foreach ( $templates as $template ) {
-				$items[] = array(
-					'id'         => (int) $template->id,
-					'title'      => (string) ( $template->post_title ?? $template->title ?? '' ),
-					'subject'    => (string) ( $template->post_excerpt ?? $template->subject ?? '' ),
-					'created_at' => $template->created_at ? (string) $template->created_at : '',
-				);
-			}
-
-			return array( 'templates' => $items, 'total' => $total, 'page' => $pagination['page'] );
-		},
-	));
-
 	// =========================================================================
 	// CRM FORMS
 	// =========================================================================
@@ -2987,35 +2953,6 @@ add_action( 'wp_abilities_api_init', function() {
 				return fluent_abilities_error( 'not_found', 'Note not found.' );
 			}
 			$wpdb->delete( $table, array( 'id' => $id ), array( '%d' ) );
-			return array( 'success' => true, 'id' => $id );
-		},
-	) );
-
-	$reg->delete( 'fluent-crm/delete-campaign', array(
-		'label'       => 'Delete CRM Campaign',
-		'description' => 'Permanently delete a campaign by ID. Only draft campaigns can be deleted.',
-		'category'    => 'fluent-crm',
-		'input_schema' => array(
-			'type'       => 'object',
-			'required'   => array( 'id' ),
-			'properties' => array(
-				'id' => array( 'type' => 'integer', 'description' => 'Campaign ID' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output( array(
-			'id' => array( 'type' => 'integer' ),
-		) ),
-		'annotations'   => array( 'idempotent' => false ),
-		'callback'      => function( $input ) {
-			$campaign = \FluentCrm\App\Models\Campaign::find( intval( $input['id'] ) );
-			if ( ! $campaign ) {
-				return fluent_abilities_error( 'not_found', 'Campaign not found.' );
-			}
-			if ( ! in_array( $campaign->status, array( 'draft', 'archived' ), true ) ) {
-				return fluent_abilities_error( 'ability_invalid_input', 'Only draft or archived campaigns can be deleted. Current status: ' . $campaign->status );
-			}
-			$id = $campaign->id;
-			$campaign->delete();
 			return array( 'success' => true, 'id' => $id );
 		},
 	) );

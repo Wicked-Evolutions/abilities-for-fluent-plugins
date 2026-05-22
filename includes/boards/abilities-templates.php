@@ -16,31 +16,6 @@ defined( 'ABSPATH' ) || exit;
 // =========================================================================
 // §4.20.1 — list-templates
 // =========================================================================
-$reg->read( 'fluent-boards/list-templates', array(
-	'label'         => 'List Templates (Pro)',
-	'description'   => 'List all board templates available to be instantiated.',
-	'category'      => 'fluent-boards',
-	'output_schema' => fluent_abilities_schema_collection_output( 'templates', array(
-		'id'          => array( 'type' => 'integer' ),
-		'title'       => array( 'type' => array( 'string', 'null' ) ),
-		'description' => array( 'type' => array( 'string', 'null' ) ),
-		'created_at'  => array( 'type' => array( 'string', 'null' ) ),
-	) ),
-	'callback' => function() {
-		$rows  = wpFluent()->table( 'fbs_boards' )->where( 'type', 'template' )->orderBy( 'id', 'DESC' )->get();
-		$items = array();
-		foreach ( $rows as $r ) {
-			$items[] = array(
-				'id'          => (int) $r->id,
-				'title'       => $r->title ?? '',
-				'description' => $r->description ?? '',
-				'created_at'  => $r->created_at ?? null,
-			);
-		}
-		return array( 'templates' => $items, 'total' => count( $items ) );
-	},
-) );
-
 // =========================================================================
 // §4.20.2 — get-template-detail
 // =========================================================================
@@ -95,86 +70,6 @@ $reg->read( 'fluent-boards/get-template-detail', array(
 // =========================================================================
 // §4.20.3 — create-board-from-template (idempotent:false)
 // =========================================================================
-$reg->write( 'fluent-boards/create-board-from-template', array(
-	'label'       => 'Create Board From Template (Pro)',
-	'description' => 'Instantiate a new board from a template. Stages, labels, custom-field definitions, and tasks are cloned with new ids.',
-	'category'    => 'fluent-boards',
-	'input_schema' => array(
-		'type'       => 'object',
-		'required'   => array( 'template_id', 'board_title' ),
-		'properties' => array(
-			'template_id' => array( 'type' => 'integer' ),
-			'board_title' => array( 'type' => 'string' ),
-		),
-	),
-	'output_schema' => fluent_abilities_schema_success_output( array(
-		'template_id'  => array( 'type' => 'integer' ),
-		'new_board_id' => array( 'type' => 'integer' ),
-	) ),
-	'annotations' => array( 'idempotent' => false ),
-	'callback'    => function( $input ) {
-		$template_id = (int) $input['template_id'];
-		$title       = sanitize_text_field( $input['board_title'] ?? '' );
-		$template    = wpFluent()->table( 'fbs_boards' )->where( 'id', $template_id )->where( 'type', 'template' )->first();
-		if ( ! $template || ! $title ) {
-			return fluent_abilities_error( 'ability_invalid_input', 'template_id and board_title are required.' );
-		}
-		$now    = current_time( 'mysql' );
-		$new_id = wpFluent()->table( 'fbs_boards' )->insertGetId( array(
-			'title'      => $title,
-			'description'=> $template->description ?? '',
-			'type'       => 'to-do',
-			'created_by' => (int) get_current_user_id(),
-			'created_at' => $now,
-			'updated_at' => $now,
-		) );
-		// Clone stages.
-		$stage_map = array();
-		foreach ( wpFluent()->table( 'fbs_board_terms' )->where( 'board_id', $template_id )->where( 'type', 'stage' )->orderBy( 'position', 'ASC' )->get() as $s ) {
-			$nsid = wpFluent()->table( 'fbs_board_terms' )->insertGetId( array(
-				'board_id' => $new_id, 'type' => 'stage',
-				'title' => $s->title ?? '', 'position' => $s->position ?? 0,
-				'settings' => $s->settings ?? '',
-				'created_at' => $now, 'updated_at' => $now,
-			) );
-			$stage_map[ (int) $s->id ] = (int) $nsid;
-		}
-		// Clone labels.
-		foreach ( wpFluent()->table( 'fbs_board_terms' )->where( 'board_id', $template_id )->where( 'type', 'label' )->get() as $l ) {
-			wpFluent()->table( 'fbs_board_terms' )->insert( array(
-				'board_id' => $new_id, 'type' => 'label',
-				'title' => $l->title ?? '', 'settings' => $l->settings ?? '',
-				'created_at' => $now, 'updated_at' => $now,
-			) );
-		}
-		// Clone custom fields.
-		foreach ( wpFluent()->table( 'fbs_board_terms' )->where( 'board_id', $template_id )->where( 'type', 'custom-field' )->get() as $c ) {
-			wpFluent()->table( 'fbs_board_terms' )->insert( array(
-				'board_id' => $new_id, 'type' => 'custom-field',
-				'title' => $c->title ?? '', 'position' => $c->position ?? 0,
-				'settings' => $c->settings ?? '',
-				'created_at' => $now, 'updated_at' => $now,
-			) );
-		}
-		// Clone tasks (top-level only).
-		foreach ( wpFluent()->table( 'fbs_tasks' )->where( 'board_id', $template_id )->whereNull( 'parent_id' )->get() as $t ) {
-			wpFluent()->table( 'fbs_tasks' )->insert( array(
-				'board_id' => $new_id,
-				'stage_id' => $stage_map[ (int) ( $t->stage_id ?? 0 ) ] ?? 0,
-				'type'     => $t->type ?? 'task',
-				'title'    => $t->title ?? '',
-				'description' => $t->description ?? '',
-				'priority' => $t->priority ?? null,
-				'position' => $t->position ?? 0,
-				'created_by' => (int) get_current_user_id(),
-				'created_at' => $now,
-				'updated_at' => $now,
-			) );
-		}
-		return array( 'success' => true, 'template_id' => $template_id, 'new_board_id' => (int) $new_id );
-	},
-) );
-
 // =========================================================================
 // §4.20.4 — duplicate-board-as-template (idempotent:false)
 // =========================================================================

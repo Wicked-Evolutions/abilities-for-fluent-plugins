@@ -45,8 +45,6 @@ class FluentCRMCampaignsAbilitiesTest extends TestCase {
 		'fluent-crm/list-campaign-unsubscribers'             => 'read',
 		'fluent-crm/get-campaign-contacts-by-segment'        => 'read',
 		'fluent-crm/update-campaign-labels'                  => 'write',
-		'fluent-crm/do-bulk-action-campaigns'                => 'write',
-		'fluent-crm/do-bulk-action-tags'                     => 'write',
 	);
 
 	protected function setUp(): void {

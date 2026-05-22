@@ -24,8 +24,6 @@ class CommunityV2AbilitiesTest extends TestCase {
 		'fluent-community/remove-space-member'           => 'delete',
 		'fluent-community/update-space-member-role'      => 'write',
 		'fluent-community/get-space-member'              => 'read',
-		'fluent-community/bulk-add-space-members'        => 'write',
-		'fluent-community/bulk-remove-space-members'     => 'delete',
 
 		// 4.2 Community-level member CRUD (3)
 		'fluent-community/create-member'                 => 'write',
@@ -102,8 +100,6 @@ class CommunityV2AbilitiesTest extends TestCase {
 		'fluent-community/add-space-member'              => 'admin',
 		'fluent-community/remove-space-member'           => 'admin',
 		'fluent-community/update-space-member-role'      => 'admin',
-		'fluent-community/bulk-add-space-members'        => 'admin',
-		'fluent-community/bulk-remove-space-members'     => 'admin',
 
 		// 4.2 all three admin
 		'fluent-community/create-member'                 => 'admin',
@@ -157,7 +153,7 @@ class CommunityV2AbilitiesTest extends TestCase {
 
 	public function test_all_53_abilities_register() {
 		$abilities = wp_get_abilities();
-		$this->assertCount( 45, self::SLUGS, 'SLUGS map must contain exactly 53 entries' );
+		$this->assertCount( 43, self::SLUGS, 'SLUGS map must contain exactly 43 entries' );
 		foreach ( array_keys( self::SLUGS ) as $slug ) {
 			$this->assertArrayHasKey( $slug, $abilities, "missing: $slug" );
 		}
@@ -320,7 +316,7 @@ class CommunityV2AbilitiesTest extends TestCase {
 	// ── Cluster boundary spot checks ─────────────────────────────────────────
 
 	public function test_cluster_4_1_admin_overrides_count() {
-		// 5 of 6 abilities use admin level (get-space-member uses default read).
+		// 3 of 4 abilities use admin level (get-space-member uses default read).
 		$admin_count = 0;
 		foreach ( self::LEVELS as $slug => $lvl ) {
 			if ( $lvl === 'admin' && strpos( $slug, 'fluent-community/' ) === 0 && (
@@ -329,7 +325,7 @@ class CommunityV2AbilitiesTest extends TestCase {
 				$admin_count++;
 			}
 		}
-		$this->assertSame( 5, $admin_count, 'cluster 4.1 must have 5 admin-level abilities' );
+		$this->assertSame( 3, $admin_count, 'cluster 4.1 must have 3 admin-level abilities' );
 	}
 
 	public function test_emit_event_is_admin_level() {
@@ -377,10 +373,10 @@ class CommunityV2AbilitiesTest extends TestCase {
 			return $n;
 		};
 
-		$this->assertSame( 6, $count_by_prefix( array(
+		$this->assertSame( 4, $count_by_prefix( array(
 			'add-space-member', 'remove-space-member', 'update-space-member-role',
-			'get-space-member', 'bulk-add-space-members', 'bulk-remove-space-members',
-		) ), 'cluster 4.1 size != 6' );
+			'get-space-member',
+		) ), 'cluster 4.1 size != 4' );
 
 		$this->assertSame( 3, $count_by_prefix( array( 'create-member', 'update-member-status', 'delete-member' ) ), 'cluster 4.2 size != 3' );
 

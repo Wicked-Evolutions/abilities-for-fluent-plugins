@@ -17,7 +17,6 @@ class FluentCRMSubscribersAbilitiesTest extends TestCase {
 
 	private const SLUGS = array(
 		// §5.1
-		'fluent-crm/get-contact-purchase-history'    => 'read',
 		'fluent-crm/get-contact-form-submissions'    => 'read',
 		'fluent-crm/get-contact-support-tickets'     => 'read',
 		'fluent-crm/get-contact-dynamic-item-view'   => 'read',
@@ -66,7 +65,6 @@ class FluentCRMSubscribersAbilitiesTest extends TestCase {
 	public function test_id_required_on_extension_reads() {
 		$abilities = wp_get_abilities();
 		foreach ( array(
-			'fluent-crm/get-contact-purchase-history',
 			'fluent-crm/get-contact-form-submissions',
 			'fluent-crm/get-contact-url-metrics',
 		) as $slug ) {

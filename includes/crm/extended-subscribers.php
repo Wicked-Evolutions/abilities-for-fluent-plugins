@@ -45,35 +45,6 @@ function fluent_abilities_crm_register_extended_subscribers() {
 	// §5.1 — Subscriber extension reads (10)
 	// =========================================================================
 
-	$reg->read( 'fluent-crm/get-contact-purchase-history', array(
-		'label'         => 'Get CRM Contact Purchase History',
-		'description'   => 'Cross-provider order history (Woo/EDD/FluentCart/LifterLMS). Source: SubscriberController::getPurchaseHistory (GET /subscribers/{id}/purchase-history). Capability: fcrm_read_contacts. mcp.public: false (PII).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'id' ),
-			'properties' => array(
-				'id'       => array( 'type' => 'integer', 'description' => 'Subscriber ID.' ),
-				'provider' => array( 'type' => 'string', 'description' => 'Filter by provider (woo, edd, fluent-cart, lifter).' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_item_output( array(
-			// P4b item-union (vendor-source verified): PurchaseHistoryController::getOrders
-			// returns `orders` as a structured object {orders:[],total:int} from
-			// apply_filters('fluent_crm/purchase_history_<provider>', ...) — NOT a row
-			// array. Union object|array (provider filters may vary); do not array-coerce.
-			'orders'        => array( 'type' => array( 'object', 'array' ), 'additionalProperties' => true ),
-			'total'         => array( 'type' => 'integer' ),
-			'total_revenue' => array( 'type' => array( 'number', 'string' ) ),
-		) ),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			$id = (int) ( $input['id'] ?? 0 );
-			$q  = $input;
-			unset( $q['id'] );
-			return $proxy( 'GET', '/fluent-crm/v2/subscribers/' . $id . '/purchase-history', $q );
-		},
-	) );
-
 	$reg->read( 'fluent-crm/get-contact-form-submissions', array(
 		'label'         => 'Get CRM Contact Form Submissions',
 		'description'   => 'Fluent Forms entries submitted by a contact. Source: SubscriberController::getFormSubmissions (GET /subscribers/{id}/form-submissions). Capability: fcrm_read_contacts.',

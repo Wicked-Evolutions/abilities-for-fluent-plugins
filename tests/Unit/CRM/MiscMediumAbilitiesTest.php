@@ -28,7 +28,6 @@ class FluentCRMMiscMediumAbilitiesTest extends TestCase {
 		'fluent-crm/test-ai-connection'                     => 'write',
 		'fluent-crm/generate-ai-content'                    => 'write',
 		// §5.15 Abandoned-cart ops
-		'fluent-crm/bulk-delete-abandon-carts'              => 'delete',
 		// §5.16 Custom fields
 		'fluent-crm/get-contact-custom-fields'              => 'read',
 		'fluent-crm/update-contact-custom-fields'           => 'write',
@@ -72,13 +71,6 @@ class FluentCRMMiscMediumAbilitiesTest extends TestCase {
 	public function test_update_ai_settings_requires_provider() {
 		$abilities = wp_get_abilities();
 		$this->assertContains( 'provider', $abilities['fluent-crm/update-ai-settings']['input_schema']['required'] );
-	}
-
-	public function test_bulk_delete_abandon_carts_rejects_read_only_user() {
-		$abilities                  = wp_get_abilities();
-		$GLOBALS['_test_user_caps'] = array( 'fluent_crm_read' );
-		$cb                         = $abilities['fluent-crm/bulk-delete-abandon-carts']['permission_callback'];
-		$this->assertFalse( $cb() );
 	}
 
 	public function test_run_import_driver_requires_driver_and_action() {

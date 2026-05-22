@@ -451,42 +451,4 @@ function fluent_abilities_crm_register_extended_campaigns() {
 		},
 	) );
 
-	$reg->write( 'fluent-crm/do-bulk-action-campaigns', array(
-		'label'         => 'Bulk Action On CRM Campaigns',
-		'description'   => 'Bulk operation across campaigns. Source: CampaignController::handleBulkAction (POST /campaigns/do-bulk-action). Capability: fcrm_manage_email_delete (per source-side handleBulkAction routing).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'campaign_ids', 'action_name' ),
-			'properties' => array(
-				'campaign_ids' => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
-				'action_name'  => array( 'type' => 'string' ),
-				'action_data'  => $obj,
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output(),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/campaigns/do-bulk-action', $input );
-		},
-	) );
-
-	$reg->write( 'fluent-crm/do-bulk-action-tags', array(
-		'label'         => 'Bulk Action On CRM Tags',
-		'description'   => 'Bulk operation on tags (delete, merge). Source: TagController::handleBulkAction (POST /tags/do-bulk-action + POST /tags/bulk). Capability cascades per action — TagPolicy::handleBulkAction routes delete-actions to fcrm_manage_contact_cats_delete.',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'tag_ids', 'action_name' ),
-			'properties' => array(
-				'tag_ids'     => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
-				'action_name' => array( 'type' => 'string', 'description' => 'delete, merge' ),
-				'action_data' => $obj,
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output(),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/tags/do-bulk-action', $input );
-		},
-	) );
-
 }

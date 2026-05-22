@@ -370,24 +370,6 @@ function fluent_abilities_crm_register_extended_funnels() {
 		},
 	) );
 
-	$reg->write( 'fluent-crm/create-funnel-from-template', array(
-		'label'         => 'Create CRM Funnel From Template',
-		'description'   => 'Hydrate funnel + steps from a template. Source: FunnelController::createFromTemplate (POST /funnels/create-from-template). Capability: fcrm_write_funnels.',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'template_id', 'title' ),
-			'properties' => array(
-				'template_id' => array( 'type' => array( 'integer', 'string' ) ),
-				'title'       => array( 'type' => 'string' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_item_output(),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/funnels/create-from-template', $input );
-		},
-	) );
-
 	$reg->write( 'fluent-crm/import-funnel', array(
 		'label'         => 'Import CRM Funnel From Export Definition',
 		'description'   => 'Atomic import from a JSON-encoded funnel export. Source: FunnelController::importFunnel (POST /funnels/import).',
@@ -422,26 +404,6 @@ function fluent_abilities_crm_register_extended_funnels() {
 		'output_schema' => fluent_abilities_schema_list_output( 'activities', $obj ),
 		'callback'      => function ( $input ) use ( $proxy ) {
 			return fluent_abilities_normalize_collection( $proxy( 'GET', '/fluent-crm/v2/funnels/all-activities', $input ), 'activities' );
-		},
-	) );
-
-	$reg->delete( 'fluent-crm/remove-bulk-funnel-subscribers', array(
-		'label'         => 'Remove Bulk CRM Funnel Subscribers',
-		'description'   => 'Bulk-remove subscribers from one or many funnels. Source: FunnelController::removeBulkSubscribers (POST /funnels/remove-bulk-subscribers). Capability: fcrm_delete_funnels.',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'funnel_ids', 'subscriber_ids' ),
-			'properties' => array(
-				'funnel_ids'     => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
-				'subscriber_ids' => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output( array(
-			'removed_count' => array( 'type' => 'integer' ),
-		) ),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/funnels/remove-bulk-subscribers', $input );
 		},
 	) );
 
@@ -488,25 +450,6 @@ function fluent_abilities_crm_register_extended_funnels() {
 		) ),
 		'callback'      => function ( $input ) use ( $proxy ) {
 			return $proxy( 'POST', '/fluent-crm/v2/funnels/send-test-webhook', $input );
-		},
-	) );
-
-	$reg->write( 'fluent-crm/do-bulk-action-funnels', array(
-		'label'         => 'Bulk Action On CRM Funnels',
-		'description'   => 'Bulk operation across funnels. Capability cascades per action: delete_funnels → fcrm_delete_funnels; others → fcrm_write_funnels. Note: the handler accepts exactly these `action_name` values — `change_funnel_status` (also requires a `status` string in `action_data`), `delete_funnels`, and `apply_labels` (also requires a `labels` integer array in `action_data`); any other value is a no-op. Source: FunnelController::handleBulkAction (POST /funnels/do-bulk-action).',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'funnel_ids', 'action_name' ),
-			'properties' => array(
-				'funnel_ids'  => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
-				'action_name' => array( 'type' => 'string' ),
-				'action_data' => $obj,
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output(),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/funnels/do-bulk-action', $input );
 		},
 	) );
 

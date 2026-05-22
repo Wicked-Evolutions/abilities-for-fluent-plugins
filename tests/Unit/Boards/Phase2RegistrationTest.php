@@ -47,10 +47,6 @@ class FluentBoardsPhase2RegistrationTest extends TestCase {
 		'fluent-boards/list-archived-tasks',
 		'fluent-boards/archive-task',
 		'fluent-boards/restore-task',
-		'fluent-boards/bulk-archive-tasks',
-		'fluent-boards/bulk-restore-tasks',
-		'fluent-boards/bulk-delete-tasks',
-		'fluent-boards/bulk-task-actions',
 		'fluent-boards/clone-task',
 		'fluent-boards/move-task-to-next-stage',
 		'fluent-boards/assign-yourself-to-task',
@@ -82,7 +78,6 @@ class FluentBoardsPhase2RegistrationTest extends TestCase {
 		'fluent-boards/remove-board-manager',
 		'fluent-boards/make-board-viewer',
 		'fluent-boards/make-board-member',
-		'fluent-boards/bulk-add-board-members',
 		'fluent-boards/list-board-assignees',
 		'fluent-boards/list-board-users',
 		'fluent-boards/get-member-info',
@@ -154,9 +149,7 @@ class FluentBoardsPhase2RegistrationTest extends TestCase {
 		'fluent-boards/unset-stage-default-assignees',
 		'fluent-boards/stage-archive-all-tasks',
 		// §4.20 templates (4)
-		'fluent-boards/list-templates',
 		'fluent-boards/get-template-detail',
-		'fluent-boards/create-board-from-template',
 		'fluent-boards/duplicate-board-as-template',
 		// §4.21 reports (3)
 		'fluent-boards/list-board-tasks-summary',
@@ -265,8 +258,8 @@ class FluentBoardsPhase2RegistrationTest extends TestCase {
 		// see PR body Deviations for the +1 reconciliation).
 		$registered = wp_get_abilities();
 		$ours = array_intersect_key( $registered, array_flip( self::$new_slugs ) );
-		$this->assertGreaterThanOrEqual( 160, count( $ours ), 'Fewer than 160 new abilities registered.' );
-		$this->assertLessThanOrEqual( 162, count( $ours ), 'More than expected — over-registration.' );
+		$this->assertGreaterThanOrEqual( 153, count( $ours ), 'Fewer than 153 new abilities registered.' );
+		$this->assertLessThanOrEqual( 155, count( $ours ), 'More than expected — over-registration.' );
 	}
 
 	// ── Annotation discipline ─────────────────────────────────────────────────
@@ -307,7 +300,6 @@ class FluentBoardsPhase2RegistrationTest extends TestCase {
 	public function test_delete_abilities_have_destructive_true() {
 		$registered = wp_get_abilities();
 		$deletes    = array(
-			'fluent-boards/bulk-delete-tasks',
 			'fluent-boards/delete-subtask',
 			'fluent-boards/delete-subtask-group',
 			'fluent-boards/delete-task-comment-reply',
@@ -386,7 +378,6 @@ class FluentBoardsPhase2RegistrationTest extends TestCase {
 			$sample = array(
 				'fluent-boards/list-recent-boards',           // read free
 				'fluent-boards/pin-board',                    // write free
-				'fluent-boards/bulk-delete-tasks',            // delete free
 				'fluent-boards/move-subtask-to-board',        // write pro destructive
 				'fluent-boards/create-custom-field',          // write pro
 				'fluent-boards/delete-folder',                // delete pro

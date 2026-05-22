@@ -25,7 +25,6 @@ class FluentCRMProCompaniesAbilitiesTest extends TestCase {
 		'fluent-crm/update-companies-property'                    => 'write',
 		'fluent-crm/attach-subscribers-to-company'                => 'write',
 		'fluent-crm/detach-subscribers-from-company'              => 'write',
-		'fluent-crm/do-bulk-action-companies'                     => 'write',
 		'fluent-crm/list-company-notes'                           => 'read',
 		'fluent-crm/create-company-note'                          => 'write',
 		'fluent-crm/update-company-note'                          => 'write',

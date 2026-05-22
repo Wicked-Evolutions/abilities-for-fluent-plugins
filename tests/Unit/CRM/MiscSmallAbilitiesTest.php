@@ -29,7 +29,6 @@ class FluentCRMMiscSmallAbilitiesTest extends TestCase {
 		'fluent-crm/update-webhook'             => 'write',
 		'fluent-crm/delete-webhook'             => 'delete',
 		// §5.19 Users
-		'fluent-crm/list-users-for-fluent-crm'  => 'read',
 		'fluent-crm/list-user-roles'            => 'read',
 		// §5.21 Forms
 		'fluent-crm/list-form-entries'          => 'read',
@@ -38,7 +37,6 @@ class FluentCRMMiscSmallAbilitiesTest extends TestCase {
 		'fluent-crm/list-docs'                  => 'read',
 		'fluent-crm/get-doc'                    => 'read',
 		// §5.31 Global search
-		'fluent-crm/global-search'              => 'read',
 	);
 
 	protected function setUp(): void {
@@ -77,11 +75,6 @@ class FluentCRMMiscSmallAbilitiesTest extends TestCase {
 		$GLOBALS['_test_user_caps'] = array( 'fluent_crm_read' );
 		$cb                         = $abilities['fluent-crm/delete-label']['permission_callback'];
 		$this->assertFalse( $cb() );
-	}
-
-	public function test_global_search_requires_q() {
-		$abilities = wp_get_abilities();
-		$this->assertContains( 'q', $abilities['fluent-crm/global-search']['input_schema']['required'] );
 	}
 
 	public function test_get_doc_requires_doc_id() {

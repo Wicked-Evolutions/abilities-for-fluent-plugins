@@ -189,59 +189,6 @@ $reg->write( 'fluent-boards/make-board-member', array(
 // =========================================================================
 // §4.7.5 — bulk-add-board-members (free)
 // =========================================================================
-$reg->write( 'fluent-boards/bulk-add-board-members', array(
-	'label'       => 'Bulk Add Board Members',
-	'description' => 'Add many users to a board in one call with a uniform role (admin/manager/member/viewer).',
-	'category'    => 'fluent-boards',
-	'input_schema' => array(
-		'type'       => 'object',
-		'required'   => array( 'board_id', 'user_ids', 'role' ),
-		'properties' => array(
-			'board_id' => array( 'type' => 'integer' ),
-			'user_ids' => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
-			'role'     => array( 'type' => 'string', 'enum' => array( 'admin', 'manager', 'member', 'viewer' ) ),
-		),
-	),
-	'output_schema' => fluent_abilities_schema_success_output( array(
-		'board_id' => array( 'type' => 'integer' ),
-		'added'    => array( 'type' => 'integer' ),
-	) ),
-	'callback' => function( $input ) {
-		$board_id = (int) $input['board_id'];
-		$ids      = array_map( 'intval', (array) ( $input['user_ids'] ?? array() ) );
-		$role     = sanitize_text_field( $input['role'] ?? '' );
-		if ( empty( $ids ) ) {
-			return fluent_abilities_error( 'ability_invalid_input', 'user_ids must be a non-empty array.' );
-		}
-		if ( ! wpFluent()->table( 'fbs_boards' )->where( 'id', $board_id )->first() ) {
-			return fluent_abilities_error( 'not_found', 'Board not found.' );
-		}
-		$flags = array(
-			'admin'   => array( 'is_admin' => true ),
-			'manager' => array( 'is_manager' => true ),
-			'member'  => array(),
-			'viewer'  => array( 'is_viewer_only' => true ),
-		);
-		$now   = current_time( 'mysql' );
-		$added = 0;
-		foreach ( $ids as $uid ) {
-			$exists = wpFluent()->table( 'fbs_relations' )->where( 'object_type', 'board_user' )->where( 'object_id', $board_id )->where( 'foreign_id', $uid )->first();
-			if ( $exists ) { continue; }
-			wpFluent()->table( 'fbs_relations' )->insert( array(
-				'object_id'   => $board_id,
-				'object_type' => 'board_user',
-				'foreign_id'  => $uid,
-				'settings'    => maybe_serialize( $flags[ $role ] ?? array() ),
-				'preferences' => maybe_serialize( array( 'board_email_task_assign', 'board_email_comment', 'board_email_task_completed', 'board_email_due_date' ) ),
-				'created_at'  => $now,
-				'updated_at'  => $now,
-			) );
-			$added++;
-		}
-		return array( 'success' => true, 'board_id' => $board_id, 'added' => $added );
-	},
-) );
-
 // =========================================================================
 // §4.7.6 — list-board-assignees (free)
 // =========================================================================
