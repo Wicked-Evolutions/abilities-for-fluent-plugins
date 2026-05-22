@@ -60,34 +60,6 @@ add_action( 'wp_abilities_api_init', function() {
 		},
 	) );
 
-	$reg->write( 'fluent-cart/create-tax-class', array(
-		'label'       => 'Create Tax Class',
-		'description' => 'Create a tax class. Mirrors POST /tax/classes.',
-		'input_schema' => array(
-			'type'     => 'object',
-			'required' => array( 'title' ),
-			'properties' => array(
-				'title' => array( 'type' => 'string' ),
-				'slug'  => array( 'type' => 'string' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output( array(
-			'id' => array( 'type' => 'integer' ),
-		) ),
-		'annotations' => array( 'idempotent' => false ),
-		'capability'  => 'manage_options',
-		'callback'    => function( $input ) {
-			$model = '\\FluentCart\\App\\Models\\TaxClass';
-			if ( ! class_exists( $model ) ) {
-				return fluent_abilities_error( 'not_found', 'TaxClass model not available.' );
-			}
-			$title = sanitize_text_field( $input['title'] );
-			$slug  = ! empty( $input['slug'] ) ? sanitize_title( $input['slug'] ) : sanitize_title( $title );
-			$row   = $model::create( array( 'title' => $title, 'slug' => $slug ) );
-			return array( 'success' => true, 'id' => (int) $row->id );
-		},
-	) );
-
 	$reg->write( 'fluent-cart/update-tax-class', array(
 		'label'       => 'Update Tax Class',
 		'description' => 'Update a tax class. Mirrors PUT /tax/classes/{id}.',

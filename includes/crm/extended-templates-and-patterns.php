@@ -96,67 +96,6 @@ function fluent_abilities_crm_register_extended_templates_and_patterns() {
 		},
 	) );
 
-	$reg->write( 'fluent-crm/create-template', array(
-		'label'         => 'Create CRM Email Template',
-		'description'   => 'Create a new email template. Source: TemplateController::createTemplate (POST /templates). Capability: fcrm_manage_emails.',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'title' ),
-			'properties' => array(
-				'title'           => array( 'type' => 'string' ),
-				'email_subject'   => array( 'type' => 'string' ),
-				'email_body'      => array( 'type' => 'string' ),
-				'design_template' => array( 'type' => 'string' ),
-				'settings'        => $obj,
-			),
-		),
-		'output_schema' => fluent_abilities_schema_item_output( $template_item ),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			$title = isset( $input['title'] ) ? sanitize_text_field( (string) $input['title'] ) : '';
-			if ( '' === $title ) {
-				return fluent_abilities_error( 'ability_invalid_input', 'title is required' );
-			}
-			// P7 (same class as F-FORMS-01 / P3c): vendor
-			// TemplateController::create reads a NESTED `template` payload
-			// (Helper::parseArrayOrJson($request->get('template')) →
-			// post_title/post_content/post_excerpt + email_subject/
-			// design_template/settings). The pre-fix callback forwarded the
-			// ability's flat top-level keys, so the vendor saw no `template`
-			// and persisted a generic placeholder ('Email Template @ <ts>',
-			// empty body), discarding the operator's title/body. Map the
-			// documented flat input to the vendor-expected `template` shape so
-			// it actually persists.
-			$tpl = array(
-				'post_title'      => $title,
-				'post_content'    => isset( $input['email_body'] ) ? (string) $input['email_body'] : '',
-				'post_excerpt'    => '',
-				'email_subject'   => isset( $input['email_subject'] ) ? (string) $input['email_subject'] : $title,
-				'edit_type'       => 'html',
-				'design_template' => isset( $input['design_template'] ) ? (string) $input['design_template'] : '',
-				'settings'        => ( isset( $input['settings'] ) && is_array( $input['settings'] ) ) ? $input['settings'] : array(),
-			);
-			$created = $proxy( 'POST', '/fluent-crm/v2/templates', array( 'template' => $tpl ) );
-			if ( is_wp_error( $created ) ) {
-				return $created;
-			}
-			$tid = (int) ( is_array( $created ) ? ( $created['template_id'] ?? 0 ) : 0 );
-			if ( $tid < 1 ) {
-				return fluent_abilities_error( 'ability_execution_failed', 'Template create did not return a persisted template_id.' );
-			}
-			// V3 read-back: return the PERSISTED record (vendor template()
-			// read), not the create echo — proves title/body landed.
-			$readback = $proxy( 'GET', '/fluent-crm/v2/templates/' . $tid );
-			if ( is_wp_error( $readback ) ) {
-				return $readback;
-			}
-			if ( is_array( $readback ) && isset( $readback['template'] ) && is_array( $readback['template'] ) ) {
-				$readback['template']['template_id'] = $tid;
-			}
-			return $readback;
-		},
-	) );
-
 	$reg->write( 'fluent-crm/update-template', array(
 		'label'         => 'Update CRM Email Template',
 		'description'   => 'Update an existing email template. Source: TemplateController::updateTemplate (PUT /templates/{id}). Capability: fcrm_manage_emails.',
@@ -195,21 +134,6 @@ function fluent_abilities_crm_register_extended_templates_and_patterns() {
 		'output_schema' => fluent_abilities_schema_success_output(),
 		'callback'      => function ( $input ) use ( $proxy ) {
 			return $proxy( 'DELETE', '/fluent-crm/v2/templates/' . (int) ( $input['id'] ?? 0 ) );
-		},
-	) );
-
-	$reg->write( 'fluent-crm/duplicate-template', array(
-		'label'         => 'Duplicate CRM Email Template',
-		'description'   => 'Clone an email template into a new draft. Source: TemplateController::duplicate (POST /templates/duplicate/{id}). Capability: fcrm_manage_emails.',
-		'category'      => 'fluent-crm',
-		'input_schema'  => array(
-			'type'       => 'object',
-			'required'   => array( 'id' ),
-			'properties' => array( 'id' => array( 'type' => 'integer' ) ),
-		),
-		'output_schema' => fluent_abilities_schema_item_output( $template_item ),
-		'callback'      => function ( $input ) use ( $proxy ) {
-			return $proxy( 'POST', '/fluent-crm/v2/templates/duplicate/' . (int) ( $input['id'] ?? 0 ) );
 		},
 	) );
 

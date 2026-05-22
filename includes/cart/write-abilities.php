@@ -514,31 +514,6 @@ add_action( 'wp_abilities_api_init', function() {
 		},
 	) );
 
-	$reg->delete( 'fluent-cart/delete-coupon', array(
-		'label'       => 'Delete Coupon',
-		'description' => 'Permanently delete a FluentCart coupon by ID.',
-		'input_schema' => array(
-			'type'       => 'object',
-			'required'   => array( 'id' ),
-			'properties' => array(
-				'id' => array( 'type' => 'integer', 'description' => 'Coupon ID' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output( array(
-			'id' => array( 'type' => 'integer' ),
-		) ),
-		'annotations' => array( 'idempotent' => false ),
-		'callback'    => function( $input ) {
-			$coupon = \FluentCart\App\Models\Coupon::find( intval( $input['id'] ) );
-			if ( ! $coupon ) {
-				return fluent_abilities_error( 'not_found', 'Coupon not found.' );
-			}
-			$id = $coupon->id;
-			$coupon->delete();
-			return array( 'success' => true, 'id' => $id );
-		},
-	) );
-
 	// =========================================================================
 	// TRANSACTIONS
 	// =========================================================================

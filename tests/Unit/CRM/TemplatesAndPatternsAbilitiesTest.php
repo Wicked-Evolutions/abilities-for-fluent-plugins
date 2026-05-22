@@ -19,10 +19,8 @@ class FluentCRMTemplatesAndPatternsAbilitiesTest extends TestCase {
 	private const SLUGS = array(
 		// §5.6 Templates
 		'fluent-crm/get-template'                     => 'read',
-		'fluent-crm/create-template'                  => 'write',
 		'fluent-crm/update-template'                  => 'write',
 		'fluent-crm/delete-template'                  => 'delete',
-		'fluent-crm/duplicate-template'               => 'write',
 		'fluent-crm/list-templates-all'               => 'read',
 		'fluent-crm/list-smart-codes'                 => 'read',
 		// fluent-crm/set-global-email-style REMOVED in v1.4.0 P7 close
@@ -80,11 +78,6 @@ class FluentCRMTemplatesAndPatternsAbilitiesTest extends TestCase {
 		$GLOBALS['_test_user_caps'] = array( 'fluent_crm_read' );
 		$cb                         = $abilities['fluent-crm/delete-template']['permission_callback'];
 		$this->assertFalse( $cb() );
-	}
-
-	public function test_create_template_requires_title() {
-		$abilities = wp_get_abilities();
-		$this->assertContains( 'title', $abilities['fluent-crm/create-template']['input_schema']['required'] );
 	}
 
 	public function test_callbacks_all_invokable() {
