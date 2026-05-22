@@ -19,6 +19,70 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg = new Fluent_Abilities_Registrar( 'support' );
 
+	$reg->write( 'fluent-support/bulk-ticket-action', array(
+		'label'       => 'Bulk Ticket Action',
+		'description' => 'Perform a bulk action on multiple tickets: close or delete.',
+		'category'    => 'fluent-support',
+		'input_schema' => array(
+			'type'       => 'object',
+			'required'   => array( 'ticket_ids', 'action' ),
+			'properties' => array(
+				'ticket_ids' => array(
+					'type'        => 'array',
+					'items'       => array( 'type' => 'integer' ),
+					'description' => 'Array of ticket IDs',
+				),
+				'action' => array(
+					'type'        => 'string',
+					'description' => 'Action to perform: close or delete',
+				),
+			),
+		),
+		'output_schema' => fluent_abilities_schema_success_output( array(
+			'affected' => array( 'type' => 'integer' ),
+		) ),
+		'annotations' => array( 'idempotent' => false ),
+		'callback' => function ( $input ) {
+			$ticket_ids = array_map( 'intval', $input['ticket_ids'] ?? array() );
+			$action     = sanitize_text_field( $input['action'] ?? '' );
+
+			if ( empty( $ticket_ids ) ) {
+				return fluent_abilities_error( 'ability_invalid_input', 'No ticket IDs provided' );
+			}
+
+			$allowed_actions = array( 'close', 'delete' );
+			if ( ! in_array( $action, $allowed_actions, true ) ) {
+				return fluent_abilities_error( 'ability_invalid_input', 'Action must be one of: ' . implode( ', ', $allowed_actions ) );
+			}
+
+			$agent = \FluentSupport\App\Services\Helper::getAgentByUserId();
+			if ( ! $agent ) {
+				return fluent_abilities_error( 'ability_invalid_input', 'Current API user is not registered as a Fluent Support agent' );
+			}
+
+			$tickets = \FluentSupport\App\Models\Ticket::whereIn( 'id', $ticket_ids )->get();
+			$ticket_service = new \FluentSupport\App\Services\Tickets\TicketService();
+			$affected = 0;
+
+			foreach ( $tickets as $ticket ) {
+				if ( 'close' === $action ) {
+					if ( $ticket->status !== 'closed' ) {
+						$ticket_service->close( $ticket, $agent );
+						$affected++;
+					}
+				} elseif ( 'delete' === $action ) {
+					$ticket_service->deleteTicket( $ticket );
+					$affected++;
+				}
+			}
+
+			return array(
+				'success'  => true,
+				'affected' => $affected,
+			);
+		},
+	) );
+
 	// =========================================================================
 	// TICKETS
 	// =========================================================================
@@ -1063,70 +1127,6 @@ add_action( 'wp_abilities_api_init', function() {
 				'success' => true,
 				'id'      => (int) $ticket->id,
 				'status'  => $ticket->status,
-			);
-		},
-	) );
-
-	$reg->write( 'fluent-support/bulk-ticket-action', array(
-		'label'       => 'Bulk Ticket Action',
-		'description' => 'Perform a bulk action on multiple tickets: close or delete.',
-		'category'    => 'fluent-support',
-		'input_schema' => array(
-			'type'       => 'object',
-			'required'   => array( 'ticket_ids', 'action' ),
-			'properties' => array(
-				'ticket_ids' => array(
-					'type'        => 'array',
-					'items'       => array( 'type' => 'integer' ),
-					'description' => 'Array of ticket IDs',
-				),
-				'action' => array(
-					'type'        => 'string',
-					'description' => 'Action to perform: close or delete',
-				),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output( array(
-			'affected' => array( 'type' => 'integer' ),
-		) ),
-		'annotations' => array( 'idempotent' => false ),
-		'callback' => function ( $input ) {
-			$ticket_ids = array_map( 'intval', $input['ticket_ids'] ?? array() );
-			$action     = sanitize_text_field( $input['action'] ?? '' );
-
-			if ( empty( $ticket_ids ) ) {
-				return fluent_abilities_error( 'ability_invalid_input', 'No ticket IDs provided' );
-			}
-
-			$allowed_actions = array( 'close', 'delete' );
-			if ( ! in_array( $action, $allowed_actions, true ) ) {
-				return fluent_abilities_error( 'ability_invalid_input', 'Action must be one of: ' . implode( ', ', $allowed_actions ) );
-			}
-
-			$agent = \FluentSupport\App\Services\Helper::getAgentByUserId();
-			if ( ! $agent ) {
-				return fluent_abilities_error( 'ability_invalid_input', 'Current API user is not registered as a Fluent Support agent' );
-			}
-
-			$tickets = \FluentSupport\App\Models\Ticket::whereIn( 'id', $ticket_ids )->get();
-			$ticket_service = new \FluentSupport\App\Services\Tickets\TicketService();
-			$affected = 0;
-
-			foreach ( $tickets as $ticket ) {
-				if ( 'close' === $action ) {
-					if ( $ticket->status !== 'closed' ) {
-						$ticket_service->close( $ticket, $agent );
-						$affected++;
-					}
-				} elseif ( 'delete' === $action ) {
-					$ticket_service->deleteTicket( $ticket );
-					$affected++;
-				}
-			}
-
-			return array(
-				'success'  => true,
-				'affected' => $affected,
 			);
 		},
 	) );

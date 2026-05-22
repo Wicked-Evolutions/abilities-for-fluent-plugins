@@ -14,6 +14,93 @@ add_action( 'wp_abilities_api_init', function () {
 
 	$reg = new Fluent_Abilities_Registrar( 'support' );
 
+	$reg->write( 'fluent-support/update-customer', array(
+		'label'       => 'Update Support Customer',
+		'description' => 'Update a support customer. Only provided fields are changed.',
+		'category'    => 'fluent-support',
+		'input_schema' => array(
+			'type'       => 'object',
+			'required'   => array( 'id' ),
+			'properties' => array(
+				'id'             => array( 'type' => 'integer', 'description' => 'Customer person ID' ),
+				'first_name'     => array( 'type' => 'string', 'description' => 'First name' ),
+				'last_name'      => array( 'type' => 'string', 'description' => 'Last name' ),
+				'email'          => array( 'type' => 'string', 'description' => 'Email address' ),
+				'title'          => array( 'type' => 'string', 'description' => 'Title/role' ),
+				'status'         => array( 'type' => 'string', 'description' => 'Status: active or inactive' ),
+				'address_line_1' => array( 'type' => 'string', 'description' => 'Address line 1' ),
+				'address_line_2' => array( 'type' => 'string', 'description' => 'Address line 2' ),
+				'city'           => array( 'type' => 'string', 'description' => 'City' ),
+				'state'          => array( 'type' => 'string', 'description' => 'State' ),
+				'zip'            => array( 'type' => 'string', 'description' => 'ZIP/postal code' ),
+				'country'        => array( 'type' => 'string', 'description' => 'Country' ),
+				'note'           => array( 'type' => 'string', 'description' => 'Internal note' ),
+			),
+		),
+		'output_schema' => fluent_abilities_schema_success_output( array(
+			'id' => array( 'type' => 'integer' ),
+		) ),
+		'callback' => function ( $input ) {
+			$id = (int) $input['id'];
+
+			// Verify it's a customer.
+			$customer = wpFluent()->table( 'fs_persons' )
+				->where( 'id', $id )
+				->where( 'person_type', 'customer' )
+				->first();
+
+			if ( ! $customer ) {
+				return fluent_abilities_error( 'not_found', 'Customer not found' );
+			}
+
+			$data    = array();
+			$updated = array();
+			$fields  = array(
+				'first_name'     => 'sanitize_text_field',
+				'last_name'      => 'sanitize_text_field',
+				'title'          => 'sanitize_text_field',
+				'status'         => 'sanitize_text_field',
+				'address_line_1' => 'sanitize_text_field',
+				'address_line_2' => 'sanitize_text_field',
+				'city'           => 'sanitize_text_field',
+				'state'          => 'sanitize_text_field',
+				'zip'            => 'sanitize_text_field',
+				'country'        => 'sanitize_text_field',
+				'note'           => 'sanitize_textarea_field',
+			);
+
+			foreach ( $fields as $field => $sanitizer ) {
+				if ( isset( $input[ $field ] ) ) {
+					$data[ $field ] = $sanitizer( $input[ $field ] );
+					$updated[]      = $field;
+				}
+			}
+
+			if ( isset( $input['email'] ) ) {
+				$email = sanitize_email( $input['email'] );
+				if ( ! is_email( $email ) ) {
+					return fluent_abilities_error( 'ability_invalid_input', 'Invalid email address' );
+				}
+				$data['email'] = $email;
+				$updated[]     = 'email';
+			}
+
+			if ( empty( $data ) ) {
+				return fluent_abilities_error( 'ability_invalid_input', 'No fields provided to update' );
+			}
+
+			$data['updated_at'] = current_time( 'mysql' );
+
+			FluentSupportApi( 'customers' )->updateCustomer( $data, $id );
+
+			return array(
+				'success' => true,
+				'id'      => $id,
+				'updated' => $updated,
+			);
+		},
+	) );
+
 	// =========================================================================
 	// CUSTOMERS
 	// =========================================================================
@@ -142,93 +229,6 @@ add_action( 'wp_abilities_api_init', function () {
 				'success' => true,
 				'id'      => (int) $result->id,
 				'email'   => $result->email,
-			);
-		},
-	) );
-
-	$reg->write( 'fluent-support/update-customer', array(
-		'label'       => 'Update Support Customer',
-		'description' => 'Update a support customer. Only provided fields are changed.',
-		'category'    => 'fluent-support',
-		'input_schema' => array(
-			'type'       => 'object',
-			'required'   => array( 'id' ),
-			'properties' => array(
-				'id'             => array( 'type' => 'integer', 'description' => 'Customer person ID' ),
-				'first_name'     => array( 'type' => 'string', 'description' => 'First name' ),
-				'last_name'      => array( 'type' => 'string', 'description' => 'Last name' ),
-				'email'          => array( 'type' => 'string', 'description' => 'Email address' ),
-				'title'          => array( 'type' => 'string', 'description' => 'Title/role' ),
-				'status'         => array( 'type' => 'string', 'description' => 'Status: active or inactive' ),
-				'address_line_1' => array( 'type' => 'string', 'description' => 'Address line 1' ),
-				'address_line_2' => array( 'type' => 'string', 'description' => 'Address line 2' ),
-				'city'           => array( 'type' => 'string', 'description' => 'City' ),
-				'state'          => array( 'type' => 'string', 'description' => 'State' ),
-				'zip'            => array( 'type' => 'string', 'description' => 'ZIP/postal code' ),
-				'country'        => array( 'type' => 'string', 'description' => 'Country' ),
-				'note'           => array( 'type' => 'string', 'description' => 'Internal note' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output( array(
-			'id' => array( 'type' => 'integer' ),
-		) ),
-		'callback' => function ( $input ) {
-			$id = (int) $input['id'];
-
-			// Verify it's a customer.
-			$customer = wpFluent()->table( 'fs_persons' )
-				->where( 'id', $id )
-				->where( 'person_type', 'customer' )
-				->first();
-
-			if ( ! $customer ) {
-				return fluent_abilities_error( 'not_found', 'Customer not found' );
-			}
-
-			$data    = array();
-			$updated = array();
-			$fields  = array(
-				'first_name'     => 'sanitize_text_field',
-				'last_name'      => 'sanitize_text_field',
-				'title'          => 'sanitize_text_field',
-				'status'         => 'sanitize_text_field',
-				'address_line_1' => 'sanitize_text_field',
-				'address_line_2' => 'sanitize_text_field',
-				'city'           => 'sanitize_text_field',
-				'state'          => 'sanitize_text_field',
-				'zip'            => 'sanitize_text_field',
-				'country'        => 'sanitize_text_field',
-				'note'           => 'sanitize_textarea_field',
-			);
-
-			foreach ( $fields as $field => $sanitizer ) {
-				if ( isset( $input[ $field ] ) ) {
-					$data[ $field ] = $sanitizer( $input[ $field ] );
-					$updated[]      = $field;
-				}
-			}
-
-			if ( isset( $input['email'] ) ) {
-				$email = sanitize_email( $input['email'] );
-				if ( ! is_email( $email ) ) {
-					return fluent_abilities_error( 'ability_invalid_input', 'Invalid email address' );
-				}
-				$data['email'] = $email;
-				$updated[]     = 'email';
-			}
-
-			if ( empty( $data ) ) {
-				return fluent_abilities_error( 'ability_invalid_input', 'No fields provided to update' );
-			}
-
-			$data['updated_at'] = current_time( 'mysql' );
-
-			FluentSupportApi( 'customers' )->updateCustomer( $data, $id );
-
-			return array(
-				'success' => true,
-				'id'      => $id,
-				'updated' => $updated,
 			);
 		},
 	) );

@@ -265,7 +265,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->read( 'fluent-booking/get-booking-activities', array(
 		'label'       => 'Get Booking Activities',
-		'description' => 'Get the activity/audit log for a booking. Returns notes, status changes, email logs, and system events.',
+		'description' => 'Get the activity/audit log for a booking. Returns notes, status changes, email logs, and system events. Input: pass the booking ID as `id` (an integer) — the field is `id`, NOT `booking_id`.',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'id' ),
@@ -319,7 +319,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-booking/add-booking-note', array(
 		'label'       => 'Add Internal Note to Booking',
-		'description' => 'Add an internal note to a booking\'s activity log. Useful for AI agents and hosts to annotate bookings.',
+		'description' => 'Add an internal note to a booking\'s activity log. Returns the persisted activity_id of the new entry so callers can reference it in subsequent reads. Input: pass the booking ID as `id` (an integer, NOT `booking_id`) plus `note` (string).',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'id', 'note' ),
@@ -338,22 +338,34 @@ add_action( 'wp_abilities_api_init', function() {
 				return fluent_abilities_error( 'not_found', 'Booking not found' );
 			}
 
-			$activity_data = array(
-				'booking_id'  => (int) $input['id'],
-				'status'      => 'open',
-				'type'        => 'note',
-				'title'       => 'Internal Note',
-				'description' => sanitize_textarea_field( $input['note'] ),
-				'created_by'  => get_current_user_id() ?: null,
-				'created_at'  => current_time( 'mysql' ),
-				'updated_at'  => current_time( 'mysql' ),
-			);
+			// Single canonical write. Previously this did BOTH a direct
+			// wpFluent insertGetId() AND do_action('fluent_booking/log_booking_note'),
+			// and the vendor LogHandler (app/Hooks/Handlers/LogHandler.php)
+			// listens to that action and ALSO calls BookingActivity::create() —
+			// so every call persisted TWO fcal_booking_activity rows. Routing
+			// once through the vendor canonical model
+			// (\FluentBooking\App\Models\BookingActivity, the same model the
+			// LogHandler uses) writes exactly one row and still returns the real
+			// persisted id for the V9/P-N round-trip. The do_action is dropped
+			// because LogHandler only persists — it has no other side effect to
+			// preserve.
+			if ( ! class_exists( '\\FluentBooking\\App\\Models\\BookingActivity' ) ) {
+				return new WP_Error( 'vendor_helper_unavailable', 'FluentBooking\\App\\Models\\BookingActivity is not available. FluentBooking must be active for this ability.' );
+			}
 
-			$activity_id = wpFluent()->table( 'fcal_booking_activity' )->insert( $activity_data );
+			try {
+				$activity = \FluentBooking\App\Models\BookingActivity::create( array(
+					'booking_id'  => (int) $input['id'],
+					'status'      => 'open',
+					'type'        => 'note',
+					'title'       => 'Internal Note',
+					'description' => sanitize_textarea_field( $input['note'] ),
+				) );
+			} catch ( \Throwable $e ) {
+				return new WP_Error( 'vendor_precondition_failed', 'FluentBooking BookingActivity::create failed: ' . $e->getMessage() );
+			}
 
-			do_action( 'fluent_booking/log_booking_note', $activity_data );
-
-			return array( 'success' => true, 'activity_id' => (int) $activity_id );
+			return array( 'success' => true, 'activity_id' => (int) $activity->id );
 		},
 	) );
 
@@ -363,7 +375,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->read( 'fluent-booking/get-booking-meta', array(
 		'label'       => 'Get Booking Metadata',
-		'description' => 'Get all metadata (custom field data, additional guests, etc.) for a booking.',
+		'description' => 'Get all metadata (custom field data, additional guests, etc.) for a booking. Input: pass the booking ID as `id` (an integer) — the field is `id`, NOT `booking_id`.',
 		'input_schema' => array(
 			'type'       => 'object',
 			'required'   => array( 'id' ),

@@ -103,7 +103,7 @@ add_action( 'wp_abilities_api_init', function() {
 				'is_default'       => ! empty( $value['default'] ),
 				'timezone'         => $value['timezone'] ?? 'UTC',
 				'weekly_schedules' => fluent_abilities_safe_array( $value['weekly_schedules'] ?? array() ),
-				'date_overrides'   => fluent_abilities_safe_array( $value['date_overrides'] ?? array() ),
+				'date_overrides'   => array_values( (array) fluent_abilities_safe_array( $value['date_overrides'] ?? array() ) ),
 				'created_at'       => $schedule->created_at ? (string) $schedule->created_at : null,
 			);
 		},

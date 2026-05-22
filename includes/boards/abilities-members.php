@@ -192,7 +192,8 @@ $reg->delete( 'fluent-boards/remove-board-member', array(
 			->where( 'board_id', $board_id )
 			->select( 'id' )
 			->get();
-		$task_ids = array_map( function( $t ) { return (int) $t->id; }, $task_ids_raw );
+		// V5: coerce vendor Collection to array before array_map (P-A pattern).
+		$task_ids = array_map( function( $t ) { return (int) $t->id; }, fluent_abilities_to_array( $task_ids_raw ) );
 
 		if ( ! empty( $task_ids ) ) {
 			wpFluent()->table( 'fbs_relations' )

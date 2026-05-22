@@ -1,0 +1,1139 @@
+{
+  "_doc": "FluentCRM vendor-map per PRINCIPLES-VENDOR.md V11. One row per touched ability. Populated incrementally as fix packages land — additional fluent-crm slugs join this file in later packages. Drift detector, not a perfect proof.",
+  "vendor": "fluent-crm",
+  "abilities": [
+    {
+      "ability": "fluent-crm/update-contact-custom-fields",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "2.9.61",
+      "authority": "rest_endpoint",
+      "method": "PUT",
+      "endpoint": "/fluent-crm/v2/custom-fields/contacts",
+      "canonical_handler": "FluentCrm\\App\\Http\\Controllers\\CustomContactFieldsController::saveGlobalFields",
+      "registrar_description_note": "Registrar description names this 'CustomFieldsController::updateContactFields'; the actual installed-source controller is CustomContactFieldsController (path: app/Http/Controllers/CustomContactFieldsController.php). Description-only drift, not fixed in Package 1 — out of scope.",
+      "direct_storage": false,
+      "destructive": true,
+      "destructive_semantics": "Full-replace: provided `fields` array overwrites the entire definition set; empty array clears all definitions globally. Handler-side guard requires `confirm_full_replace: true` when `fields` is empty.",
+      "read_back": {
+        "ability": "fluent-crm/get-contact-custom-fields",
+        "field": "fields"
+      },
+      "principles": [
+        "V1",
+        "V3",
+        "V7",
+        "V8"
+      ],
+      "notes": "Fix landed in Package 1 of the v1.4.0 fix sprint. Phase 2 stop-condition event (2026-05-15): empty {fields: []} call wiped 8 production custom-field definitions on helenawillow before the V8 guard existed. The vendor controller (CustomContactFieldsController::saveGlobalFields) only reads `fields` from $this->request — the php://input transport-envelope leak that affects create-webhook does NOT apply here because the leak keys are not consumed by the saveGlobalFields handler. Live read-back verified on helenawillow 2026-05-15: empty-array call without `confirm_full_replace` returns typed WP_Error and the seeded testclient field remains intact; the same call with `confirm_full_replace: true` proceeds and clears the set.",
+      "doc": "installed vendor source: FluentCrm\\App\\Http\\Controllers\\CustomContactFieldsController::saveGlobalFields"
+    },
+    {
+      "ability": "fluent-crm/create-webhook",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "2.9.61",
+      "authority": "vendor_public_model",
+      "method": "POST",
+      "endpoint": "/fluent-crm/v2/webhooks",
+      "canonical_handler": "FluentCrm\\App\\Models\\Webhook::store",
+      "rest_handler_seen_first": "FluentCrm\\App\\Http\\Controllers\\WebhookController::create",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": {
+        "ability": "fluent-crm/list-webhooks",
+        "field": "id"
+      },
+      "principles": [
+        "V1",
+        "V3",
+        "V7",
+        "V10"
+      ],
+      "v3_priority": 2,
+      "notes": "Fix landed in Package 1 of the v1.4.0 fix sprint. Registrar bypasses the REST controller and calls the vendor public model Webhook::store() directly (V3 priority 2 — same write path the controller uses internally). Reason: FluentCRM's Request::all() (vendor framework/src/WPFluent/Http/Request/Request.php inputs() at array_merge($this->request, $json)) re-reads php://input and merges over WP_REST_Request::set_param values, defeating any whitelist applied via rest_do_request. Routing through the model keeps the documented vendor operation while making the V7 input whitelist binding. V10: typed WP_Error returned when vendor class is absent. Live read-back verified on helenawillow 2026-05-15: persisted webhook value contains only {name, status, provider, url}; transport envelope (method/params/jsonrpc/id/toolUseId/_links/_embedded) does not appear.",
+      "doc": "installed vendor source: FluentCrm\\App\\Models\\Webhook::store"
+    },
+    {
+      "ability": "fluent-crm/update-webhook",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "2.9.61",
+      "authority": "vendor_public_model",
+      "method": "PUT",
+      "endpoint": "/fluent-crm/v2/webhooks/{id}",
+      "canonical_handler": "FluentCrm\\App\\Models\\Webhook::saveChanges",
+      "rest_handler_seen_first": "FluentCrm\\App\\Http\\Controllers\\WebhookController::update",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": {
+        "ability": "fluent-crm/list-webhooks",
+        "field": "id"
+      },
+      "principles": [
+        "V1",
+        "V3",
+        "V7",
+        "V10"
+      ],
+      "v3_priority": 2,
+      "notes": "Package 3.5 (P-I family, ledger Addendum 1). update-webhook is the second confirmed (c) — same leak shape as create-webhook: WebhookController::update calls $webhook->saveChanges($request->all()) and Webhook::saveChanges() (app/Models/Webhook.php:88) array_merges the whole payload into the stored webhook `value`, excluding only id/url. The vendor Request::all() re-reads php://input so a rest_do_request whitelist cannot stop the MCP transport envelope from reaching saveChanges(). Fix: callback whitelists top-level input to schema-declared keys (name/lists/tags/companies/extra), looks up the webhook via the vendor public model, and calls saveChanges() with the cleaned payload (V3 priority 2 — bypasses the REST controller). V10: typed WP_Error when vendor class absent / id missing / webhook not found. LIVE READ-BACK: VERIFIED (2026-05-16, helenawillow, via mcp-adapter-execute-ability after abilities-mcp#87 Workstream B fix restored the direct-tool catalog): create-webhook (id 478) -> update-webhook called with the full MCP transport envelope injected (method/params/jsonrpc/toolUseId/_links/_embedded) plus a legitimate `name` change -> list-webhooks shows the persisted `value` = {name(updated),status,provider,url,tags:[],lists:[],companies:[]} — ONLY schema-declared keys; ZERO envelope keys reached saveChanges(). Webhook deleted; list-webhooks confirmed 0 residue. Unit-proven: tests/Unit/CRM/SafetyFixesTest.php asserts only schema keys reach saveChanges() and the proxy path is not used.",
+      "doc": "installed vendor source: FluentCrm\\App\\Models\\Webhook::saveChanges"
+    },
+    {
+      "ability": "fluent-crm/list-funnel-templates",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "2.9.61",
+      "authority": "rest_endpoint",
+      "method": "GET",
+      "endpoint": "/fluent-crm/v2/funnels/templates",
+      "canonical_handler": "FluentCrm\\App\\Http\\Controllers\\FunnelController::getTemplates",
+      "direct_storage": false,
+      "destructive": false,
+      "principles": [
+        "V1",
+        "V3",
+        "V10"
+      ],
+      "package": 2,
+      "pattern": "P-K",
+      "notes": "Package 2 V10 fix: callback wraps the proxy call in try/catch and returns WP_Error('vendor_precondition_failed', …) instead of letting the vendor TypeError propagate as a PHP fatal. Vendor controller surfaces TypeError when FluentCampaign Pro template-bundle state is incomplete. || v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
+      "doc": "installed vendor source: FluentCrm\\App\\Http\\Controllers\\FunnelController::getTemplates"
+    },
+    {
+      "ability": "fluent-crm/list-dynamic-segment-custom-fields",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "2.9.61",
+      "authority": "rest_endpoint",
+      "method": "GET",
+      "endpoint": "/fluent-crm/v2/dynamic-segments/custom-fields",
+      "canonical_handler": "FluentCrm\\App\\Http\\Controllers\\DynamicSegmentController::customFields",
+      "direct_storage": false,
+      "destructive": false,
+      "principles": [
+        "V1",
+        "V3",
+        "V10"
+      ],
+      "package": 2,
+      "pattern": "P-K",
+      "notes": "Package 2 V10 fix: typed WP_Error guard wraps the proxy call. Vendor controller TypeErrors when FluentCampaign Pro is inactive or the dynamic-segment custom-field registry is empty. || v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
+      "doc": "installed vendor source: FluentCrm\\App\\Http\\Controllers\\DynamicSegmentController::customFields"
+    },
+    {
+      "ability": "fluent-crm/create-company-note",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "2.9.61",
+      "authority": "rest_endpoint",
+      "method": "POST",
+      "endpoint": "/fluent-crm/v2/companies/{id}/notes",
+      "canonical_handler": "FluentCrm\\App\\Http\\Controllers\\CompanyController::createNote",
+      "direct_storage": false,
+      "destructive": false,
+      "principles": [
+        "V1",
+        "V3",
+        "V10"
+      ],
+      "package": 2,
+      "pattern": "P-K",
+      "notes": "Package 2 V10 fix: typed WP_Error guard wraps the proxy call. Vendor controller TypeErrors when FluentCampaign Pro is inactive or validator request shape mismatches.",
+      "doc": "installed vendor source: FluentCrm\\App\\Http\\Controllers\\CompanyController::createNote",
+      "read_back": "N/A — P-K V10 typed-error-guard wrapping the proxy call (no state-change write / carry-forward)"
+    },
+    {
+      "ability": "fluent-crm/list-campaigns-pro-products",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "2.9.61",
+      "authority": "rest_endpoint",
+      "method": "GET",
+      "endpoint": "/fluent-crm/v2/campaigns-pro/products",
+      "canonical_handler": "FluentCrm\\App\\Http\\Controllers\\CampaignsProController::products",
+      "direct_storage": false,
+      "destructive": false,
+      "principles": [
+        "V1",
+        "V3",
+        "V10"
+      ],
+      "package": 2,
+      "pattern": "P-K",
+      "notes": "Package 2 V10 fix: typed WP_Error guard wraps the proxy call. Vendor controller TypeErrors when FluentCampaign Pro is inactive or no commerce provider is registered. || v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
+      "doc": "installed vendor source: FluentCrm\\App\\Http\\Controllers\\CampaignsProController::products"
+    },
+    {
+      "ability": "fluent-crm/create-company",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (source read live 2026-05-16)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 boundary projection",
+      "canonical_handler": "vendor controller returns Eloquent model/Collection via REST; ability projects at boundary",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 response-boundary (P-G) fix; not a write/state change (V3 read-back N/A)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4a",
+      "pattern": "P-G Eloquent model-internal trait leak",
+      "notes": "Package 4a. Callback return wrapped with fluent_abilities_project_response() (reuses fluent_abilities_safe_array() deep ->toArray() projection; WP_Error passthrough) so Eloquent internals (incrementing/exists/wasRecentlyCreated/timestamps/preventsLazyLoading/usesUniqueIds) never cross the ability boundary. No schema change. LIVE-VERIFIED on helenawillow 2026-05-16 (representative: get-company id=2 -> clean attribute-only payload, zero model-internal keys); projection helper shared across all 17 P-G slugs.",
+      "doc": "installed vendor source: vendor controller returns Eloquent model/Collection via REST; ability projects at boundary"
+    },
+    {
+      "ability": "fluent-crm/get-company",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (source read live 2026-05-16)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 boundary projection",
+      "canonical_handler": "vendor controller returns Eloquent model/Collection via REST; ability projects at boundary",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 response-boundary (P-G) fix; not a write/state change (V3 read-back N/A)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4a",
+      "pattern": "P-G Eloquent model-internal trait leak",
+      "notes": "Package 4a. Callback return wrapped with fluent_abilities_project_response() (reuses fluent_abilities_safe_array() deep ->toArray() projection; WP_Error passthrough) so Eloquent internals (incrementing/exists/wasRecentlyCreated/timestamps/preventsLazyLoading/usesUniqueIds) never cross the ability boundary. No schema change. LIVE-VERIFIED on helenawillow 2026-05-16 (representative: get-company id=2 -> clean attribute-only payload, zero model-internal keys); projection helper shared across all 17 P-G slugs.",
+      "doc": "installed vendor source: vendor controller returns Eloquent model/Collection via REST; ability projects at boundary"
+    },
+    {
+      "ability": "fluent-crm/update-company",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (source read live 2026-05-16)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 boundary projection",
+      "canonical_handler": "vendor controller returns Eloquent model/Collection via REST; ability projects at boundary",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 response-boundary (P-G) fix; not a write/state change (V3 read-back N/A)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4a",
+      "pattern": "P-G Eloquent model-internal trait leak",
+      "notes": "Package 4a. Callback return wrapped with fluent_abilities_project_response() (reuses fluent_abilities_safe_array() deep ->toArray() projection; WP_Error passthrough) so Eloquent internals (incrementing/exists/wasRecentlyCreated/timestamps/preventsLazyLoading/usesUniqueIds) never cross the ability boundary. No schema change. LIVE-VERIFIED on helenawillow 2026-05-16 (representative: get-company id=2 -> clean attribute-only payload, zero model-internal keys); projection helper shared across all 17 P-G slugs.",
+      "doc": "installed vendor source: vendor controller returns Eloquent model/Collection via REST; ability projects at boundary"
+    },
+    {
+      "ability": "fluent-crm/update-campaign-title",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (source read live 2026-05-16)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 boundary projection",
+      "canonical_handler": "vendor controller returns Eloquent model/Collection via REST; ability projects at boundary",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 response-boundary (P-G) fix; not a write/state change (V3 read-back N/A)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4a",
+      "pattern": "P-G Eloquent model-internal trait leak",
+      "notes": "Package 4a. Callback return wrapped with fluent_abilities_project_response() (reuses fluent_abilities_safe_array() deep ->toArray() projection; WP_Error passthrough) so Eloquent internals (incrementing/exists/wasRecentlyCreated/timestamps/preventsLazyLoading/usesUniqueIds) never cross the ability boundary. No schema change. LIVE-VERIFIED on helenawillow 2026-05-16 (representative: get-company id=2 -> clean attribute-only payload, zero model-internal keys); projection helper shared across all 17 P-G slugs.",
+      "doc": "installed vendor source: vendor controller returns Eloquent model/Collection via REST; ability projects at boundary"
+    },
+    {
+      "ability": "fluent-crm/duplicate-campaign",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (source read live 2026-05-16)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 boundary projection",
+      "canonical_handler": "vendor controller returns Eloquent model/Collection via REST; ability projects at boundary",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 response-boundary (P-G) fix; not a write/state change (V3 read-back N/A)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4a",
+      "pattern": "P-G Eloquent model-internal trait leak",
+      "notes": "Package 4a. Callback return wrapped with fluent_abilities_project_response() (reuses fluent_abilities_safe_array() deep ->toArray() projection; WP_Error passthrough) so Eloquent internals (incrementing/exists/wasRecentlyCreated/timestamps/preventsLazyLoading/usesUniqueIds) never cross the ability boundary. No schema change. LIVE-VERIFIED on helenawillow 2026-05-16 (representative: get-company id=2 -> clean attribute-only payload, zero model-internal keys); projection helper shared across all 17 P-G slugs.",
+      "doc": "installed vendor source: vendor controller returns Eloquent model/Collection via REST; ability projects at boundary"
+    },
+    {
+      "ability": "fluent-crm/get-campaign-status",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (source read live 2026-05-16)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 boundary projection",
+      "canonical_handler": "vendor controller returns Eloquent model/Collection via REST; ability projects at boundary",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 response-boundary (P-G) fix; not a write/state change (V3 read-back N/A)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4a",
+      "pattern": "P-G Eloquent model-internal trait leak",
+      "notes": "Package 4a. Callback return wrapped with fluent_abilities_project_response() (reuses fluent_abilities_safe_array() deep ->toArray() projection; WP_Error passthrough) so Eloquent internals (incrementing/exists/wasRecentlyCreated/timestamps/preventsLazyLoading/usesUniqueIds) never cross the ability boundary. No schema change. LIVE-VERIFIED on helenawillow 2026-05-16 (representative: get-company id=2 -> clean attribute-only payload, zero model-internal keys); projection helper shared across all 17 P-G slugs.",
+      "doc": "installed vendor source: vendor controller returns Eloquent model/Collection via REST; ability projects at boundary"
+    },
+    {
+      "ability": "fluent-crm/get-campaign-processing-stat",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (source read live 2026-05-16)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 boundary projection",
+      "canonical_handler": "vendor controller returns Eloquent model/Collection via REST; ability projects at boundary",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 response-boundary (P-G) fix; not a write/state change (V3 read-back N/A)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4a",
+      "pattern": "P-G Eloquent model-internal trait leak",
+      "notes": "Package 4a. Callback return wrapped with fluent_abilities_project_response() (reuses fluent_abilities_safe_array() deep ->toArray() projection; WP_Error passthrough) so Eloquent internals (incrementing/exists/wasRecentlyCreated/timestamps/preventsLazyLoading/usesUniqueIds) never cross the ability boundary. No schema change. LIVE-VERIFIED on helenawillow 2026-05-16 (representative: get-company id=2 -> clean attribute-only payload, zero model-internal keys); projection helper shared across all 17 P-G slugs.",
+      "doc": "installed vendor source: vendor controller returns Eloquent model/Collection via REST; ability projects at boundary"
+    },
+    {
+      "ability": "fluent-crm/schedule-campaign",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (source read live 2026-05-16)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 boundary projection",
+      "canonical_handler": "vendor controller returns Eloquent model/Collection via REST; ability projects at boundary",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 response-boundary (P-G) fix; not a write/state change (V3 read-back N/A)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4a",
+      "pattern": "P-G Eloquent model-internal trait leak",
+      "notes": "Package 4a. Callback return wrapped with fluent_abilities_project_response() (reuses fluent_abilities_safe_array() deep ->toArray() projection; WP_Error passthrough) so Eloquent internals (incrementing/exists/wasRecentlyCreated/timestamps/preventsLazyLoading/usesUniqueIds) never cross the ability boundary. No schema change. LIVE-VERIFIED on helenawillow 2026-05-16 (representative: get-company id=2 -> clean attribute-only payload, zero model-internal keys); projection helper shared across all 17 P-G slugs.",
+      "doc": "installed vendor source: vendor controller returns Eloquent model/Collection via REST; ability projects at boundary"
+    },
+    {
+      "ability": "fluent-crm/get-recurring-campaign",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (source read live 2026-05-16)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 boundary projection",
+      "canonical_handler": "vendor controller returns Eloquent model/Collection via REST; ability projects at boundary",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 response-boundary (P-G) fix; not a write/state change (V3 read-back N/A)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4a",
+      "pattern": "P-G Eloquent model-internal trait leak",
+      "notes": "Package 4a. Callback return wrapped with fluent_abilities_project_response() (reuses fluent_abilities_safe_array() deep ->toArray() projection; WP_Error passthrough) so Eloquent internals (incrementing/exists/wasRecentlyCreated/timestamps/preventsLazyLoading/usesUniqueIds) never cross the ability boundary. No schema change. LIVE-VERIFIED on helenawillow 2026-05-16 (representative: get-company id=2 -> clean attribute-only payload, zero model-internal keys); projection helper shared across all 17 P-G slugs.",
+      "doc": "installed vendor source: vendor controller returns Eloquent model/Collection via REST; ability projects at boundary"
+    },
+    {
+      "ability": "fluent-crm/update-recurring-campaign-data",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (source read live 2026-05-16)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 boundary projection",
+      "canonical_handler": "vendor controller returns Eloquent model/Collection via REST; ability projects at boundary",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 response-boundary (P-G) fix; not a write/state change (V3 read-back N/A)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4a",
+      "pattern": "P-G Eloquent model-internal trait leak",
+      "notes": "Package 4a. Callback return wrapped with fluent_abilities_project_response() (reuses fluent_abilities_safe_array() deep ->toArray() projection; WP_Error passthrough) so Eloquent internals (incrementing/exists/wasRecentlyCreated/timestamps/preventsLazyLoading/usesUniqueIds) never cross the ability boundary. No schema change. LIVE-VERIFIED on helenawillow 2026-05-16 (representative: get-company id=2 -> clean attribute-only payload, zero model-internal keys); projection helper shared across all 17 P-G slugs.",
+      "doc": "installed vendor source: vendor controller returns Eloquent model/Collection via REST; ability projects at boundary"
+    },
+    {
+      "ability": "fluent-crm/duplicate-recurring-campaign",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (source read live 2026-05-16)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 boundary projection",
+      "canonical_handler": "vendor controller returns Eloquent model/Collection via REST; ability projects at boundary",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 response-boundary (P-G) fix; not a write/state change (V3 read-back N/A)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4a",
+      "pattern": "P-G Eloquent model-internal trait leak",
+      "notes": "Package 4a. Callback return wrapped with fluent_abilities_project_response() (reuses fluent_abilities_safe_array() deep ->toArray() projection; WP_Error passthrough) so Eloquent internals (incrementing/exists/wasRecentlyCreated/timestamps/preventsLazyLoading/usesUniqueIds) never cross the ability boundary. No schema change. LIVE-VERIFIED on helenawillow 2026-05-16 (representative: get-company id=2 -> clean attribute-only payload, zero model-internal keys); projection helper shared across all 17 P-G slugs.",
+      "doc": "installed vendor source: vendor controller returns Eloquent model/Collection via REST; ability projects at boundary"
+    },
+    {
+      "ability": "fluent-crm/change-recurring-campaign-status",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (source read live 2026-05-16)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 boundary projection",
+      "canonical_handler": "vendor controller returns Eloquent model/Collection via REST; ability projects at boundary",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 response-boundary (P-G) fix; not a write/state change (V3 read-back N/A)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4a",
+      "pattern": "P-G Eloquent model-internal trait leak",
+      "notes": "Package 4a. Callback return wrapped with fluent_abilities_project_response() (reuses fluent_abilities_safe_array() deep ->toArray() projection; WP_Error passthrough) so Eloquent internals (incrementing/exists/wasRecentlyCreated/timestamps/preventsLazyLoading/usesUniqueIds) never cross the ability boundary. No schema change. LIVE-VERIFIED on helenawillow 2026-05-16 (representative: get-company id=2 -> clean attribute-only payload, zero model-internal keys); projection helper shared across all 17 P-G slugs.",
+      "doc": "installed vendor source: vendor controller returns Eloquent model/Collection via REST; ability projects at boundary"
+    },
+    {
+      "ability": "fluent-crm/duplicate-sequence",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (source read live 2026-05-16)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 boundary projection",
+      "canonical_handler": "vendor controller returns Eloquent model/Collection via REST; ability projects at boundary",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 response-boundary (P-G) fix; not a write/state change (V3 read-back N/A)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4a",
+      "pattern": "P-G Eloquent model-internal trait leak",
+      "notes": "Package 4a. Callback return wrapped with fluent_abilities_project_response() (reuses fluent_abilities_safe_array() deep ->toArray() projection; WP_Error passthrough) so Eloquent internals (incrementing/exists/wasRecentlyCreated/timestamps/preventsLazyLoading/usesUniqueIds) never cross the ability boundary. No schema change. LIVE-VERIFIED on helenawillow 2026-05-16 (representative: get-company id=2 -> clean attribute-only payload, zero model-internal keys); projection helper shared across all 17 P-G slugs.",
+      "doc": "installed vendor source: vendor controller returns Eloquent model/Collection via REST; ability projects at boundary"
+    },
+    {
+      "ability": "fluent-crm/clone-funnel",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (source read live 2026-05-16)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 boundary projection",
+      "canonical_handler": "vendor controller returns Eloquent model/Collection via REST; ability projects at boundary",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 response-boundary (P-G) fix; not a write/state change (V3 read-back N/A)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4a",
+      "pattern": "P-G Eloquent model-internal trait leak",
+      "notes": "Package 4a. Callback return wrapped with fluent_abilities_project_response() (reuses fluent_abilities_safe_array() deep ->toArray() projection; WP_Error passthrough) so Eloquent internals (incrementing/exists/wasRecentlyCreated/timestamps/preventsLazyLoading/usesUniqueIds) never cross the ability boundary. No schema change. LIVE-VERIFIED on helenawillow 2026-05-16 (representative: get-company id=2 -> clean attribute-only payload, zero model-internal keys); projection helper shared across all 17 P-G slugs.",
+      "doc": "installed vendor source: vendor controller returns Eloquent model/Collection via REST; ability projects at boundary"
+    },
+    {
+      "ability": "fluent-crm/get-report-automation-steps",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (source read live 2026-05-16)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 boundary projection",
+      "canonical_handler": "vendor controller returns Eloquent model/Collection via REST; ability projects at boundary",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 response-boundary (P-G) fix; not a write/state change (V3 read-back N/A)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4a",
+      "pattern": "P-G Eloquent model-internal trait leak",
+      "notes": "Package 4a. Callback return wrapped with fluent_abilities_project_response() (reuses fluent_abilities_safe_array() deep ->toArray() projection; WP_Error passthrough) so Eloquent internals (incrementing/exists/wasRecentlyCreated/timestamps/preventsLazyLoading/usesUniqueIds) never cross the ability boundary. No schema change. LIVE-VERIFIED on helenawillow 2026-05-16 (representative: get-company id=2 -> clean attribute-only payload, zero model-internal keys); projection helper shared across all 17 P-G slugs.",
+      "doc": "installed vendor source: vendor controller returns Eloquent model/Collection via REST; ability projects at boundary"
+    },
+    {
+      "ability": "fluent-crm/create-label",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (source read live 2026-05-16)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 boundary projection",
+      "canonical_handler": "vendor controller returns Eloquent model/Collection via REST; ability projects at boundary",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 response-boundary (P-G) fix; not a write/state change (V3 read-back N/A)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4a",
+      "pattern": "P-G Eloquent model-internal trait leak",
+      "notes": "Package 4a. Callback return wrapped with fluent_abilities_project_response() (reuses fluent_abilities_safe_array() deep ->toArray() projection; WP_Error passthrough) so Eloquent internals (incrementing/exists/wasRecentlyCreated/timestamps/preventsLazyLoading/usesUniqueIds) never cross the ability boundary. No schema change. LIVE-VERIFIED on helenawillow 2026-05-16 (representative: get-company id=2 -> clean attribute-only payload, zero model-internal keys); projection helper shared across all 17 P-G slugs.",
+      "doc": "installed vendor source: vendor controller returns Eloquent model/Collection via REST; ability projects at boundary"
+    },
+    {
+      "ability": "fluent-crm/update-label",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (source read live 2026-05-16)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 boundary projection",
+      "canonical_handler": "vendor controller returns Eloquent model/Collection via REST; ability projects at boundary",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 response-boundary (P-G) fix; not a write/state change (V3 read-back N/A)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4a",
+      "pattern": "P-G Eloquent model-internal trait leak",
+      "notes": "Package 4a. Callback return wrapped with fluent_abilities_project_response() (reuses fluent_abilities_safe_array() deep ->toArray() projection; WP_Error passthrough) so Eloquent internals (incrementing/exists/wasRecentlyCreated/timestamps/preventsLazyLoading/usesUniqueIds) never cross the ability boundary. No schema change. LIVE-VERIFIED on helenawillow 2026-05-16 (representative: get-company id=2 -> clean attribute-only payload, zero model-internal keys); projection helper shared across all 17 P-G slugs.",
+      "doc": "installed vendor source: vendor controller returns Eloquent model/Collection via REST; ability projects at boundary"
+    },
+    {
+      "ability": "fluent-crm/list-recurring-campaigns",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (source read live 2026-05-16)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 paginator unwrap",
+      "canonical_handler": "vendor controller returns ['campaigns'=>$query->paginate()] (LengthAwarePaginator)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 response-boundary (P-J) fix; not a write (V3 read-back N/A)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4a",
+      "pattern": "P-J Laravel/wpFluent paginator-internals leak",
+      "status": "PENDING (populated-case live-confirm deferred; see basis)",
+      "notes": "Package 4a. Callback wrapped with fluent_abilities_unwrap_paginator(<proxy>, 'campaigns') -> canonical {campaigns:[...],total,page,per_page}. RECORDED BASIS: P-J paginator-unwrap helper vendor-source-verified against FluentCrm\\Framework\\Pagination\\LengthAwarePaginator::toArray() ({current_page,data:items->toArray(),per_page,total}) + vendor ['<key>'=>paginate()] controllers, correct across all proxied shapes; empty-case live-confirmed (list-recurring-campaigns -> {campaigns:[],total:0,page:1,per_page:15}); per-item projection shared with P-G, fully live-verified x17 in this PR; populated-case live-confirm DEFERRED - infra-held solely on all-worker opcache flush on helenawillow, not an omitted code gate.",
+      "doc": "installed vendor source: vendor controller returns ['campaigns'=>$query->paginate()] (LengthAwarePaginator)"
+    },
+    {
+      "ability": "fluent-crm/list-sequences-for-subscriber",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (source read live 2026-05-16)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 paginator unwrap",
+      "canonical_handler": "vendor controller returns ['sequence_trackers'=>$query->paginate()] (LengthAwarePaginator) — live-verified vendor wrapper key is 'sequence_trackers', NOT the schema items_key 'sequences'",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "END-TO-END VERIFIED v1.4.0 P7.1 (helenawillow, FluentCRM populated, opcache cycled, 2026-05-17): ability->execute({subscriber_id:1}) -> {sequences:[3 real rows],total:3,page:1,per_page:15}; first row id=2213 subscriber_id=1 type=sequence_tracker + nested sequence/last_sequence — canonical shape, real records, validate_output passes. Pre-P7.1 this fataled with the Addendum 27 phantom TypeError.",
+      "principles": [
+        "V5"
+      ],
+      "package": "4a; P7 unwrap fix live-verified; populated-case BLOCKED by Addendum 27 -> Package 7.1; P7.1 Addendum 27 fixed + end-to-end VERIFIED",
+      "pattern": "P-J Laravel/wpFluent paginator-internals leak",
+      "status": "VERIFIED (v1.4.0 P7.1 — Addendum 27 fixed; end-to-end ability->execute() live read-back, helenawillow 2026-05-17)",
+      "notes": "Package 4a callback wrapped with fluent_abilities_unwrap_paginator(<proxy>, 'sequences'). P7 (2026-05-17, helenawillow, FluentCRM populated, opcache cycled) LIVE-VERIFIED the unwrap helper fix CORRECT: vendor returns ['sequence_trackers'=>$paginator] (its OWN single key != schema items_key 'sequences'); the P7 single-key-wrapper descent resolves it to canonical {sequences:[3 real rows],total,page,per_page} — confirmed via direct proxy+unwrap probe (subscriber_id 1 -> 3 rows). The unwrap fix IS in this P7-close PR and is correct. HOWEVER ability->execute() still fatals on populated responses: WP core rest_validate_value_from_schema (validate_output) TypeError 'Cannot access offset of type string on string' at wp-includes/rest-api.php:2203, caused by fluent_abilities_schema_list_output($key,$obj) stuffing the {type:object,additionalProperties:true} fragment into `properties`, declaring a phantom property literally named `type` whose schema is the string \"object\"; every row carries a real `type` column -> core recurses into a string. Broad blast radius (all schema_list/collection/item_output($key,$obj) callers). Cold-start signature: empty site passes, populated fatals. Disposition: SPLIT (reviewer) — schema-output defect = Addendum 27, routed to Package 7.1; NOT flipped to VERIFIED here; code-routed, not infra-deferred. see docs/P7-CLOSE.md || v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
+      "doc": "installed vendor source: vendor controller returns ['sequence_trackers'=>$query->paginate()] (LengthAwarePaginator) — live-verified 2026-05-17"
+    },
+    {
+      "ability": "fluent-crm/list-campaign-unsubscribers",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (source read live 2026-05-16)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 paginator unwrap",
+      "canonical_handler": "CampaignAnalyticsController::getUnsubscribers returns ['unsubscribes'=>$query->paginate()] (LengthAwarePaginator) — live-verified vendor wrapper key is 'unsubscribes', NOT the schema items_key 'unsubscribers'",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "END-TO-END VERIFIED v1.4.0 P7.1 (helenawillow, FluentCRM populated, opcache cycled, 2026-05-17): ability->execute({id:191}) -> {unsubscribers:[1 real row],total:1,page:1,per_page:15}; first row id=18049 campaign_id=191 subscriber_id=64 type=unsubscribe + nested real subscriber (Annica Blomstrom, id 64) — canonical shape, real record (NOT the paginator), validate_output passes. Pre-P7.1 this fataled with the Addendum 27 phantom TypeError (why it was PENDING).",
+      "principles": [
+        "V5"
+      ],
+      "package": "4a; P7 unwrap fix live-verified; populated-case BLOCKED by Addendum 27 -> Package 7.1; P7.1 Addendum 27 fixed + end-to-end VERIFIED",
+      "pattern": "P-J Laravel/wpFluent paginator-internals leak",
+      "status": "VERIFIED (v1.4.0 P7.1 — Addendum 27 fixed; end-to-end ability->execute() live read-back, helenawillow 2026-05-17)",
+      "notes": "Package 4a callback wrapped with fluent_abilities_unwrap_paginator(<proxy>, 'unsubscribers'). P7 (2026-05-17, helenawillow, FluentCRM populated, opcache cycled) LIVE-VERIFIED the unwrap helper fix CORRECT: vendor CampaignAnalyticsController::getUnsubscribers returns ['unsubscribes'=>$paginator] (its OWN single key != schema items_key 'unsubscribers'); the P7 single-key-wrapper descent resolves it to canonical {unsubscribers:[1 real row + nested subscriber],total:1,page:1,per_page:15} — confirmed via direct proxy+unwrap probe (campaign id 191 -> 1 row). The unwrap fix IS in this P7-close PR and is correct. HOWEVER ability->execute() still fatals on populated responses: WP core rest_validate_value_from_schema (validate_output) TypeError 'Cannot access offset of type string on string' at wp-includes/rest-api.php:2203, caused by fluent_abilities_schema_list_output($key,$obj) stuffing the {type:object,additionalProperties:true} fragment into `properties`, declaring a phantom property literally named `type` whose schema is the string \"object\"; every row carries a real `type` column -> core recurses into a string. Broad blast radius (all schema_list/collection/item_output($key,$obj) callers). Cold-start signature: empty site passes, populated fatals. Disposition: SPLIT (reviewer) — schema-output defect = Addendum 27, routed to Package 7.1; NOT flipped to VERIFIED here; code-routed, not infra-deferred. see docs/P7-CLOSE.md || v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
+      "doc": "installed vendor source: CampaignAnalyticsController::getUnsubscribers returns ['unsubscribes'=>$query->paginate()] (LengthAwarePaginator) — live-verified 2026-05-17"
+    },
+    {
+      "ability": "fluent-crm/get-campaign-contacts-by-segment",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (source read live 2026-05-16)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 paginator unwrap",
+      "canonical_handler": "vendor controller returns ['contacts'=>$query->paginate()] (LengthAwarePaginator)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 response-boundary (P-J) fix; not a write (V3 read-back N/A)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4a",
+      "pattern": "P-J Laravel/wpFluent paginator-internals leak",
+      "status": "PENDING (populated-case live-confirm deferred; see basis)",
+      "notes": "Package 4a. Callback wrapped with fluent_abilities_unwrap_paginator(<proxy>, 'contacts') -> canonical {contacts:[...],total,page,per_page}. RECORDED BASIS: P-J paginator-unwrap helper vendor-source-verified against FluentCrm\\Framework\\Pagination\\LengthAwarePaginator::toArray() ({current_page,data:items->toArray(),per_page,total}) + vendor ['<key>'=>paginate()] controllers, correct across all proxied shapes; empty-case live-confirmed (list-recurring-campaigns -> {campaigns:[],total:0,page:1,per_page:15}); per-item projection shared with P-G, fully live-verified x17 in this PR; populated-case live-confirm DEFERRED - infra-held solely on all-worker opcache flush on helenawillow, not an omitted code gate. || v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
+      "doc": "installed vendor source: vendor controller returns ['contacts'=>$query->paginate()] (LengthAwarePaginator)"
+    },
+    {
+      "ability": "fluent-crm/list-funnel-subscribers",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (source read live 2026-05-16)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 paginator unwrap",
+      "canonical_handler": "vendor controller returns ['subscribers'=>$query->paginate()] (LengthAwarePaginator)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 response-boundary (P-J) fix; not a write (V3 read-back N/A)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4a",
+      "pattern": "P-J Laravel/wpFluent paginator-internals leak",
+      "status": "PENDING (populated-case live-confirm deferred; see basis)",
+      "notes": "Package 4a. Callback wrapped with fluent_abilities_unwrap_paginator(<proxy>, 'subscribers') -> canonical {subscribers:[...],total,page,per_page}. RECORDED BASIS: P-J paginator-unwrap helper vendor-source-verified against FluentCrm\\Framework\\Pagination\\LengthAwarePaginator::toArray() ({current_page,data:items->toArray(),per_page,total}) + vendor ['<key>'=>paginate()] controllers, correct across all proxied shapes; empty-case live-confirmed (list-recurring-campaigns -> {campaigns:[],total:0,page:1,per_page:15}); per-item projection shared with P-G, fully live-verified x17 in this PR; populated-case live-confirm DEFERRED - infra-held solely on all-worker opcache flush on helenawillow, not an omitted code gate.",
+      "doc": "installed vendor source: vendor controller returns ['subscribers'=>$query->paginate()] (LengthAwarePaginator)"
+    },
+    {
+      "ability": "fluent-crm/list-campaigns",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM installed on helenawillow (source read live 2026-05-16)",
+      "authority": "vendor_rest_proxy + V5 schema/normalize",
+      "canonical_handler": "vendor REST controller",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 response-shape fix (V3 read-back N/A)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4a",
+      "pattern": "P-H non-nullable field returned null (scheduled_at)",
+      "notes": "Package 4a special. output_schema scheduled_at widened string -> ['string','null'] (draft campaigns have null scheduled_at; vendor-verified). No callback change. LIVE-VERIFIED helenawillow 2026-05-16: returned 74 campaigns incl null scheduled_at, no false rejection.",
+      "doc": "installed vendor source: vendor REST controller"
+    },
+    {
+      "ability": "fluent-crm/get-contact-custom-fields",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM installed on helenawillow (source read live 2026-05-16)",
+      "authority": "vendor_rest_proxy + V5 schema/normalize",
+      "canonical_handler": "vendor REST controller",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 response-shape fix (V3 read-back N/A)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4a",
+      "pattern": "P-H item-shape union + empty-state normalize",
+      "notes": "Package 4a special. options[] items union object|string|number|boolean (vendor returns option entries as objects OR scalars); callback wrapped fluent_abilities_normalize_collection(...,'fields') for empty/null set. Vendor-verified CustomFieldsController::getContactFields. LIVE-VERIFIED helenawillow 2026-05-16: fields:[] (empty set) returned without reject.",
+      "doc": "installed vendor source: vendor REST controller"
+    },
+    {
+      "ability": "fluent-crm/get-report-advanced-providers",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "ReportingController::getAdvancedReportProviders (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (providers (apply_filters passthrough; item shape is a vendor extension point))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe).",
+      "doc": "installed vendor source: ReportingController::getAdvancedReportProviders (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)"
+    },
+    {
+      "ability": "fluent-crm/get-report-contacts-by-tags",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "ReportingController::getContactsByTags (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (tags (paginator object))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe).",
+      "doc": "installed vendor source: ReportingController::getContactsByTags (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)"
+    },
+    {
+      "ability": "fluent-crm/get-report-contacts-by-lists",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "ReportingController::getContactsByLists (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (lists (paginator object))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe).",
+      "doc": "installed vendor source: ReportingController::getContactsByLists (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)"
+    },
+    {
+      "ability": "fluent-crm/get-report-recent-tags",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "ReportingController::getRecentTags (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (tags (Collection; normalize idempotent))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe).",
+      "doc": "installed vendor source: ReportingController::getRecentTags (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)"
+    },
+    {
+      "ability": "fluent-crm/get-report-automations",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "ReportingController::getAutomationReports (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (automations (paginator; row-key divergence + dropped overview/top_automations siblings = documented V4/shape limitation))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe).",
+      "doc": "installed vendor source: ReportingController::getAutomationReports (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)"
+    },
+    {
+      "ability": "fluent-crm/list-report-emails",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "ReportingController::getEmails (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (emails (paginator; statuses/types non-declared sibling keys default null, left as-is))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe).",
+      "doc": "installed vendor source: ReportingController::getEmails (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)"
+    },
+    {
+      "ability": "fluent-crm/list-subscriber-tracking-events",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "SubscriberController::getTrackingEvents (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (events (paginator; sendError WP_Error passes through))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe). || v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
+      "doc": "installed vendor source: SubscriberController::getTrackingEvents (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)"
+    },
+    {
+      "ability": "fluent-crm/list-subscriber-automations",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "FunnelController::subscriberAutomations (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (automations (paginator))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe). || v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
+      "doc": "installed vendor source: FunnelController::subscriberAutomations (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)"
+    },
+    {
+      "ability": "fluent-crm/get-funnel-all-activities",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "FunnelController::getAllActivities (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (activities (paginator, decorated rows))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe). || v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
+      "doc": "installed vendor source: FunnelController::getAllActivities (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)"
+    },
+    {
+      "ability": "fluent-crm/list-campaigns-pro-post-taxonomies",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "DynamicPostDataController::getPostsTaxonomies (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (taxonomies (post-type-keyed map; []-when-empty))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe). || v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
+      "doc": "installed vendor source: DynamicPostDataController::getPostsTaxonomies (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)"
+    },
+    {
+      "ability": "fluent-crm/list-recurring-campaign-emails",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "RecurringCampaignController::getEmails (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (emails (paginator; optional page-1 drafts key))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe). || v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
+      "doc": "installed vendor source: RecurringCampaignController::getEmails (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)"
+    },
+    {
+      "ability": "fluent-crm/list-company-notes",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "CompanyController::getNotes (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (notes (paginator))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe). || v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
+      "doc": "installed vendor source: CompanyController::getNotes (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)"
+    },
+    {
+      "ability": "fluent-crm/list-campaign-emails",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "CampaignController::campaignEmails (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (emails (paginator))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe). || v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
+      "doc": "installed vendor source: CampaignController::campaignEmails (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)"
+    },
+    {
+      "ability": "fluent-crm/list-experiments-campaigns",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "SettingsController::getCampaigns (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (campaigns (Collection; unbounded ->get() flagged, not gated))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe).",
+      "doc": "installed vendor source: SettingsController::getCampaigns (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)"
+    },
+    {
+      "ability": "fluent-crm/get-contact-purchase-history",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "PurchaseHistoryController::getOrders (route-verified; registrar Source citation has V4 drift)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H item-union (orders is object {orders:[],total} from apply_filters('fluent_crm/purchase_history_<provider>'))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=item-union — output_schema key widened to ['object','array'] additionalProperties true (vendor returns a structured object, NOT a row collection; array-coercion would corrupt). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live (helenawillow probe, incidental): pre-deploy reproduced 'output[<key>] not array'; post-deploy the vendor object is accepted (get-contact-info-widgets id=1 verified). Site-agnostic; multisite config-agnostic (flagged).",
+      "doc": "installed vendor source: PurchaseHistoryController::getOrders (route-verified; registrar Source citation has V4 drift)"
+    },
+    {
+      "ability": "fluent-crm/get-contact-support-tickets",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "SubscriberController::getSupportTickets (route-verified; registrar Source citation has V4 drift)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H item-union (tickets is object {data:[],total,columns_config} from apply_filters('fluentcrm-get_support_tickets_<provider>'))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=item-union — output_schema key widened to ['object','array'] additionalProperties true (vendor returns a structured object, NOT a row collection; array-coercion would corrupt). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live (helenawillow probe, incidental): pre-deploy reproduced 'output[<key>] not array'; post-deploy the vendor object is accepted (get-contact-info-widgets id=1 verified). Site-agnostic; multisite config-agnostic (flagged).",
+      "doc": "installed vendor source: SubscriberController::getSupportTickets (route-verified; registrar Source citation has V4 drift)"
+    },
+    {
+      "ability": "fluent-crm/get-template",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "TemplateController::template (route GET /templates/{id}; registrar cited 'getTemplate' = V4 drift; vendor Template::find() silent-null source)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "V3 read-back (live, 2026-05-16, helenawillow probe): create-template -> get-template{id=5111} returns the stored record (post_title present, NOT placeholder); get-template{id=999999} -> typed not_found (pre-fix: silent blank-placeholder HTTP 200). Fixture template 5111 deleted, 0 residue.",
+      "principles": [
+        "V3",
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "Addendum 15 (b) same-slug V3 route-correctness + V5",
+      "notes": "Package 4b, Addendum 15 (b). Callback-body only. V3: vendor template() coerces missing/non-positive id to 0, Template::find(0)=null, then SILENTLY returns a blank default placeholder with HTTP success (no 404) — the v1.4.0 'placeholder instead of stored template' defect. Fix: guard id<1 (typed ability_invalid_input); after proxy, detect the placeholder sentinel (post_title=='' && post_content=='' && email_subject=='') and return typed not_found instead of surfacing the placeholder. V5: payload already plain arrays (sendSuccess) pass-through. Vendor primitives cited: Template::find() (defect) vs Template::findOrFail()/GET /templates/all (existence-authoritative). Ledger provenance: Addendum 15 (b).",
+      "status": "VERIFIED (live, helenawillow probe — incidental surface)",
+      "doc": "installed vendor source: TemplateController::template (route GET /templates/{id}; registrar cited 'getTemplate' = V4 drift; vendor Template::find() silent-null source)"
+    },
+    {
+      "ability": "fluent-crm/get-system-logs",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "SystemLogController::index (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V5"
+      ],
+      "package": "4b",
+      "pattern": "P-H normalize (logs (paginator))",
+      "notes": "Package 4b. Per-slug vendor-source pass: DECISION=normalize — wrap proxy result in fluent_abilities_normalize_collection(<proxy>,'<key>') (4a paginator/{data,total}/keyed-map-aware helper; rows are objects; no schema change). see docs/P4B-PER-SLUG-VENDOR-PASS.md (per-slug vendor-source citation + decision + why). Live: pre-deploy reproduced 'output[<key>] not array', post-deploy clean array — verified for get-system-logs/list-pro-managers/list-docs-addons on helenawillow probe (incidental); family-shared helper; remaining normalize slugs covered by the same helper + the cited per-slug source. Site-agnostic (vendor-contract); multisite config-agnostic by construction (flagged, single-site probe).",
+      "doc": "installed vendor source: SystemLogController::index (route-verified; registrar Source citation has V4 method-name drift, not fixed in 4b)"
+    },
+    {
+      "ability": "fluent-crm/get-report-top-campaigns",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow probe (incidental test surface; source read live 2026-05-16, routes verified vs app/Http/Routes/api.php)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 response-boundary",
+      "canonical_handler": "ability proxies GET /fluent-crm/v2/reports/top-campaigns — NO such route in vendor app/Http/Routes/api.php (reports prefix); rest_do_request -> 404 WP_Error. Closest real route: reports/campaigns-list -> ReportingController::getCampaignsList",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V5 read-shape fix (V3 read-back N/A per dispatch)",
+      "principles": [
+        "V3"
+      ],
+      "package": "4b",
+      "pattern": "REMOVED (v1.4.0 P7 close) — dead proxy route, no working contract to preserve",
+      "notes": "Package 7 close: ability UNREGISTERED. J-AUTHORIZED removal — J directive 2026-05-17 (ledger Addendum 25: 'these 3 we can just remove; we should not ship abilities that can be called and don't work'). Basis/rationale: independently verified never-functional (proxied GET /fluent-crm/v2/reports/top-campaigns, a route that does not exist in the installed vendor route table — verified vs app/Http/Routes/api.php; closest real route reports/campaigns-list -> ReportingController::getCampaignsList) AND absent at tag v1.1.3 (NOT Stable-locked — Principle-10 callback/contract lock does not bind). Named removal version: v1.4.0 P7-close. Aliasing: N/A (no working contract to alias). The P4b separable-defect bounce is the finding provenance, NOT the disposition authority — the reviewer did NOT rule deprecate. Tombstone comment at includes/crm/extended-reports.php. see docs/P7-CLOSE.md + docs/P4B-PER-SLUG-VENDOR-PASS.md",
+      "status": "REMOVED (v1.4.0 P7 close — unregistered; never functional since v2.0.0)",
+      "doc": "installed vendor source: ability proxies GET /fluent-crm/v2/reports/top-campaigns — NO such route in vendor app/Http/Routes/api.php (reports prefix); rest_do_request -> 404 WP_Error. Closest real route: reports/campaigns-list -> ReportingController::getCampaignsList"
+    },
+    {
+      "ability": "fluent-crm/set-global-email-style",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM installed on helenawillow probe (incidental; source read live 2026-05-16)",
+      "authority": "vendor handler",
+      "canonical_handler": "see notes",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "REMOVED (v1.4.0 P7 close) — never-functional executable defect, no working contract",
+      "notes": "Package 7 close: ability UNREGISTERED. J-AUTHORIZED removal — J directive 2026-05-17 (ledger Addendum 25: 'these 3 we can just remove; we should not ship abilities that can be called and don't work'). Basis/rationale: independently verified never-functional (vendor TemplateController::setGlobalStyle reads `config`; ability schema/forwards `style` -> schema-valid {style:{...}} saved an empty config and returned a misleading success since v2.0.0) AND absent at tag v1.1.3 (NOT Stable-locked — Principle-10 callback/contract lock does not bind). Named removal version: v1.4.0 P7-close. Aliasing: N/A (no working contract to alias). The P5 reclassification escalation is the finding provenance, NOT the disposition authority — the reviewer did NOT rule deprecate. Tombstone comment at includes/crm/extended-templates-and-patterns.php. see docs/P7-CLOSE.md + docs/P5-SCHEMA-CLARITY.md",
+      "status": "REMOVED (v1.4.0 P7 close — unregistered; never functional since v2.0.0)",
+      "doc": "installed vendor source: see notes"
+    },
+    {
+      "ability": "fluent-crm/list-subscribers-prev-next-ids",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM installed on helenawillow probe (incidental; source read live 2026-05-16)",
+      "authority": "vendor handler",
+      "canonical_handler": "see notes",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "REMOVED (v1.4.0 P7 close) — never-functional contract defect, no working contract",
+      "notes": "Package 7 close: ability UNREGISTERED. J-AUTHORIZED removal — J directive 2026-05-17 (ledger Addendum 25: 'these 3 we can just remove; we should not ship abilities that can be called and don't work'). Basis/rationale: independently verified never-functional (vendor SubscriberController::getPrevNextIds requires filter_type+current_id and never reads `id` — the only schema-required field — rejecting 100% of schema-valid input since v2.0.0) AND absent at tag v1.1.3 (NOT Stable-locked — Principle-10 callback/contract lock does not bind). Named removal version: v1.4.0 P7-close. Aliasing: N/A (no working contract to alias). The P5 reclassification escalation is the finding provenance, NOT the disposition authority — the reviewer did NOT rule deprecate. Tombstone comment at includes/crm/extended-subscribers.php. see docs/P7-CLOSE.md + docs/P5-SCHEMA-CLARITY.md",
+      "status": "REMOVED (v1.4.0 P7 close — unregistered; never functional since v2.0.0)",
+      "doc": "installed vendor source: see notes"
+    },
+    {
+      "ability": "fluent-crm/update-campaign",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-crm/update-funnel-title",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-crm/update-recurring-campaign-labels",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-crm/export-subscribers",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-crm/attach-tag",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-crm/detach-tag",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-crm/do-bulk-action-funnels",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "installed vendor on helenawillow probe (incidental test surface; P5 editorial pass 2026-05-16)",
+      "authority": "vendor handler (proxy/model) — unchanged; P5 editorial",
+      "doc": "docs/P5-SCHEMA-CLARITY.md (P-C description-clarity; installed-source-aligned)",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A — V4 description-clarity only, no behavior/schema change",
+      "principles": [
+        "V4"
+      ],
+      "package": "5",
+      "pattern": "P-C input-schema description clarity (editorial, no rename/behavior)",
+      "notes": "Package 5 editorial: input_schema description clarified to state the handler-expected field name/shape; no field renamed, no behavior change. see docs/P5-SCHEMA-CLARITY.md"
+    },
+    {
+      "ability": "fluent-crm/get-funnel-email-reports",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (audited live 2026-05-17, registration-time schema scan)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 schema-output boundary",
+      "canonical_handler": "vendor controller -> paginator/collection; ability output via fluent_abilities_schema_collection_output",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 schema-output boundary fix (V3 read-back N/A; not a write)",
+      "principles": [
+        "V5"
+      ],
+      "package": "7.1",
+      "pattern": "Addendum 27 phantom-property schema-output TypeError",
+      "status": "FIXED (v1.4.0 P7.1) — Addendum 27; no phantom TypeError on populated responses (live-confirmed across affected family 2026-05-17)",
+      "notes": "Affected slug discovered by the P7.1 registration-time audit (collection_output(steps,$obj), registrar extended-funnels). v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
+      "doc": "installed vendor source: ability output_schema built via the shared schema-output helpers; see docs/P7.1-SCHEMA-OUTPUT.md"
+    },
+    {
+      "ability": "fluent-crm/list-campaigns-pro-posts",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (audited live 2026-05-17, registration-time schema scan)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 schema-output boundary",
+      "canonical_handler": "vendor controller -> paginator/collection; ability output via fluent_abilities_schema_collection_output",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 schema-output boundary fix (V3 read-back N/A; not a write)",
+      "principles": [
+        "V5"
+      ],
+      "package": "7.1",
+      "pattern": "Addendum 27 phantom-property schema-output TypeError",
+      "status": "FIXED (v1.4.0 P7.1) — Addendum 27; no phantom TypeError on populated responses (live-confirmed across affected family 2026-05-17)",
+      "notes": "Affected slug discovered by the P7.1 registration-time audit (collection_output(posts,$obj), registrar extended-pro-marketing). v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
+      "doc": "installed vendor source: ability output_schema built via the shared schema-output helpers; see docs/P7.1-SCHEMA-OUTPUT.md"
+    },
+    {
+      "ability": "fluent-crm/list-commerce-reports-for-provider",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (audited live 2026-05-17, registration-time schema scan)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 schema-output boundary",
+      "canonical_handler": "vendor controller -> paginator/collection; ability output via fluent_abilities_schema_collection_output",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 schema-output boundary fix (V3 read-back N/A; not a write)",
+      "principles": [
+        "V5"
+      ],
+      "package": "7.1",
+      "pattern": "Addendum 27 phantom-property schema-output TypeError",
+      "status": "FIXED (v1.4.0 P7.1) — Addendum 27; no phantom TypeError on populated responses (live-confirmed across affected family 2026-05-17)",
+      "notes": "Affected slug discovered by the P7.1 registration-time audit (collection_output(reports,$obj), registrar extended-pro-settings-and-commerce). v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
+      "doc": "installed vendor source: ability output_schema built via the shared schema-output helpers; see docs/P7.1-SCHEMA-OUTPUT.md"
+    },
+    {
+      "ability": "fluent-crm/list-dynamic-segments",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (audited live 2026-05-17, registration-time schema scan)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 schema-output boundary",
+      "canonical_handler": "vendor controller -> paginator/collection; ability output via fluent_abilities_schema_list_output",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 schema-output boundary fix (V3 read-back N/A; not a write)",
+      "principles": [
+        "V5"
+      ],
+      "package": "7.1",
+      "pattern": "Addendum 27 phantom-property schema-output TypeError",
+      "status": "FIXED (v1.4.0 P7.1) — Addendum 27; no phantom TypeError on populated responses (live-confirmed across affected family 2026-05-17)",
+      "notes": "Affected slug discovered by the P7.1 registration-time audit (list_output(segments,$obj), registrar extended-pro-marketing). v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
+      "doc": "installed vendor source: ability output_schema built via the shared schema-output helpers; see docs/P7.1-SCHEMA-OUTPUT.md"
+    },
+    {
+      "ability": "fluent-crm/search-unattached-contacts-for-company",
+      "vendor": "fluent-crm",
+      "vendor_version_checked": "FluentCRM/FluentCampaign installed on helenawillow (audited live 2026-05-17, registration-time schema scan)",
+      "authority": "vendor_rest_proxy (rest_do_request) + V5 schema-output boundary",
+      "canonical_handler": "vendor controller -> paginator/collection; ability output via fluent_abilities_schema_collection_output",
+      "direct_storage": false,
+      "destructive": false,
+      "read_back": "N/A - V5 schema-output boundary fix (V3 read-back N/A; not a write)",
+      "principles": [
+        "V5"
+      ],
+      "package": "7.1",
+      "pattern": "Addendum 27 phantom-property schema-output TypeError",
+      "status": "FIXED (v1.4.0 P7.1) — Addendum 27; no phantom TypeError on populated responses (live-confirmed across affected family 2026-05-17)",
+      "notes": "Affected slug discovered by the P7.1 registration-time audit (collection_output(contacts,$obj), registrar extended-pro-companies). v1.4.0 P7.1 — Addendum 27 FIXED: fluent_abilities_schema_list_output/_collection_output/_item_output now route through fluent_abilities_item_schema_node, which uses a string-valued `type` 2nd-arg ($obj fragment {type:object,additionalProperties:true}) directly as the item schema instead of stuffing it into `properties` (which declared a phantom property literally named `type`=string \"object\" -> WP-core rest_validate_value_from_schema TypeError in validate_output() on populated responses). Mechanical; zero behaviour change for legitimate property-map callers (unit-proven both branches + the real-`type`-property risk edge; 997 Unit green). Live: ability->execute() across the affected family on helenawillow 2026-05-17 — no phantom TypeError anywhere (graceful typed WP_Error or canonical populated data).",
+      "doc": "installed vendor source: ability output_schema built via the shared schema-output helpers; see docs/P7.1-SCHEMA-OUTPUT.md"
+    }
+  ]
+}

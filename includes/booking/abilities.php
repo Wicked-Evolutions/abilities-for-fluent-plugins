@@ -12,9 +12,105 @@
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Recursively strip privileged host-only fields from a booking's meta /
+ * location_details before they cross an ordinary read boundary (#140).
+ *
+ * get-booking is an unscoped read; without this, its output disclosed the Zoom
+ * host "start as host" token/link (start_url / zak / *_start_link) and the host's
+ * Google Calendar links (remote_link / remote_calendar_id) — letting any caller
+ * with read access host the meeting or read the host mailbox's calendar.
+ * Attendee-safe fields (join_url, password, meeting_id, etc.) are preserved.
+ *
+ * @param mixed $value Decoded meta value (array or scalar).
+ * @return mixed The value with privileged keys removed at any depth.
+ */
+function fluent_abilities_booking_redact_host_secrets( $value ) {
+	if ( ! is_array( $value ) ) {
+		return $value;
+	}
+	$deny = array( 'start_url', 'zak', 'start_link', 'online_platform_start_link', 'remote_link', 'remote_calendar_id' );
+	$out  = array();
+	foreach ( $value as $k => $v ) {
+		if ( is_string( $k ) ) {
+			$lk = strtolower( $k );
+			if ( in_array( $lk, $deny, true )
+				|| substr( $lk, -11 ) === '_start_link'
+				|| substr( $lk, -10 ) === '_start_url' ) {
+				continue;
+			}
+		}
+		$out[ $k ] = is_array( $v ) ? fluent_abilities_booking_redact_host_secrets( $v ) : $v;
+	}
+	return $out;
+}
+
 add_action( 'wp_abilities_api_init', function() {
 
 	$reg = new Fluent_Abilities_Registrar( 'booking' );
+
+	$reg->read( 'fluent-booking/get-event', array(
+		'label'       => 'Get Booking Event',
+		'description' => 'Get a single event by ID with full details including parsed settings (schedule, availability, locations).',
+		'input_schema' => array(
+			'type'       => 'object',
+			'required'   => array( 'id' ),
+			'properties' => array(
+				'id' => array( 'type' => 'integer', 'description' => 'Event ID' ),
+			),
+		),
+		'output_schema' => fluent_abilities_schema_item_output( array(
+			'id'               => array( 'type' => 'integer' ),
+			'calendar_id'      => array( 'type' => 'integer' ),
+			'title'            => array( 'type' => 'string' ),
+			'slug'             => array( 'type' => 'string' ),
+			'duration'         => array( 'type' => 'integer' ),
+			'type'             => array( 'type' => 'string' ),
+			'status'           => array( 'type' => 'string' ),
+			'settings'         => array( 'type' => 'object' ),
+			'location_settings'=> array( 'type' => 'object' ),
+			'created_at'       => array( 'type' => 'string' ),
+		) ),
+		'callback' => function( $input ) {
+			$event = wpFluent()->table( 'fcal_calendar_events' )
+				->where( 'id', (int) $input['id'] )
+				->first();
+
+			if ( ! $event ) {
+				return fluent_abilities_error( 'not_found', 'Event not found' );
+			}
+
+			$settings          = fluent_abilities_safe_array( maybe_unserialize( $event->settings ) );
+			$location_settings = fluent_abilities_safe_array( maybe_unserialize( $event->location_settings ) );
+
+			// Get the parent calendar title for context.
+			$calendar  = wpFluent()->table( 'fcal_calendars' )
+				->where( 'id', $event->calendar_id )
+				->first();
+
+			return array(
+				'id'                => (int) $event->id,
+				'hash'              => $event->hash ?? null,
+				'calendar_id'       => (int) $event->calendar_id,
+				'calendar_title'    => $calendar ? ( $calendar->title ?? null ) : null,
+				'title'             => $event->title ?? '',
+				'slug'              => $event->slug ?? '',
+				'description'       => $event->description ?? null,
+				'duration'          => (int) $event->duration,
+				'type'              => $event->type ?? '',
+				'event_type'        => $event->event_type ?? '',
+				'availability_type' => $event->availability_type ?? null,
+				'status'            => $event->status ?? '',
+				'color_schema'      => $event->color_schema ?? '',
+				'location_type'     => $event->location_type ?? '',
+				'location_settings' => $location_settings,
+				'max_book_per_slot' => (int) $event->max_book_per_slot,
+				'settings'          => $settings,
+				'created_at'        => (string) ( $event->created_at ?? '' ),
+				'updated_at'        => (string) ( $event->updated_at ?? '' ),
+			);
+		},
+	) );
 
 	// =========================================================================
 	// CALENDARS — READ
@@ -402,69 +498,6 @@ add_action( 'wp_abilities_api_init', function() {
 		},
 	) );
 
-	$reg->read( 'fluent-booking/get-event', array(
-		'label'       => 'Get Booking Event',
-		'description' => 'Get a single event by ID with full details including parsed settings (schedule, availability, locations).',
-		'input_schema' => array(
-			'type'       => 'object',
-			'required'   => array( 'id' ),
-			'properties' => array(
-				'id' => array( 'type' => 'integer', 'description' => 'Event ID' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_item_output( array(
-			'id'               => array( 'type' => 'integer' ),
-			'calendar_id'      => array( 'type' => 'integer' ),
-			'title'            => array( 'type' => 'string' ),
-			'slug'             => array( 'type' => 'string' ),
-			'duration'         => array( 'type' => 'integer' ),
-			'type'             => array( 'type' => 'string' ),
-			'status'           => array( 'type' => 'string' ),
-			'settings'         => array( 'type' => 'object' ),
-			'location_settings'=> array( 'type' => 'object' ),
-			'created_at'       => array( 'type' => 'string' ),
-		) ),
-		'callback' => function( $input ) {
-			$event = wpFluent()->table( 'fcal_calendar_events' )
-				->where( 'id', (int) $input['id'] )
-				->first();
-
-			if ( ! $event ) {
-				return fluent_abilities_error( 'not_found', 'Event not found' );
-			}
-
-			$settings          = fluent_abilities_safe_array( maybe_unserialize( $event->settings ) );
-			$location_settings = fluent_abilities_safe_array( maybe_unserialize( $event->location_settings ) );
-
-			// Get the parent calendar title for context.
-			$calendar  = wpFluent()->table( 'fcal_calendars' )
-				->where( 'id', $event->calendar_id )
-				->first();
-
-			return array(
-				'id'                => (int) $event->id,
-				'hash'              => $event->hash ?? null,
-				'calendar_id'       => (int) $event->calendar_id,
-				'calendar_title'    => $calendar ? ( $calendar->title ?? null ) : null,
-				'title'             => $event->title ?? '',
-				'slug'              => $event->slug ?? '',
-				'description'       => $event->description ?? null,
-				'duration'          => (int) $event->duration,
-				'type'              => $event->type ?? '',
-				'event_type'        => $event->event_type ?? '',
-				'availability_type' => $event->availability_type ?? null,
-				'status'            => $event->status ?? '',
-				'color_schema'      => $event->color_schema ?? '',
-				'location_type'     => $event->location_type ?? '',
-				'location_settings' => $location_settings,
-				'max_book_per_slot' => (int) $event->max_book_per_slot,
-				'settings'          => $settings,
-				'created_at'        => (string) ( $event->created_at ?? '' ),
-				'updated_at'        => (string) ( $event->updated_at ?? '' ),
-			);
-		},
-	) );
-
 	// =========================================================================
 	// CREATE EVENT (P0) — uses CalendarSlot model for hooks
 	// =========================================================================
@@ -529,7 +562,18 @@ add_action( 'wp_abilities_api_init', function() {
 			$slug   = \FluentBooking\App\Services\Helper::generateSlotSlug( $duration . 'min', $calendar );
 			$status = sanitize_text_field( $input['status'] ?? 'active' );
 
-			$availability = \FluentBooking\App\Services\AvailabilityService::getDefaultSchedule( $calendar->user_id );
+			// V10: AvailabilityService::getDefaultSchedule() can call reset() on a null
+			// schedule list when the calendar user has no configured availability
+			// (P-K pattern, F-BOOK-01). Wrap to convert the PHP TypeError into a
+			// typed WP_Error rather than letting the fatal propagate.
+			try {
+				$availability = \FluentBooking\App\Services\AvailabilityService::getDefaultSchedule( $calendar->user_id );
+			} catch ( \Throwable $e ) {
+				return new WP_Error(
+					'vendor_precondition_failed',
+					'FluentBooking default-schedule lookup failed for calendar user ' . (int) $calendar->user_id . ': ' . $e->getMessage()
+				);
+			}
 
 			$slot_data = array(
 				'title'             => $title,
@@ -1091,7 +1135,10 @@ add_action( 'wp_abilities_api_init', function() {
 				);
 			}
 
-			$location_details = fluent_abilities_safe_array( maybe_unserialize( $booking->location_details ?? '' ) );
+			// #140: location_details can carry the host-only online_platform_start_link.
+			$location_details = fluent_abilities_booking_redact_host_secrets(
+				fluent_abilities_safe_array( maybe_unserialize( $booking->location_details ?? '' ) )
+			);
 
 			// Get booking meta — fcal_booking_meta uses 'value' column (not 'meta_value').
 			$meta_rows  = wpFluent()->table( 'fcal_booking_meta' )
@@ -1102,6 +1149,10 @@ add_action( 'wp_abilities_api_init', function() {
 			foreach ( $meta_rows as $row ) {
 				$meta[ $row->meta_key ] = fluent_abilities_safe_array( maybe_unserialize( $row->value ?? '' ) );
 			}
+
+			// #140: strip privileged host-only fields (Zoom start token/link, host
+			// calendar links) from meta before returning to an ordinary read caller.
+			$meta = fluent_abilities_booking_redact_host_secrets( $meta );
 
 			return array(
 				'id'                 => (int) $booking->id,
@@ -1355,7 +1406,7 @@ add_action( 'wp_abilities_api_init', function() {
 
 	$reg->write( 'fluent-booking/update-booking-status', array(
 		'label'       => 'Update Booking Status',
-		'description' => 'Update the status of a booking. Uses the Booking model to ensure all hooks fire. Valid statuses: scheduled, completed, cancelled, rejected, no_show.',
+		'description' => 'Update the status of a booking. Uses the Booking model to ensure all hooks fire. Valid statuses: scheduled, completed, cancelled, rejected, no_show. Input: pass the booking ID as `id` (an integer) — the field is `id`, NOT `booking_id` — plus `status` (one of the valid statuses) and optional `reason`.',
 		'category'    => 'fluent-booking',
 		'input_schema' => array(
 			'type'       => 'object',
