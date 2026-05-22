@@ -1510,46 +1510,6 @@ add_action( 'wp_abilities_api_init', function() {
 	// PROFILES
 	// =========================================================================
 
-	$reg->read( 'fluent-community/get-profile', array(
-		'label'       => 'Get Member Profile',
-		'description' => 'Get a community member profile by user ID.',
-		'category'    => 'fluent-community',
-		'input_schema' => array(
-			'type'       => 'object',
-			'required'   => array( 'user_id' ),
-			'properties' => array(
-				'user_id' => array( 'type' => 'integer', 'description' => 'WordPress user ID' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_item_output( array(
-			'user_id'           => array( 'type' => 'integer' ),
-			'display_name'      => array( 'type' => 'string' ),
-			'short_description' => array( 'type' => 'string' ),
-			'meta'              => array( 'type' => 'object' ),
-			'created_at'        => array( 'type' => 'string' ),
-		) ),
-		'callback' => function( $input ) {
-			$profile = \FluentCommunity\App\Models\XProfile::where( 'user_id', (int) $input['user_id'] )->first();
-			if ( ! $profile ) {
-				return fluent_abilities_error( 'not_found', 'Profile not found' );
-			}
-
-			return array(
-				'id'           => $profile->id,
-				'user_id'      => $profile->user_id,
-				'display_name' => $profile->display_name,
-				'username'     => $profile->username ?? null,
-				'email'        => $profile->email ?? null,
-				'status'       => $profile->status,
-				'total_points' => $profile->total_points ?? 0,
-				'avatar'       => $profile->avatar ?? null,
-				'short_description' => $profile->short_description ?? null,
-				'meta'         => fluent_abilities_safe_array( $profile->meta ),
-				'created_at'   => (string) $profile->created_at,
-			);
-		},
-	) );
-
 	$reg->read( 'fluent-community/get-my-profile', array(
 		'label'       => 'Get My Profile',
 		'description' => 'Get the current user\'s community profile.',

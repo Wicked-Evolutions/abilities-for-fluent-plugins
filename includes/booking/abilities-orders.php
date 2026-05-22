@@ -178,33 +178,6 @@ function fluent_booking_register_orders_abilities() {
 	// 4.11.4 — ENABLE PAYMENT METHOD
 	// =========================================================================
 
-	$reg->write( 'fluent-booking/enable-payment-method', array(
-		'label'       => 'Enable Payment Method',
-		'description' => 'Set a payment-method provider to enabled=true.',
-		'capability'  => 'manage_options',
-		'annotations' => array( 'idempotent' => true ),
-		'input_schema' => array(
-			'type'       => 'object',
-			'required'   => array( 'slug' ),
-			'properties' => array(
-				'slug' => array( 'type' => 'string' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output( array(
-			'slug'    => array( 'type' => 'string' ),
-			'enabled' => array( 'type' => 'boolean' ),
-		) ),
-		'callback' => function( $input ) {
-			$slug = sanitize_text_field( $input['slug'] );
-			$cfg  = fluent_booking_payment_methods_config();
-			$row  = isset( $cfg[ $slug ] ) && is_array( $cfg[ $slug ] ) ? $cfg[ $slug ] : array();
-			$row['enabled'] = true;
-			$cfg[ $slug ]   = $row;
-			update_option( '__fluent_booking_pro_payment_methods', $cfg );
-			return array( 'success' => true, 'slug' => $slug, 'enabled' => true );
-		},
-	) );
-
 	// =========================================================================
 	// 4.11.5 — DISABLE PAYMENT METHOD
 	// =========================================================================

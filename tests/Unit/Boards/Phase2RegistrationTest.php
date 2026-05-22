@@ -62,7 +62,6 @@ class FluentBoardsPhase2RegistrationTest extends TestCase {
 		'fluent-boards/update-subtask-position',
 		'fluent-boards/move-subtask-to-board',
 		'fluent-boards/convert-task-to-subtask',
-		'fluent-boards/create-subtask-group',
 		'fluent-boards/update-subtask-group',
 		'fluent-boards/delete-subtask-group',
 		// §4.5 comments replies (6)
@@ -150,7 +149,6 @@ class FluentBoardsPhase2RegistrationTest extends TestCase {
 		'fluent-boards/stage-archive-all-tasks',
 		// §4.20 templates (4)
 		'fluent-boards/get-template-detail',
-		'fluent-boards/duplicate-board-as-template',
 		// §4.21 reports (3)
 		'fluent-boards/list-board-tasks-summary',
 		'fluent-boards/get-stage-report',
@@ -258,8 +256,8 @@ class FluentBoardsPhase2RegistrationTest extends TestCase {
 		// see PR body Deviations for the +1 reconciliation).
 		$registered = wp_get_abilities();
 		$ours = array_intersect_key( $registered, array_flip( self::$new_slugs ) );
-		$this->assertGreaterThanOrEqual( 153, count( $ours ), 'Fewer than 153 new abilities registered.' );
-		$this->assertLessThanOrEqual( 155, count( $ours ), 'More than expected — over-registration.' );
+		$this->assertGreaterThanOrEqual( 151, count( $ours ), 'Fewer than 151 new abilities registered.' );
+		$this->assertLessThanOrEqual( 153, count( $ours ), 'More than expected — over-registration.' );
 	}
 
 	// ── Annotation discipline ─────────────────────────────────────────────────

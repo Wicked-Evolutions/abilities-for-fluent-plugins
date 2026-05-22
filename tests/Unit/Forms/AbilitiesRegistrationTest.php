@@ -56,7 +56,6 @@ class FluentFormsAbilitiesRegistrationTest extends FormsAbilitiesTestCase {
 			'fluent-forms/create-form'                 => 'write',
 			'fluent-forms/update-form'                 => 'write',
 			'fluent-forms/delete-form'                 => 'delete',
-			'fluent-forms/duplicate-form'              => 'write',
 
 			// 4.2 Form lifecycle extras.
 			'fluent-forms/convert-form'                => 'write',
@@ -117,7 +116,6 @@ class FluentFormsAbilitiesRegistrationTest extends FormsAbilitiesTestCase {
 			// 4.11 Per-form integrations.
 			'fluent-forms/list-form-integrations'      => 'read',
 			'fluent-forms/get-form-integration'        => 'read',
-			'fluent-forms/create-form-integration'     => 'write',
 			'fluent-forms/update-form-integration'     => 'write',
 			'fluent-forms/delete-form-integration'     => 'delete',
 
@@ -195,7 +193,7 @@ class FluentFormsAbilitiesRegistrationTest extends FormsAbilitiesTestCase {
 		// the §4 inventory tables, which authoritatively enumerate the abilities
 		// being shipped. Same drift pattern as the Fluent Boards research called
 		// out in the sprint plan (TL;DR 124 vs §4 verification 160).
-		$this->assertCount( 90, $fluent_forms, 'Expected 6 existing + 88 new (research §4 enumeration) = 94 fluent-forms abilities registered.' );
+		$this->assertCount( 88, $fluent_forms, 'Expected 6 existing + 88 new (research §4 enumeration) = 94 fluent-forms abilities registered.' );
 	}
 
 	public function test_no_existing_v1_1_3_ability_was_renamed() {
@@ -270,6 +268,6 @@ class FluentFormsAbilitiesRegistrationTest extends FormsAbilitiesTestCase {
 				'fluent-forms/get-form-analytics',
 			), true );
 		}, ARRAY_FILTER_USE_BOTH );
-		$this->assertCount( 85, $new_only, 'Research §4 enumerates 88 new abilities (cluster sums).' );
+		$this->assertCount( 83, $new_only, 'Research §4 enumerates 88 new abilities (cluster sums).' );
 	}
 }

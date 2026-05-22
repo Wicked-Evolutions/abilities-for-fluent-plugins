@@ -301,53 +301,6 @@ add_action( 'wp_abilities_api_init', function() {
 		},
 	) );
 
-	$reg->write( 'fluent-forms/duplicate-form', array(
-		'label'       => 'Duplicate Form',
-		'description' => 'Duplicate an existing Fluent Form (deep-copies form_fields and configured meta). Optional title_suffix is appended to the source title (default " (Copy)").',
-		'input_schema' => array(
-			'type'       => 'object',
-			'required'   => array( 'form_id' ),
-			'properties' => array(
-				'form_id'      => array( 'type' => 'integer', 'description' => 'Source form ID' ),
-				'title_suffix' => array( 'type' => 'string', 'description' => 'Suffix to append to the duplicated title (default " (Copy)")' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_item_output( array(
-			'form_id'  => array( 'type' => 'integer' ),
-			'title'    => array( 'type' => 'string' ),
-			'redirect' => array( 'type' => array( 'string', 'null' ) ),
-		) ),
-		'callback' => function( $input ) {
-			if ( ! fluent_abilities_user_can( 'forms', 'write' ) ) {
-				return fluent_abilities_error( 'rest_forbidden', 'You do not have permission to duplicate forms' );
-			}
-
-			$form_id = (int) ( $input['form_id'] ?? 0 );
-			if ( $form_id < 1 ) {
-				return fluent_abilities_error( 'ability_invalid_input', 'form_id is required' );
-			}
-
-			if ( ! class_exists( '\\FluentForm\\App\\Services\\Form\\FormService' ) ) {
-				return fluent_abilities_error( 'plugin_missing', 'Fluent Forms FormService is not available.' );
-			}
-
-			$suffix = isset( $input['title_suffix'] ) ? sanitize_text_field( (string) $input['title_suffix'] ) : ' (Copy)';
-
-			try {
-				$service  = new \FluentForm\App\Services\Form\FormService();
-				$response = $service->duplicate( array( 'form_id' => $form_id, 'title_suffix' => $suffix ) );
-			} catch ( \Throwable $e ) {
-				return fluent_abilities_error( 'ability_execution_failed', $e->getMessage() );
-			}
-
-			return array(
-				'form_id'  => (int) ( $response['form_id'] ?? $response['id'] ?? 0 ),
-				'title'    => (string) ( $response['title'] ?? '' ),
-				'redirect' => $response['redirect'] ?? null,
-			);
-		},
-	) );
-
 	// =========================================================================
 	// 4.2 FORM LIFECYCLE EXTRAS
 	// =========================================================================
@@ -1979,59 +1932,6 @@ add_action( 'wp_abilities_api_init', function() {
 				'integration_id'   => $integration_id,
 				'integration_name' => $row->meta_key,
 				'config'           => json_decode( $row->value, true ),
-			);
-		},
-	) );
-
-	$reg->write( 'fluent-forms/create-form-integration', array(
-		'label'       => 'Create Form Integration',
-		'description' => 'Create a new integration feed for a form. Integration handle (integration_name) becomes the fluentform_form_meta meta_key; settings/conditionals are stored as JSON value.',
-		'input_schema' => array(
-			'type'       => 'object',
-			'required'   => array( 'form_id', 'integration_name', 'settings' ),
-			'properties' => array(
-				'form_id'          => array( 'type' => 'integer' ),
-				'integration_name' => array( 'type' => 'string' ),
-				'list_id'          => array( 'type' => array( 'string', 'integer', 'null' ) ),
-				'settings'         => array( 'type' => array( 'object', 'array' ) ),
-				'conditionals'     => array( 'type' => array( 'object', 'array', 'null' ) ),
-				'enabled'          => array( 'type' => 'boolean' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_item_output( array(
-			'integration_id' => array( 'type' => 'integer' ),
-			'message'        => array( 'type' => 'string' ),
-		) ),
-		'callback' => function( $input ) {
-			if ( ! fluent_abilities_user_can( 'forms', 'write' ) ) {
-				return fluent_abilities_error( 'rest_forbidden', 'You do not have permission to create form integrations' );
-			}
-
-			$form_id          = (int) ( $input['form_id'] ?? 0 );
-			$integration_name = isset( $input['integration_name'] ) ? sanitize_key( (string) $input['integration_name'] ) : '';
-			$settings         = isset( $input['settings'] ) && is_array( $input['settings'] ) ? $input['settings'] : null;
-			if ( $form_id < 1 || '' === $integration_name || null === $settings ) {
-				return fluent_abilities_error( 'ability_invalid_input', 'form_id, integration_name, and settings are required' );
-			}
-
-			global $wpdb;
-			$value = array(
-				'list_id'      => $input['list_id'] ?? null,
-				'enabled'      => ! empty( $input['enabled'] ),
-				'settings'     => $settings,
-				'conditionals' => $input['conditionals'] ?? null,
-			);
-			$wpdb->insert(
-				$wpdb->prefix . 'fluentform_form_meta',
-				array(
-					'form_id'  => $form_id,
-					'meta_key' => $integration_name,
-					'value'    => wp_json_encode( $value ),
-				)
-			);
-			return array(
-				'integration_id' => (int) $wpdb->insert_id,
-				'message'        => 'created',
 			);
 		},
 	) );

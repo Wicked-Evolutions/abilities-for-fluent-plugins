@@ -180,39 +180,6 @@ add_action( 'wp_abilities_api_init', function() {
 	// CUSTOMERS
 	// =========================================================================
 
-	$reg->write( 'fluent-cart/update-customer', array(
-		'label'       => 'Update Customer',
-		'description' => 'Update FluentCart customer details: first_name, last_name, phone, address fields.',
-		'input_schema' => array(
-			'type'       => 'object',
-			'required'   => array( 'id' ),
-			'properties' => array(
-				'id'         => array( 'type' => 'integer', 'description' => 'Customer ID' ),
-				'first_name' => array( 'type' => 'string', 'description' => 'First name' ),
-				'last_name'  => array( 'type' => 'string', 'description' => 'Last name' ),
-				'phone'      => array( 'type' => 'string', 'description' => 'Phone number' ),
-				'status'     => array( 'type' => 'string', 'description' => 'Customer status: active, inactive' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output( array(
-			'id' => array( 'type' => 'integer' ),
-		) ),
-		'callback' => function( $input ) {
-			$customer = \FluentCart\App\Models\Customer::find( intval( $input['id'] ) );
-			if ( ! $customer ) {
-				return fluent_abilities_error( 'not_found', 'Customer not found.' );
-			}
-			$fields = array( 'first_name', 'last_name', 'phone', 'status' );
-			foreach ( $fields as $field ) {
-				if ( isset( $input[ $field ] ) ) {
-					$customer->$field = sanitize_text_field( $input[ $field ] );
-				}
-			}
-			$customer->save();
-			return array( 'success' => true, 'id' => $customer->id );
-		},
-	) );
-
 	// =========================================================================
 	// SUBSCRIPTIONS
 	// =========================================================================
@@ -1019,67 +986,6 @@ add_action( 'wp_abilities_api_init', function() {
 	// =========================================================================
 	// ORDER ADDRESSES (P1)
 	// =========================================================================
-
-	$reg->write( 'fluent-cart/update-order-address', array(
-		'label'       => 'Update Order Address',
-		'description' => 'Update billing or shipping address on a FluentCart order.',
-		'input_schema' => array(
-			'type'       => 'object',
-			'required'   => array( 'order_id', 'type' ),
-			'properties' => array(
-				'order_id'  => array( 'type' => 'integer', 'description' => 'Order ID' ),
-				'type'      => array( 'type' => 'string', 'description' => 'Address type: billing, shipping', 'enum' => array( 'billing', 'shipping' ) ),
-				'name'      => array( 'type' => 'string', 'description' => 'Full name' ),
-				'address_1' => array( 'type' => 'string', 'description' => 'Address line 1' ),
-				'address_2' => array( 'type' => 'string', 'description' => 'Address line 2' ),
-				'city'      => array( 'type' => 'string', 'description' => 'City' ),
-				'state'     => array( 'type' => 'string', 'description' => 'State/Province' ),
-				'postcode'  => array( 'type' => 'string', 'description' => 'Postal/ZIP code' ),
-				'country'   => array( 'type' => 'string', 'description' => 'Country code (e.g., US, GB)' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output( array(
-			'address_id' => array( 'type' => 'integer' ),
-			'order_id'   => array( 'type' => 'integer' ),
-		) ),
-		'callback' => function( $input ) {
-			$order = \FluentCart\App\Models\Order::find( (int) $input['order_id'] );
-			if ( ! $order ) {
-				return fluent_abilities_error( 'not_found', 'Order not found.' );
-			}
-
-			$type = sanitize_text_field( $input['type'] );
-			$address = \FluentCart\App\Models\OrderAddress::where( 'order_id', $order->id )
-				->where( 'type', $type )
-				->first();
-
-			$fields = array( 'name', 'address_1', 'address_2', 'city', 'state', 'postcode', 'country' );
-
-			if ( $address ) {
-				foreach ( $fields as $field ) {
-					if ( isset( $input[ $field ] ) ) {
-						$address->$field = sanitize_text_field( $input[ $field ] );
-					}
-				}
-				$address->save();
-			} else {
-				$data = array(
-					'order_id' => $order->id,
-					'type'     => $type,
-				);
-				foreach ( $fields as $field ) {
-					$data[ $field ] = isset( $input[ $field ] ) ? sanitize_text_field( $input[ $field ] ) : null;
-				}
-				$address = \FluentCart\App\Models\OrderAddress::create( $data );
-			}
-
-			return array(
-				'success'    => true,
-				'address_id' => (int) $address->id,
-				'order_id'   => (int) $order->id,
-			);
-		},
-	) );
 
 	// =========================================================================
 	// CUSTOMER ADDRESSES (P1)

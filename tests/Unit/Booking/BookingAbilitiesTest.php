@@ -217,7 +217,6 @@ class FluentBookingAbilitiesTest extends TestCase {
 		'fluent-booking/list-payment-methods'            => 'read',
 		'fluent-booking/get-payment-method'              => 'read',
 		'fluent-booking/update-payment-method-config'    => 'write',
-		'fluent-booking/enable-payment-method'           => 'write',
 		'fluent-booking/disable-payment-method'          => 'write',
 		'fluent-booking/list-orders'                     => 'read',
 		'fluent-booking/get-order'                       => 'read',
@@ -239,7 +238,6 @@ class FluentBookingAbilitiesTest extends TestCase {
 		'fluent-booking/send-booking-sms'                => 'write',
 		// 4.14 Pro Coupons
 		'fluent-booking/update-coupon'                   => 'write',
-		'fluent-booking/delete-coupon'                   => 'delete',
 		// 4.15 Pro Team / event-host roster
 		'fluent-booking/list-team-events'                => 'read',
 		'fluent-booking/list-event-team-members'         => 'read',
@@ -309,7 +307,7 @@ class FluentBookingAbilitiesTest extends TestCase {
 				$new_count++;
 			}
 		}
-		$this->assertSame( 72, $new_count, 'Phase B new-ability count must be exactly 78' );
+		$this->assertSame( 70, $new_count, 'Phase B new-ability count must be exactly 78' );
 	}
 
 	public function test_each_ability_has_correct_verb_annotation() {
@@ -546,7 +544,6 @@ class FluentBookingAbilitiesTest extends TestCase {
 			'fluent-booking/list-payment-methods',
 			'fluent-booking/get-payment-method',
 			'fluent-booking/update-payment-method-config',
-			'fluent-booking/enable-payment-method',
 			'fluent-booking/disable-payment-method',
 			'fluent-booking/list-orders',
 			'fluent-booking/get-order',
@@ -565,7 +562,6 @@ class FluentBookingAbilitiesTest extends TestCase {
 			'fluent-booking/update-twilio-config',
 			'fluent-booking/send-booking-sms',
 			'fluent-booking/update-coupon',
-			'fluent-booking/delete-coupon',
 			'fluent-booking/import-bookings',
 			'fluent-booking/get-license-info',
 			'fluent-booking/activate-license',

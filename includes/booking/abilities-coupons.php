@@ -92,31 +92,5 @@ function fluent_booking_register_coupons_abilities() {
 	// 4.14.5 — DELETE COUPON
 	// =========================================================================
 
-	$reg->delete( 'fluent-booking/delete-coupon', array(
-		'label'       => 'Delete FluentBooking Coupon',
-		'description' => 'Remove a coupon by ID.',
-		'capability'  => 'manage_options',
-		'input_schema' => array(
-			'type'       => 'object',
-			'required'   => array( 'id' ),
-			'properties' => array(
-				'id' => array( 'type' => 'integer' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output( array(
-			'id'      => array( 'type' => 'integer' ),
-			'deleted' => array( 'type' => 'integer' ),
-		) ),
-		'callback' => function( $input ) {
-			$id      = (int) $input['id'];
-			$deleted = wpFluent()->table( 'fcal_coupons' )->where( 'id', $id )->delete();
-			return array(
-				'success' => true,
-				'id'      => $id,
-				'deleted' => (int) $deleted,
-			);
-		},
-	) );
-
 }
 add_action( 'wp_abilities_api_init', 'fluent_booking_register_coupons_abilities' );

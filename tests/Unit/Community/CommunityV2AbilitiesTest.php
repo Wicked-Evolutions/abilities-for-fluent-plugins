@@ -26,7 +26,6 @@ class CommunityV2AbilitiesTest extends TestCase {
 		'fluent-community/get-space-member'              => 'read',
 
 		// 4.2 Community-level member CRUD (3)
-		'fluent-community/create-member'                 => 'write',
 		'fluent-community/update-member-status'          => 'write',
 		'fluent-community/delete-member'                 => 'delete',
 
@@ -102,7 +101,6 @@ class CommunityV2AbilitiesTest extends TestCase {
 		'fluent-community/update-space-member-role'      => 'admin',
 
 		// 4.2 all three admin
-		'fluent-community/create-member'                 => 'admin',
 		'fluent-community/update-member-status'          => 'admin',
 		'fluent-community/delete-member'                 => 'admin',
 
@@ -153,7 +151,7 @@ class CommunityV2AbilitiesTest extends TestCase {
 
 	public function test_all_53_abilities_register() {
 		$abilities = wp_get_abilities();
-		$this->assertCount( 43, self::SLUGS, 'SLUGS map must contain exactly 43 entries' );
+		$this->assertCount( 42, self::SLUGS, 'SLUGS map must contain exactly 42 entries' );
 		foreach ( array_keys( self::SLUGS ) as $slug ) {
 			$this->assertArrayHasKey( $slug, $abilities, "missing: $slug" );
 		}
@@ -378,7 +376,7 @@ class CommunityV2AbilitiesTest extends TestCase {
 			'get-space-member',
 		) ), 'cluster 4.1 size != 4' );
 
-		$this->assertSame( 3, $count_by_prefix( array( 'create-member', 'update-member-status', 'delete-member' ) ), 'cluster 4.2 size != 3' );
+		$this->assertSame( 2, $count_by_prefix( array( 'create-member', 'update-member-status', 'delete-member' ) ), 'cluster 4.2 size != 2' );
 
 		$this->assertSame( 3, $count_by_prefix( array( 'create-space-group', 'update-space-group', 'delete-space-group' ) ), 'cluster 4.3 size != 3' );
 

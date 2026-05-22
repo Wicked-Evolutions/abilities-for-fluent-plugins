@@ -473,42 +473,6 @@ $reg->write( 'fluent-boards/convert-task-to-subtask', array(
 // =========================================================================
 // §4.4.9 — create-subtask-group (idempotent:false)
 // =========================================================================
-$reg->write( 'fluent-boards/create-subtask-group', array(
-	'label'       => 'Create Subtask Group',
-	'description' => 'Create a new subtask group on a parent task (stored in fbs_task_metas with key=subtask_group_name).',
-	'category'    => 'fluent-boards',
-	'input_schema' => array(
-		'type'       => 'object',
-		'required'   => array( 'board_id', 'task_id', 'title' ),
-		'properties' => array(
-			'board_id' => array( 'type' => 'integer' ),
-			'task_id'  => array( 'type' => 'integer' ),
-			'title'    => array( 'type' => 'string' ),
-		),
-	),
-	'output_schema' => fluent_abilities_schema_success_output( array(
-		'group_id' => array( 'type' => 'integer' ),
-		'task_id'  => array( 'type' => 'integer' ),
-	) ),
-	'annotations' => array( 'idempotent' => false ),
-	'callback'    => function( $input ) {
-		$task_id = (int) $input['task_id'];
-		$title   = sanitize_text_field( $input['title'] ?? '' );
-		if ( ! $title ) {
-			return fluent_abilities_error( 'ability_invalid_input', 'title is required.' );
-		}
-		$now    = current_time( 'mysql' );
-		$new_id = wpFluent()->table( 'fbs_task_metas' )->insertGetId( array(
-			'task_id'    => $task_id,
-			'key'        => 'subtask_group_name',
-			'value'      => $title,
-			'created_at' => $now,
-			'updated_at' => $now,
-		) );
-		return array( 'success' => true, 'group_id' => (int) $new_id, 'task_id' => $task_id );
-	},
-) );
-
 // =========================================================================
 // §4.4.10 — update-subtask-group
 // =========================================================================

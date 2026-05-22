@@ -435,69 +435,6 @@ add_action( 'wp_abilities_api_init', function() {
 		},
 	) );
 
-	$reg->read( 'fluent-booking/get-event', array(
-		'label'       => 'Get Booking Event',
-		'description' => 'Get a single event by ID with full details including parsed settings (schedule, availability, locations).',
-		'input_schema' => array(
-			'type'       => 'object',
-			'required'   => array( 'id' ),
-			'properties' => array(
-				'id' => array( 'type' => 'integer', 'description' => 'Event ID' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_item_output( array(
-			'id'               => array( 'type' => 'integer' ),
-			'calendar_id'      => array( 'type' => 'integer' ),
-			'title'            => array( 'type' => 'string' ),
-			'slug'             => array( 'type' => 'string' ),
-			'duration'         => array( 'type' => 'integer' ),
-			'type'             => array( 'type' => 'string' ),
-			'status'           => array( 'type' => 'string' ),
-			'settings'         => array( 'type' => 'object' ),
-			'location_settings'=> array( 'type' => 'object' ),
-			'created_at'       => array( 'type' => 'string' ),
-		) ),
-		'callback' => function( $input ) {
-			$event = wpFluent()->table( 'fcal_calendar_events' )
-				->where( 'id', (int) $input['id'] )
-				->first();
-
-			if ( ! $event ) {
-				return fluent_abilities_error( 'not_found', 'Event not found' );
-			}
-
-			$settings          = fluent_abilities_safe_array( maybe_unserialize( $event->settings ) );
-			$location_settings = fluent_abilities_safe_array( maybe_unserialize( $event->location_settings ) );
-
-			// Get the parent calendar title for context.
-			$calendar  = wpFluent()->table( 'fcal_calendars' )
-				->where( 'id', $event->calendar_id )
-				->first();
-
-			return array(
-				'id'                => (int) $event->id,
-				'hash'              => $event->hash ?? null,
-				'calendar_id'       => (int) $event->calendar_id,
-				'calendar_title'    => $calendar ? ( $calendar->title ?? null ) : null,
-				'title'             => $event->title ?? '',
-				'slug'              => $event->slug ?? '',
-				'description'       => $event->description ?? null,
-				'duration'          => (int) $event->duration,
-				'type'              => $event->type ?? '',
-				'event_type'        => $event->event_type ?? '',
-				'availability_type' => $event->availability_type ?? null,
-				'status'            => $event->status ?? '',
-				'color_schema'      => $event->color_schema ?? '',
-				'location_type'     => $event->location_type ?? '',
-				'location_settings' => $location_settings,
-				'max_book_per_slot' => (int) $event->max_book_per_slot,
-				'settings'          => $settings,
-				'created_at'        => (string) ( $event->created_at ?? '' ),
-				'updated_at'        => (string) ( $event->updated_at ?? '' ),
-			);
-		},
-	) );
-
 	// =========================================================================
 	// CREATE EVENT (P0) — uses CalendarSlot model for hooks
 	// =========================================================================

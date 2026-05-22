@@ -156,37 +156,6 @@ add_action( 'wp_abilities_api_init', function() {
 		},
 	) );
 
-	$reg->write( 'fluent-cart/update-variant-inventory', array(
-		'label'       => 'Update Variant Inventory',
-		'description' => 'Update variant-level stock_quantity and stock_status. Note: the identifying field for this ability is `variant_id` (resolved via \FluentCart\App\Models\ProductVariation::find = the {variantId} route segment). Other product abilities in this plugin use `variation_id` for the same underlying entity — this ability deliberately expects `variant_id`; do not substitute `variation_id` here. Mirrors PUT /products/{postId}/update-inventory/{variantId}.',
-		'input_schema' => array(
-			'type'     => 'object',
-			'required' => array( 'variant_id' ),
-			'properties' => array(
-				'variant_id'     => array( 'type' => 'integer' ),
-				'stock_quantity' => array( 'type' => 'integer' ),
-				'stock_status'   => array( 'type' => 'string', 'description' => 'in-stock | out-of-stock | backorder' ),
-			),
-		),
-		'output_schema' => fluent_abilities_schema_success_output( array(
-			'variant_id' => array( 'type' => 'integer' ),
-		) ),
-		'callback' => function( $input ) {
-			$variant = \FluentCart\App\Models\ProductVariation::find( (int) $input['variant_id'] );
-			if ( ! $variant ) {
-				return fluent_abilities_error( 'not_found', 'Variant not found.' );
-			}
-			if ( isset( $input['stock_quantity'] ) ) {
-				$variant->stock_quantity = (int) $input['stock_quantity'];
-			}
-			if ( isset( $input['stock_status'] ) ) {
-				$variant->stock_status = sanitize_text_field( $input['stock_status'] );
-			}
-			$variant->save();
-			return array( 'success' => true, 'variant_id' => (int) $variant->id );
-		},
-	) );
-
 	$reg->write( 'fluent-cart/sync-product-downloadable-files', array(
 		'label'       => 'Sync Product Downloadable Files',
 		'description' => 'Bulk synchronise the set of downloadable files attached to a product (creates / updates / deletes to match input). Mirrors POST /products/{postId}/sync-downloadable-files.',
