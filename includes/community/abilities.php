@@ -837,6 +837,14 @@ add_action( 'wp_abilities_api_init', function() {
 			'created_at' => array( 'type' => 'string' ),
 		) ),
 		'callback' => function( $input ) {
+			// Lessons are CourseLesson rows (fcom_posts, type=course_lesson) keyed to the
+			// course by space_id — NOT course_id (#124). The prior guard used the wrong
+			// CourseLesson namespace, so this fell through to a Feed type=lesson query that
+			// never matched a real lesson. Guard the canonical model first.
+			if ( ! class_exists( '\FluentCommunity\Modules\Course\Model\CourseLesson' ) ) {
+				return fluent_abilities_error( 'vendor_helper_unavailable', 'FluentCommunity\Modules\Course\Model\CourseLesson is not available. The course module must be active for this ability.' );
+			}
+
 			// Privacy check: verify course is accessible.
 			$course = \FluentCommunity\Modules\Course\Model\Course::where( 'type', 'course' )->find( (int) $input['course_id'] );
 			if ( ! $course ) {
@@ -846,16 +854,13 @@ add_action( 'wp_abilities_api_init', function() {
 				return fluent_abilities_error( 'rest_forbidden', 'You do not have access to this course' );
 			}
 
-			if ( ! class_exists( '\FluentCommunity\App\Models\CourseLesson' ) ) {
-				// Try the Feed-based lessons approach.
-				$lessons = \FluentCommunity\App\Models\Feed::where( 'space_id', (int) $input['course_id'] )
-					->where( 'type', 'lesson' )
+			// Wrap DB access so a schema mismatch returns a typed WP_Error, never raw SQL.
+			try {
+				$lessons = \FluentCommunity\Modules\Course\Model\CourseLesson::where( 'space_id', $course->id )
 					->orderBy( 'priority', 'ASC' )
 					->get();
-			} else {
-				$lessons = \FluentCommunity\App\Models\CourseLesson::where( 'course_id', (int) $input['course_id'] )
-					->orderBy( 'serial', 'ASC' )
-					->get();
+			} catch ( \Throwable $e ) {
+				return fluent_abilities_error( 'fluent_community_course_schema_mismatch', 'Could not list lessons against the installed FluentCommunity course schema.' );
 			}
 
 			$items = array();
@@ -895,10 +900,18 @@ add_action( 'wp_abilities_api_init', function() {
 			'updated_at' => array( 'type' => 'string' ),
 		) ),
 		'callback' => function( $input ) {
-			if ( class_exists( '\FluentCommunity\App\Models\CourseLesson' ) ) {
-				$lesson = \FluentCommunity\App\Models\CourseLesson::find( (int) $input['id'] );
-			} else {
-				$lesson = \FluentCommunity\App\Models\Feed::where( 'type', 'lesson' )->find( (int) $input['id'] );
+			// Lessons are CourseLesson rows (fcom_posts, type=course_lesson). The prior guard
+			// used the wrong CourseLesson namespace, so this fell through to a Feed type=lesson
+			// query that never matched a real lesson (#124). Guard the canonical model first
+			// and wrap the read so a schema mismatch returns a typed WP_Error, never raw SQL.
+			if ( ! class_exists( '\FluentCommunity\Modules\Course\Model\CourseLesson' ) ) {
+				return fluent_abilities_error( 'vendor_helper_unavailable', 'FluentCommunity\Modules\Course\Model\CourseLesson is not available. The course module must be active for this ability.' );
+			}
+
+			try {
+				$lesson = \FluentCommunity\Modules\Course\Model\CourseLesson::find( (int) $input['id'] );
+			} catch ( \Throwable $e ) {
+				return fluent_abilities_error( 'fluent_community_course_schema_mismatch', 'Could not read the lesson against the installed FluentCommunity course schema.' );
 			}
 
 			if ( ! $lesson ) {
@@ -2471,15 +2484,31 @@ add_action( 'wp_abilities_api_init', function() {
 		) ),
 		'annotations' => array( 'idempotent' => false ),
 		'callback' => function( $input ) {
-			if ( ! class_exists( '\FluentCommunity\App\Models\CourseLesson' ) ) {
-				return fluent_abilities_error( 'rest_forbidden', 'CourseLesson model not available' );
+			// Lessons are CourseLesson rows (fcom_posts, type=course_lesson). The prior guard
+			// used the wrong CourseLesson namespace, so this ability hard-failed for everyone
+			// with "model not available" (#124). Guard the canonical model first, delete
+			// through it, and confirm read-back-gone.
+			if ( ! class_exists( '\FluentCommunity\Modules\Course\Model\CourseLesson' ) ) {
+				return fluent_abilities_error( 'vendor_helper_unavailable', 'FluentCommunity\Modules\Course\Model\CourseLesson is not available. The course module must be active for this ability.' );
 			}
-			$lesson = \FluentCommunity\App\Models\CourseLesson::find( (int) $input['id'] );
+
+			$lesson = \FluentCommunity\Modules\Course\Model\CourseLesson::find( (int) $input['id'] );
 			if ( ! $lesson ) {
 				return fluent_abilities_error( 'not_found', 'Lesson not found' );
 			}
-			$id = $lesson->id;
-			$lesson->delete();
+
+			$id = (int) $lesson->id;
+			try {
+				$lesson->delete();
+			} catch ( \Throwable $e ) {
+				return fluent_abilities_error( 'fluent_community_lesson_delete_failed', 'Could not delete the lesson against the installed FluentCommunity course schema.' );
+			}
+
+			// Never report success unless the lesson is actually gone.
+			if ( \FluentCommunity\Modules\Course\Model\CourseLesson::where( 'id', $id )->exists() ) {
+				return fluent_abilities_error( 'fluent_community_lesson_not_deleted', 'Lesson deletion did not remove the lesson record.' );
+			}
+
 			return array( 'success' => true, 'id' => $id );
 		},
 	) );
