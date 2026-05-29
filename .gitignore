@@ -7,3 +7,4 @@ node_modules/
 
 # Per-chat work artifacts (never committed).
 .boards-research-extract.md
+.claude/
