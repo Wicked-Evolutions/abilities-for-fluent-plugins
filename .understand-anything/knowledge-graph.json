@@ -33,7 +33,8 @@
         "factory",
         "wordpress-abilities",
         "registration",
-        "permission"
+        "permission",
+        "tested"
       ],
       "complexity": "moderate",
       "languageNotes": "PSR-4 class under WickedEvolutions\\AbilitiesForFluent\\Core; wraps execute_callback closures to cast stdClass input to arrays and emits a typed WP_Error for anonymous CLI denials."
@@ -10588,6 +10589,34 @@
       "type": "contains",
       "direction": "forward",
       "weight": 1
+    },
+    {
+      "source": "file:src/Core/Registrar.php",
+      "target": "file:tests/Unit/RegistrarTest.php",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:src/Core/Registrar.php",
+      "target": "file:tests/Unit/Cart/CartV2RegistrarSemanticsTest.php",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:src/Core/Registrar.php",
+      "target": "file:tests/Unit/Boards/Phase2RegistrationTest.php",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "file:src/Core/Registrar.php",
+      "target": "file:tests/Unit/Player/PlayerRegistrationTest.php",
+      "type": "tested_by",
+      "direction": "forward",
+      "weight": 0.5
     }
   ],
   "layers": [
