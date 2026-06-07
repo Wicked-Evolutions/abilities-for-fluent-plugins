@@ -8,3 +8,10 @@ node_modules/
 # Per-chat work artifacts (never committed).
 .boards-research-extract.md
 .claude/
+
+# Understand-Anything — commit graph data (knowledge-graph.json, meta.json,
+# fingerprints.json, .understandignore); ignore scratch + local static build.
+.understand-anything/intermediate/
+.understand-anything/tmp/
+.understand-anything/.trash-*/
+.understand-anything/dashboard-static/
